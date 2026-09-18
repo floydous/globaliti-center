@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bg-vanilla" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fffdf6"/>
+      <stop offset="100%" stop-color="#faedd9"/>
+    </radialGradient>
+    <linearGradient id="cone-waffle" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f3c68f"/>
+      <stop offset="50%" stop-color="#dfa05e"/>
+      <stop offset="100%" stop-color="#b67332"/>
+    </linearGradient>
+    <linearGradient id="vanilla-cream" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#fff8e7"/>
+      <stop offset="100%" stop-color="#f3e5c8"/>
+    </linearGradient>
+    <filter id="soft-shadow-cone" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#4a3b2c" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="400" height="400" rx="32" fill="url(#bg-vanilla)"/>
+
+  <!-- Ground Shadow -->
+  <ellipse cx="200" cy="360" rx="60" ry="12" fill="#5c4428" opacity="0.12"/>
+
+  <!-- Main Cone & Swirl -->
+  <g filter="url(#soft-shadow-cone)">
+    <!-- Waffle Cone Body -->
+    <path d="M 130 190 L 195 348 C 197 353 203 353 205 348 L 270 190 Z" fill="url(#cone-waffle)" stroke="#a46124" stroke-width="2.5"/>
+
+    <!-- Waffle Grid Pattern lines (Clip to cone) -->
+    <g opacity="0.45" stroke="#7c4413" stroke-width="2" stroke-linecap="round">
+      <line x1="145" y1="210" x2="255" y2="210"/>
+      <line x1="155" y1="235" x2="245" y2="235"/>
+      <line x1="165" y1="260" x2="235" y2="260"/>
+      <line x1="175" y1="285" x2="225" y2="285"/>
+      <line x1="185" y1="310" x2="215" y2="310"/>
+
+      <line x1="145" y1="195" x2="215" y2="330"/>
+      <line x1="170" y1="195" x2="235" y2="280"/>
+      <line x1="255" y1="195" x2="185" y2="330"/>
+      <line x1="230" y1="195" x2="165" y2="280"/>
+    </g>
+
+    <!-- Cone Rim Rim -->
+    <path d="M 125 188 C 125 182 275 182 275 188 C 275 194 125 194 125 188 Z" fill="#e29b53" stroke="#99581f" stroke-width="2"/>
+
+    <!-- Vanilla Swirl Layer 1 (Bottom ruffle) -->
+    <path d="M 120 186 C 115 160 150 155 170 165 C 190 150 215 150 230 165 C 250 155 285 160 280 186 C 270 200 130 200 120 186 Z" fill="url(#vanilla-cream)" stroke="#e4d1b1" stroke-width="2.5"/>
+
+    <!-- Vanilla Swirl Layer 2 (Middle tier) -->
+    <path d="M 135 162 C 130 135 170 125 190 138 C 210 125 255 132 260 160 C 250 175 145 175 135 162 Z" fill="url(#vanilla-cream)" stroke="#e4d1b1" stroke-width="2.5"/>
+
+    <!-- Vanilla Swirl Layer 3 (Upper tier) -->
+    <path d="M 152 136 C 150 108 185 98 200 108 C 215 98 248 108 246 134 C 235 148 160 148 152 136 Z" fill="url(#vanilla-cream)" stroke="#e4d1b1" stroke-width="2.5"/>
+
+    <!-- Swirl Tip Curvature -->
+    <path d="M 175 110 C 180 80 200 70 215 62 C 210 78 220 90 220 106 Z" fill="#ffffff" stroke="#e4d1b1" stroke-width="2.5"/>
+
+    <!-- Soft vanilla highlight dots -->
+    <circle cx="165" cy="145" r="4" fill="#ffffff"/>
+    <circle cx="180" cy="120" r="3" fill="#ffffff"/>
+  </g>
+</svg>

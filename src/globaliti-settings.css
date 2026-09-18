@@ -1,0 +1,168 @@
+/* Styling Pengaturan - Globaliti Creative Center */
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 34px 48px;
+  width: 100%;
+  margin: 0;
+}
+
+.settings-header h2 {
+  font-size: 24px;
+  letter-spacing: -0.04em;
+  color: var(--gc-text);
+  margin: 0 0 4px;
+}
+
+.settings-sub {
+  font-size: 12px;
+  color: var(--gc-muted);
+  margin: 0;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.settings-card {
+  background: #ffffff;
+  border: 1px solid var(--gc-border);
+  border-radius: var(--gc-radius);
+  box-shadow: var(--gc-shadow);
+  padding: 22px;
+}
+
+.settings-card-head {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--gc-surface);
+}
+
+.settings-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--gc-signature-soft);
+  color: var(--gc-signature-dark);
+  flex-shrink: 0;
+}
+
+.settings-card-head h3 {
+  font-size: 15px;
+  letter-spacing: -0.02em;
+  margin: 0 0 2px;
+  color: var(--gc-text);
+}
+
+.settings-card-head p {
+  font-size: 11px;
+  color: var(--gc-muted);
+  margin: 0;
+}
+
+.operator-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.operator-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--gc-border);
+  border-radius: 10px;
+  background: var(--gc-surface);
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.operator-chip input {
+  cursor: pointer;
+}
+
+.operator-chip strong {
+  display: block;
+  font-size: 13px;
+  color: var(--gc-text);
+}
+
+.operator-chip span {
+  display: block;
+  font-size: 11px;
+  color: var(--gc-muted);
+}
+
+.operator-chip.active {
+  border-color: var(--gc-signature);
+  background: var(--gc-signature-soft);
+}
+
+.operator-chip.active strong {
+  color: var(--gc-signature-dark);
+}
+
+.settings-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  font-size: 12px;
+}
+
+.settings-info-grid > div {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--gc-surface);
+}
+
+.settings-info-grid span {
+  display: block;
+  font-size: 10px;
+  color: var(--gc-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.settings-info-grid strong {
+  color: var(--gc-text);
+}
+
+.settings-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.save-toast {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2e7d58;
+  background: var(--gc-signature-soft);
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+@media (max-width: 600px) {
+  .settings-page {
+    padding: 18px 14px 36px;
+  }
+  .operator-options,
+  .settings-info-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bg-berry" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff5f5"/>
+      <stop offset="100%" stop-color="#fed7d7"/>
+    </radialGradient>
+    <linearGradient id="strawberry-cream" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbb6ce"/>
+      <stop offset="50%" stop-color="#f687b3"/>
+      <stop offset="100%" stop-color="#ed64a6"/>
+    </linearGradient>
+    <linearGradient id="cup-grad-berry" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#fff5f5"/>
+    </linearGradient>
+    <filter id="soft-shadow-berry" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#702459" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="400" height="400" rx="32" fill="url(#bg-berry)"/>
+
+  <!-- Ground Shadow -->
+  <ellipse cx="200" cy="335" rx="90" ry="16" fill="#702459" opacity="0.1"/>
+
+  <!-- Cup & Cream Group -->
+  <g filter="url(#soft-shadow-berry)">
+    <!-- Small Spoon on right -->
+    <path d="M 230 140 L 275 85 C 285 75 300 78 305 90 C 309 100 302 115 290 125 L 245 180 Z" fill="#d4a373" stroke="#bc6c25" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M 270 95 C 275 88 288 90 292 98 C 295 105 290 114 282 120 Z" fill="#e7c195"/>
+
+    <!-- Strawberry Scoops -->
+    <circle cx="160" cy="180" r="48" fill="url(#strawberry-cream)"/>
+    <circle cx="235" cy="180" r="46" fill="url(#strawberry-cream)"/>
+    
+    <!-- Central Swirl Dome -->
+    <path d="M 140 190 C 135 145 165 115 200 110 C 235 115 265 145 260 190 Z" fill="url(#strawberry-cream)"/>
+    <circle cx="200" cy="120" r="15" fill="#fbb6ce"/>
+
+    <!-- Strawberry Drizzle Syrups -->
+    <path d="M 155 145 C 160 170 170 170 175 145" fill="none" stroke="#e53e3e" stroke-width="5" stroke-linecap="round"/>
+    <path d="M 190 135 C 195 175 205 175 210 135" fill="none" stroke="#e53e3e" stroke-width="5" stroke-linecap="round"/>
+    <path d="M 225 145 C 230 170 240 170 245 145" fill="none" stroke="#e53e3e" stroke-width="5" stroke-linecap="round"/>
+
+    <!-- Fresh Strawberry on Top -->
+    <g transform="translate(182, 82) scale(0.9)">
+      <!-- Strawberry Body -->
+      <path d="M 20 12 C 40 12 40 38 20 50 C 0 38 0 12 20 12 Z" fill="#e53e3e" stroke="#9b2c2c" stroke-width="2"/>
+      <!-- Green Leaves -->
+      <path d="M 20 12 C 22 5 28 4 32 6 C 28 10 24 12 20 12 Z" fill="#48bb78"/>
+      <path d="M 20 12 C 18 5 12 4 8 6 C 12 10 16 12 20 12 Z" fill="#48bb78"/>
+      <path d="M 20 12 C 20 3 24 2 20 0 C 18 2 18 6 20 12 Z" fill="#38a169"/>
+      <!-- Seeds -->
+      <circle cx="15" cy="22" r="1.5" fill="#fefcbf"/>
+      <circle cx="25" cy="22" r="1.5" fill="#fefcbf"/>
+      <circle cx="20" cy="30" r="1.5" fill="#fefcbf"/>
+      <circle cx="14" cy="36" r="1.5" fill="#fefcbf"/>
+      <circle cx="26" cy="36" r="1.5" fill="#fefcbf"/>
+      <circle cx="20" cy="42" r="1.5" fill="#fefcbf"/>
+    </g>
+
+    <!-- Paper Cup -->
+    <path d="M 130 195 L 148 310 C 149 318 156 324 164 324 L 236 324 C 244 324 251 318 252 310 L 270 195 Z" fill="url(#cup-grad-berry)" stroke="#fed7d7" stroke-width="3"/>
+
+    <!-- Cup Rim -->
+    <rect x="122" y="188" width="156" height="14" rx="7" fill="#ffffff" stroke="#feb2b2" stroke-width="2.5"/>
+
+    <!-- Cup Label Banner -->
+    <path d="M 135 225 L 145 285 C 146 290 150 294 155 294 L 245 294 C 250 294 254 290 255 285 L 265 225 Z" fill="#ed64a6" opacity="0.85"/>
+    
+    <!-- Cup Badge -->
+    <circle cx="200" cy="260" r="18" fill="#ffffff"/>
+    <!-- Tiny strawberry in badge -->
+    <path d="M 200 252 C 208 252 208 266 200 271 C 192 266 192 252 200 252 Z" fill="#ed64a6"/>
+  </g>
+</svg>

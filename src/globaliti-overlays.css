@@ -1,0 +1,127 @@
+.modal-backdrop-globaliti {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(22, 45, 38, 0.28);
+  backdrop-filter: blur(8px);
+  animation: gc-fade-in 160ms ease both;
+}
+
+.sale-modal {
+  width: min(420px, 100%);
+  padding: 28px;
+  border: 1px solid var(--gc-border);
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 30px 90px rgba(22, 45, 38, 0.2);
+  animation: gc-pop-in 180ms ease both;
+}
+
+.success-mark {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  margin-bottom: 18px;
+  border-radius: 19px;
+  background: var(--gc-signature);
+  color: #ffffff;
+  box-shadow: 0 12px 26px rgba(88, 185, 145, 0.28);
+}
+
+.modal-kicker-globaliti {
+  color: var(--gc-signature-dark);
+}
+
+.sale-modal h2 {
+  margin: 7px 0 8px;
+  font-size: 27px;
+  letter-spacing: -0.06em;
+}
+
+.sale-modal p {
+  margin-bottom: 19px;
+  color: var(--gc-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.sale-receipt {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--gc-border);
+  border-radius: 13px;
+  background: var(--gc-border);
+}
+
+.sale-receipt > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  background: #ffffff;
+}
+
+.sale-receipt span {
+  color: var(--gc-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.sale-receipt strong {
+  font-size: 11px;
+}
+
+.modal-primary {
+  display: flex;
+  width: 100%;
+  height: 43px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  border-radius: 11px;
+  background: var(--gc-text);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.notice-toast {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 15px;
+  border: 1px solid var(--gc-border-strong);
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--gc-text);
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: var(--gc-shadow);
+  animation: gc-toast-in 180ms ease both;
+}
+
+@keyframes gc-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes gc-pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes gc-toast-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

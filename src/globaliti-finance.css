@@ -1,0 +1,253 @@
+/* Styling Laporan Keuangan SAK EMKM - Globaliti Creative Center */
+.finance-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 34px 48px;
+  width: 100%;
+  margin: 0;
+}
+
+.finance-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.finance-header h2 {
+  font-size: 24px;
+  letter-spacing: -0.04em;
+  color: var(--gc-text);
+  margin: 0 0 4px;
+}
+
+.finance-sub {
+  font-size: 12px;
+  color: var(--gc-muted);
+  margin: 0;
+}
+
+.finance-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.finance-tabs {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid var(--gc-border);
+  padding-bottom: 2px;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  border-radius: 8px 8px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gc-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 160ms ease;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: var(--gc-text);
+  background: var(--gc-surface);
+}
+
+.tab-btn.active {
+  color: var(--gc-signature-dark);
+  background: #ffffff;
+  border-color: var(--gc-border) var(--gc-border) transparent;
+  border-bottom: 2px solid var(--gc-signature);
+}
+
+.finance-card {
+  background: #ffffff;
+  border: 1px solid var(--gc-border);
+  border-radius: var(--gc-radius);
+  box-shadow: var(--gc-shadow);
+  overflow: hidden;
+  padding: 24px;
+}
+
+.statement-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--gc-border);
+  margin-bottom: 20px;
+}
+
+.statement-head h3 {
+  font-size: 18px;
+  letter-spacing: -0.03em;
+  margin: 0;
+  color: var(--gc-text);
+}
+
+.statement-head span {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gc-signature-dark);
+  background: var(--gc-signature-soft);
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.statement-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.statement-section-title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gc-faint);
+  margin-top: 14px;
+  margin-bottom: 4px;
+}
+
+.statement-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--gc-text);
+}
+
+.statement-row:hover {
+  background: var(--gc-surface);
+}
+
+.statement-row.subtotal {
+  background: var(--gc-surface);
+  font-weight: 700;
+  border-top: 1px dashed var(--gc-border-strong);
+  margin-top: 4px;
+}
+
+.statement-row.grand-total {
+  background: var(--gc-signature-soft);
+  padding: 14px 16px;
+  margin-top: 16px;
+  border-radius: 10px;
+}
+
+.statement-row.grand-total strong {
+  font-size: 16px;
+  color: var(--gc-signature-dark);
+}
+
+.statement-row.grand-total small {
+  display: block;
+  font-size: 10px;
+  color: var(--gc-muted);
+  margin-top: 2px;
+}
+
+.text-profit {
+  color: #2e7d58 !important;
+}
+
+.text-loss {
+  color: #b73838 !important;
+}
+
+.finance-grid-neraca {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.finance-table-wrapper {
+  overflow-x: auto;
+}
+
+.finance-simple-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+}
+
+.finance-simple-table th {
+  background: var(--gc-surface);
+  color: var(--gc-faint);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--gc-border);
+}
+
+.finance-simple-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--gc-surface);
+  color: var(--gc-text);
+}
+
+.finance-simple-table tr:hover td {
+  background: var(--gc-surface);
+}
+
+.text-right {
+  text-align: right;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.badge-payment {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--gc-surface-strong);
+  color: var(--gc-signature-dark);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .finance-page {
+    padding: 18px 16px 36px;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .finance-grid-neraca {
+    grid-template-columns: 1fr;
+  }
+  .finance-tabs {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+  .tab-btn {
+    white-space: normal;
+    padding: 8px 12px;
+  }
+  .finance-simple-table {
+    display: block;
+    overflow-x: auto;
+  }
+  .statement-row {
+    flex-wrap: wrap;
+  }
+  .statement-row strong {
+    white-space: nowrap;
+    margin-left: auto;
+  }
+}

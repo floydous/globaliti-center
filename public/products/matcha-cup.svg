@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bg-matcha" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f0f7f4"/>
+      <stop offset="100%" stop-color="#d8ebe4"/>
+    </radialGradient>
+    <linearGradient id="matcha-ice" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#84a98c"/>
+      <stop offset="50%" stop-color="#52796f"/>
+      <stop offset="100%" stop-color="#354f52"/>
+    </linearGradient>
+    <linearGradient id="cup-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e9f3ef"/>
+    </linearGradient>
+    <filter id="soft-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#2f3e36" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="400" height="400" rx="32" fill="url(#bg-matcha)"/>
+
+  <!-- Ground Shadow -->
+  <ellipse cx="200" cy="335" rx="90" ry="16" fill="#2d3e35" opacity="0.1"/>
+
+  <!-- Group with Shadow -->
+  <g filter="url(#soft-shadow)">
+    <!-- Spoon sticking out -->
+    <path d="M 230 140 L 275 85 C 285 75 300 78 305 90 C 309 100 302 115 290 125 L 245 180 Z" fill="#d4a373" stroke="#bc6c25" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M 270 95 C 275 88 288 90 292 98 C 295 105 290 114 282 120 Z" fill="#e7c195"/>
+
+    <!-- Ice Cream Scoop Swirls (Matcha) -->
+    <!-- Base scoops -->
+    <circle cx="160" cy="180" r="50" fill="url(#matcha-ice)"/>
+    <circle cx="230" cy="180" r="48" fill="url(#matcha-ice)"/>
+    
+    <!-- Central Swirl / Dome -->
+    <path d="M 140 190 C 135 150 165 120 200 115 C 235 120 265 150 260 190 Z" fill="#6b9080"/>
+    <path d="M 160 165 C 175 135 220 135 235 165 C 215 150 185 150 160 165 Z" fill="#a3b18a"/>
+    <circle cx="200" cy="122" r="14" fill="#a3b18a"/>
+
+    <!-- Little wafer stick decoration -->
+    <rect x="135" y="110" width="16" height="85" rx="8" transform="rotate(-25 135 110)" fill="#ddb892" stroke="#b07d62" stroke-width="2"/>
+    <line x1="130" y1="130" x2="145" y2="123" stroke="#7f4f24" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="138" y1="150" x2="153" y2="143" stroke="#7f4f24" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Paper Cup -->
+    <path d="M 130 195 L 148 310 C 149 318 156 324 164 324 L 236 324 C 244 324 251 318 252 310 L 270 195 Z" fill="url(#cup-grad)" stroke="#cad2c5" stroke-width="3"/>
+
+    <!-- Cup Rim -->
+    <rect x="122" y="188" width="156" height="14" rx="7" fill="#ffffff" stroke="#b5c4b8" stroke-width="2.5"/>
+
+    <!-- Cup Label / Band -->
+    <path d="M 135 225 L 145 285 C 146 290 150 294 155 294 L 245 294 C 250 294 254 290 255 285 L 265 225 Z" fill="#52796f" opacity="0.9"/>
+    
+    <!-- Cup Badge Icon (leaf / matcha emblem) -->
+    <circle cx="200" cy="260" r="18" fill="#ffffff"/>
+    <path d="M 200 248 C 210 252 212 265 200 272 C 188 265 190 252 200 248 Z" fill="#52796f"/>
+  </g>
+</svg>
