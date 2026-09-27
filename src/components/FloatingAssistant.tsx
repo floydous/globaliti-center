@@ -1,5 +1,5 @@
 import { useRef, useState, type ReactNode } from 'react'
-import { Broom, Smiley, X } from '@phosphor-icons/react'
+import { Broom, Sparkle, X } from '@phosphor-icons/react'
 import '../globaliti-assistant.css'
 
 export default function FloatingAssistant({
@@ -29,7 +29,7 @@ export default function FloatingAssistant({
         <header className="assistant-panel-header">
           <div className="assistant-panel-brand">
             <div className="assistant-panel-avatar">
-              <Smiley size={30} weight="duotone" aria-hidden="true" />
+              <Sparkle size={20} weight="fill" aria-hidden="true" />
             </div>
             <div className="assistant-panel-titles">
               <h2 id="assistant-title">Asisten Globaliti</h2>
@@ -54,7 +54,7 @@ export default function FloatingAssistant({
         <p className="assistant-disclaimer">Periksa usulan perubahan sebelum menyetujuinya.</p>
       </div>
       <button ref={launcher} type="button" className="assistant-launcher" aria-label={open ? 'Tutup percakapan asisten' : 'Buka asisten Globaliti'} aria-expanded={open} aria-controls="assistant-panel" onClick={toggle}>
-        {open ? <X size={26} aria-hidden="true" /> : <Smiley size={38} weight="duotone" aria-hidden="true" />}
+        {open ? <X size={26} aria-hidden="true" /> : <Sparkle size={28} weight="fill" aria-hidden="true" />}
       </button>
     </div>
   )

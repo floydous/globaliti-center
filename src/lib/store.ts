@@ -1,4 +1,4 @@
-import type { AiMessage, Expense, PrintOrder, PrintSettings, Product, Sale } from '../types'
+import type { AiMessage, Expense, PaymentHotkeys, PrintOrder, PrintSettings, Product, Sale } from '../types'
 
 export type StoreData = {
   products: Product[]
@@ -8,6 +8,7 @@ export type StoreData = {
   printSettings: PrintSettings
   operator: string
   aiMessages: AiMessage[]
+  paymentHotkeys?: PaymentHotkeys
 }
 
 export const STORE_KEY = 'globaliti_store_v1'

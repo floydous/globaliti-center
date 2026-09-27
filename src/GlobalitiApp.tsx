@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import {
   Barcode,
   CaretRight,
@@ -40,7 +40,7 @@ import AiView from './components/AiView'
 import FloatingAssistant from './components/FloatingAssistant'
 import SettingsView from './components/SettingsView'
 import { loadStore, saveStore, type StoreData } from './lib/store'
-import type { AiMessage, Expense } from './types'
+import type { AiMessage, Expense, PaymentHotkeys } from './types'
 
 // Design Read: Reading this as a trust-first operational dashboard for two school-store managers, with a calm white and pastel language, leaning toward a focused retail control room.
 // Dials: DESIGN_VARIANCE 4, MOTION_INTENSITY 3, VISUAL_DENSITY 7.
@@ -56,10 +56,42 @@ type PrintForm = {
 }
 
 const initialProducts: Product[] = [
-  { id: 'p1', barcode: '8990000000010', name: 'Matcha Cup', category: 'Es krim', unit: 'cup', price: 8000, cost: 4500, stock: 24, reorderPoint: 8, active: true },
-  { id: 'p2', barcode: '8990000000027', name: 'Vanilla Cone', category: 'Es krim', unit: 'cone', price: 6000, cost: 3000, stock: 18, reorderPoint: 8, active: true },
-  { id: 'p3', barcode: '8990000000034', name: 'Cokelat Stick', category: 'Es krim', unit: 'stick', price: 5000, cost: 2500, stock: 32, reorderPoint: 10, active: true },
-  { id: 'p4', barcode: '8990000000041', name: 'Strawberry Cup', category: 'Es krim', unit: 'cup', price: 8000, cost: 4500, stock: 11, reorderPoint: 8, active: true },
+  { id: 'p1', barcode: '8990000000010', name: 'Matcha Cup', category: 'Es krim', unit: 'cup', price: 8000, cost: 4500, stock: 24, reorderPoint: 8, active: true, image: '/products/histeria-matcha.webp' },
+  { id: 'p2', barcode: '8990000000027', name: 'Vanilla Cone', category: 'Es krim', unit: 'cone', price: 6000, cost: 3000, stock: 18, reorderPoint: 8, active: true, image: '/products/vanilla.webp' },
+  { id: 'p3', barcode: '8990000000034', name: 'Cokelat Stick', category: 'Es krim', unit: 'stick', price: 5000, cost: 2500, stock: 32, reorderPoint: 10, active: true, image: '/products/chocolate.webp' },
+  { id: 'p4', barcode: '8990000000041', name: 'Strawberry Cup', category: 'Es krim', unit: 'cup', price: 8000, cost: 4500, stock: 11, reorderPoint: 8, active: true, image: '/products/strawberry-sundae.webp' },
+  { id: 'p5', barcode: '8990000000058', name: 'Aice Chocolate Sundae', category: 'Es krim', unit: 'cup', price: 8000, cost: 4500, stock: 20, reorderPoint: 8, active: true, image: '/products/chocolate-sundae.webp' },
+  { id: 'p6', barcode: '8990000000065', name: 'Aice Choco Meets Oats', category: 'Es krim', unit: 'stick', price: 5000, cost: 2800, stock: 25, reorderPoint: 8, active: true, image: '/products/choco-meets-oats.webp' },
+  { id: 'p7', barcode: '8990000000072', name: 'Aice Coffee Crispy', category: 'Es krim', unit: 'stick', price: 5000, cost: 2800, stock: 22, reorderPoint: 8, active: true, image: '/products/cofee-crispy.webp' },
+  { id: 'p8', barcode: '8990000000089', name: 'Aice Coklat 2 Colors', category: 'Es krim', unit: 'stick', price: 3000, cost: 1800, stock: 30, reorderPoint: 10, active: true, image: '/products/coklat-2-colors.webp' },
+  { id: 'p9', barcode: '8990000000096', name: 'Aice Durian Asli', category: 'Es krim', unit: 'stick', price: 10000, cost: 6000, stock: 15, reorderPoint: 6, active: true, image: '/products/durian.webp' },
+  { id: 'p10', barcode: '8990000000102', name: 'Aice Durian Cup', category: 'Es krim', unit: 'cup', price: 12000, cost: 7500, stock: 12, reorderPoint: 5, active: true, image: '/products/durian-cupp.webp' },
+  { id: 'p11', barcode: '8990000000119', name: 'Aice Fruizzy', category: 'Es krim', unit: 'stick', price: 4000, cost: 2200, stock: 28, reorderPoint: 8, active: true, image: '/products/fruizzy.webp' },
+  { id: 'p12', barcode: '8990000000126', name: 'Aice Histeria Vanilla', category: 'Es krim', unit: 'stick', price: 8000, cost: 4800, stock: 18, reorderPoint: 6, active: true, image: '/products/histeria.webp' },
+  { id: 'p13', barcode: '8990000000133', name: 'Aice Klepon', category: 'Es krim', unit: 'stick', price: 4000, cost: 2200, stock: 24, reorderPoint: 8, active: true, image: '/products/klepon.webp' },
+  { id: 'p14', barcode: '8990000000140', name: 'Aice Mango Stick', category: 'Es krim', unit: 'stick', price: 4000, cost: 2200, stock: 25, reorderPoint: 8, active: true, image: '/products/mango.webp' },
+  { id: 'p15', barcode: '8990000000157', name: 'Aice Mango Hi-C', category: 'Es krim', unit: 'stick', price: 4000, cost: 2200, stock: 20, reorderPoint: 8, active: true, image: '/products/mango-hi-c-tanpa-fifa.webp' },
+  { id: 'p16', barcode: '8990000000164', name: 'Aice Mango Slush Low Fat', category: 'Es krim', unit: 'cup', price: 8000, cost: 4500, stock: 16, reorderPoint: 6, active: true, image: '/products/mango-slush.webp' },
+  { id: 'p17', barcode: '8990000000171', name: 'Aice Milk Melon', category: 'Es krim', unit: 'stick', price: 4000, cost: 2200, stock: 26, reorderPoint: 8, active: true, image: '/products/milk-melon-2.webp' },
+  { id: 'p18', barcode: '8990000000188', name: 'Aice Milk Tea Boba', category: 'Es krim', unit: 'stick', price: 6000, cost: 3500, stock: 20, reorderPoint: 8, active: true, image: '/products/milktea-boba.webp' },
+  { id: 'p19', barcode: '8990000000195', name: 'Aice Mochi Milk Tea', category: 'Es krim', unit: 'pcs', price: 4500, cost: 2500, stock: 30, reorderPoint: 10, active: true, image: '/products/mochi-milk-tea.webp' },
+  { id: 'p20', barcode: '8990000000201', name: 'Aice Nanas Stick', category: 'Es krim', unit: 'stick', price: 3000, cost: 1800, stock: 35, reorderPoint: 10, active: true, image: '/products/nanas.webp' },
+  { id: 'p21', barcode: '8990000000218', name: 'Aice Sweet Peach', category: 'Es krim', unit: 'stick', price: 4000, cost: 2200, stock: 22, reorderPoint: 8, active: true, image: '/products/peach.webp' },
+  { id: 'p22', barcode: '8990000000225', name: 'Aice Semangka', category: 'Es krim', unit: 'stick', price: 3000, cost: 1800, stock: 40, reorderPoint: 12, active: true, image: '/products/semangka-kemasan.webp' },
+  { id: 'p23', barcode: '8990000000232', name: 'Aice Sesame Choco Crispy', category: 'Es krim', unit: 'stick', price: 5000, cost: 2800, stock: 18, reorderPoint: 6, active: true, image: '/products/sesame-choco-crispy.webp' },
+  { id: 'p24', barcode: '8990000000249', name: 'Aice Shine Muscat', category: 'Es krim', unit: 'stick', price: 4000, cost: 2200, stock: 25, reorderPoint: 8, active: true, image: '/products/shine-muscat.png' },
+  { id: 'p25', barcode: '8990000000256', name: 'Aice Jagung Sweet Corn', category: 'Es krim', unit: 'stick', price: 4000, cost: 2200, stock: 35, reorderPoint: 10, active: true, image: '/products/sweetcorn.webp' },
+  { id: 'p26', barcode: '8990000000263', name: 'Aice Taro Crispy', category: 'Es krim', unit: 'stick', price: 5000, cost: 2800, stock: 20, reorderPoint: 8, active: true, image: '/products/taro-crispy-3.webp' },
+  { id: 'p27', barcode: '8990000000270', name: 'Aice Vanilla Chocolate Cup', category: 'Es krim', unit: 'cup', price: 7000, cost: 4000, stock: 18, reorderPoint: 6, active: true, image: '/products/vanilla-chocolate-cup.webp' },
+  { id: 'p28', barcode: '8990000000287', name: 'Aice Crispy Balls', category: 'Es krim', unit: 'stick', price: 6000, cost: 3500, stock: 24, reorderPoint: 8, active: true, image: '/products/aice-crispy-balls.webp' },
+  { id: 'p29', barcode: '8990000000294', name: 'Aice Durian Crispy', category: 'Es krim', unit: 'stick', price: 10000, cost: 6000, stock: 15, reorderPoint: 6, active: true, image: '/products/aice-durian.webp' },
+  { id: 'p30', barcode: '8990000000300', name: 'Aice Jeruk Stick', category: 'Es krim', unit: 'stick', price: 3000, cost: 1800, stock: 30, reorderPoint: 10, active: true, image: '/products/aice-jeruk.webp' },
+  { id: 'p31', barcode: '8990000000317', name: 'Aice Miki-Miki', category: 'Es krim', unit: 'stick', price: 3000, cost: 1800, stock: 35, reorderPoint: 10, active: true, image: '/products/aice-miki-miki.webp' },
+  { id: 'p32', barcode: '8990000000324', name: 'Aice Susu Segar Milk', category: 'Es krim', unit: 'stick', price: 3000, cost: 1800, stock: 28, reorderPoint: 10, active: true, image: '/products/aice-milk.webp' },
+  { id: 'p33', barcode: '8990000000331', name: 'Aice Mung Bean (Kacang Hijau)', category: 'Es krim', unit: 'stick', price: 4000, cost: 2200, stock: 25, reorderPoint: 8, active: true, image: '/products/aice-moong-bean.webp' },
+  { id: 'p34', barcode: '8990000000348', name: 'Aice Banana Crispy', category: 'Es krim', unit: 'stick', price: 5000, cost: 2800, stock: 22, reorderPoint: 8, active: true, image: '/products/banana.webp' },
+  { id: 'p35', barcode: '8990000000355', name: 'Aice Blueberry Cookies', category: 'Es krim', unit: 'stick', price: 5000, cost: 2800, stock: 20, reorderPoint: 8, active: true, image: '/products/blueberry-cookies.webp' },
+  { id: 'p36', barcode: '8990000000362', name: 'Aice Choco Crispy Stick', category: 'Es krim', unit: 'stick', price: 5000, cost: 2800, stock: 25, reorderPoint: 8, active: true, image: '/products/choco-crispy.webp' },
 ]
 
 const initialSales: Sale[] = [
@@ -82,15 +114,56 @@ const initialPrintOrders: PrintOrder[] = [
 ]
 
 const productImages: Record<string, string> = {
-  p1: '/products/matcha-cup.svg',
-  p2: '/products/vanilla-cone.svg',
-  p3: '/products/chocolate-stick.svg',
-  p4: '/products/strawberry-cup.svg',
+  p1: '/products/histeria-matcha.webp',
+  p2: '/products/vanilla.webp',
+  p3: '/products/chocolate.webp',
+  p4: '/products/strawberry-sundae.webp',
+  p5: '/products/chocolate-sundae.webp',
+  p6: '/products/choco-meets-oats.webp',
+  p7: '/products/cofee-crispy.webp',
+  p8: '/products/coklat-2-colors.webp',
+  p9: '/products/durian.webp',
+  p10: '/products/durian-cupp.webp',
+  p11: '/products/fruizzy.webp',
+  p12: '/products/histeria.webp',
+  p13: '/products/klepon.webp',
+  p14: '/products/mango.webp',
+  p15: '/products/mango-hi-c-tanpa-fifa.webp',
+  p16: '/products/mango-slush.webp',
+  p17: '/products/milk-melon-2.webp',
+  p18: '/products/milktea-boba.webp',
+  p19: '/products/mochi-milk-tea.webp',
+  p20: '/products/nanas.webp',
+  p21: '/products/peach.webp',
+  p22: '/products/semangka-kemasan.webp',
+  p23: '/products/sesame-choco-crispy.webp',
+  p24: '/products/shine-muscat.png',
+  p25: '/products/sweetcorn.webp',
+  p26: '/products/taro-crispy-3.webp',
+  p27: '/products/vanilla-chocolate-cup.webp',
+  p28: '/products/aice-crispy-balls.webp',
+  p29: '/products/aice-durian.webp',
+  p30: '/products/aice-jeruk.webp',
+  p31: '/products/aice-miki-miki.webp',
+  p32: '/products/aice-milk.webp',
+  p33: '/products/aice-moong-bean.webp',
+  p34: '/products/banana.webp',
+  p35: '/products/blueberry-cookies.webp',
+  p36: '/products/choco-crispy.webp',
 }
 
-const getProductImage = (id: string) => productImages[id] || '/products/default-icecream.svg'
+const getProductImage = (productOrId: string | Product | undefined) => {
+  if (!productOrId) return '/products/default-icecream.svg'
+  if (typeof productOrId === 'object') {
+    if (productOrId.image) return productOrId.image
+    return productImages[productOrId.id] || '/products/default-icecream.svg'
+  }
+  return productImages[productOrId] || '/products/default-icecream.svg'
+}
 
 const formatRupiah = (value: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value)
+
+const defaultPaymentHotkeys: PaymentHotkeys = { tunai: '1', qris: '2' }
 
 const defaultAiWelcomeMessage: AiMessage = {
   id: 'msg-welcome',
@@ -106,10 +179,26 @@ function GlobalitiApp() {
   })
   const storageBlocked = restored.operator === '__STORAGE_ERROR__'
   const [view, setView] = useState<View>('pos')
-  const [products, setProducts] = useState<Product[]>(restored.products ?? initialProducts)
+  const [products, setProducts] = useState<Product[]>(() => {
+    if (restored.products && restored.products.length > 0) {
+      const restoredMap = new Map(restored.products.map((p) => [p.id, p]))
+      const merged = initialProducts.map((p) => {
+        const existing = restoredMap.get(p.id)
+        return existing ? { ...p, ...existing, image: existing.image || p.image } : p
+      })
+      restored.products.forEach((p) => {
+        if (!merged.some((m) => m.id === p.id)) {
+          merged.push(p)
+        }
+      })
+      return merged
+    }
+    return initialProducts
+  })
   const [sales, setSales] = useState<Sale[]>(restored.sales ?? initialSales)
   const [notice, setNotice] = useState('')
   const [barcodeInput, setBarcodeInput] = useState('')
+  const barcodeInputRef = useRef<HTMLInputElement | null>(null)
   const [productQuery, setProductQuery] = useState('')
   const [showProductForm, setShowProductForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
@@ -128,6 +217,7 @@ function GlobalitiApp() {
   const [stockReason, setStockReason] = useState('Stok masuk')
   const [cart, setCart] = useState<SaleItem[]>([])
   const [paymentMethod, setPaymentMethod] = useState<'Tunai' | 'QRIS'>('Tunai')
+  const [paymentHotkeys, setPaymentHotkeys] = useState<PaymentHotkeys>(restored.paymentHotkeys ?? defaultPaymentHotkeys)
   const [saleComplete, setSaleComplete] = useState<Sale | null>(null)
   const [expenses, setExpenses] = useState<Expense[]>(restored.expenses ?? initialExpenses)
   const [operator, setOperator] = useState(storageBlocked ? 'Pengelola 1' : restored.operator ?? 'Pengelola 1')
@@ -146,12 +236,78 @@ function GlobalitiApp() {
   useEffect(() => {
     if (storageBlocked) return
     try {
-      saveStore({ products, sales, expenses, printOrders, printSettings, operator, aiMessages })
+      saveStore({ products, sales, expenses, printOrders, printSettings, operator, aiMessages, paymentHotkeys })
       setStorageError('')
     } catch {
       setStorageError('Penyimpanan gagal. Jangan tutup halaman. Ekspor cadangan sebelum melanjutkan.')
     }
-  }, [products, sales, expenses, printOrders, printSettings, operator, aiMessages, storageBlocked])
+  }, [products, sales, expenses, printOrders, printSettings, operator, aiMessages, paymentHotkeys, storageBlocked])
+
+  useEffect(() => {
+    if (view !== 'pos') return
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Abaikan jika tombol modifier aktif (Ctrl, Alt, Meta/Cmd)
+      if (e.ctrlKey || e.altKey || e.metaKey) return
+
+      const targetEl = e.target as HTMLElement | null
+      const activeEl = document.activeElement as HTMLElement | null
+
+      // PENTING: Jangan pernah mencegat atau mengalihkan keystroke jika pengguna sedang
+      // berada di dalam panel Asisten AI (.assistant-widget, .assistant-panel, .ai-page, form ai), atau modal dialog apa pun
+      const isInsideAssistantOrDialog =
+        Boolean(targetEl?.closest?.('.assistant-widget, .assistant-panel, #assistant-panel, .ai-page, .ai-floating, .ai-input-form, .modal-backdrop-globaliti, .modal-backdrop, [role="dialog"]')) ||
+        Boolean(activeEl?.closest?.('.assistant-widget, .assistant-panel, #assistant-panel, .ai-page, .ai-floating, .ai-input-form, .modal-backdrop-globaliti, .modal-backdrop, [role="dialog"]'))
+
+      if (isInsideAssistantOrDialog) {
+        return
+      }
+
+      const inputEl = barcodeInputRef.current
+      const isInputFocused = !!activeEl && (
+        activeEl.tagName === 'INPUT' ||
+        activeEl.tagName === 'TEXTAREA' ||
+        (activeEl as HTMLElement).isContentEditable
+      )
+
+      // Prioritas 1: Pintasan Hotkey Pembayaran Kasir (default: "1" Tunai, "2" QRIS)
+      // PENTING: Hotkey HANYA boleh aktif jika pengguna TIDAK sedang fokus pada kotak input apa pun
+      if (!isInputFocused) {
+        const pressed = e.key.toUpperCase()
+        const tunaiKey = (paymentHotkeys.tunai || '1').toUpperCase()
+        const qrisKey = (paymentHotkeys.qris || '2').toUpperCase()
+
+        if (pressed === tunaiKey) {
+          e.preventDefault()
+          setPaymentMethod('Tunai')
+          notify(`Metode pembayaran: Tunai (Hotkey [${paymentHotkeys.tunai}])`)
+          return
+        }
+        if (pressed === qrisKey) {
+          e.preventDefault()
+          setPaymentMethod('QRIS')
+          notify(`Metode pembayaran: QRIS (Hotkey [${paymentHotkeys.qris}])`)
+          return
+        }
+      }
+
+      // Prioritas 2: Arahkan segala input angka 0-9 ke barcode input box
+      if (e.key >= '0' && e.key <= '9') {
+        if (!inputEl) return
+
+        if (document.activeElement !== inputEl) {
+          e.preventDefault()
+          inputEl.focus()
+          const len = inputEl.value.length
+          inputEl.setSelectionRange(len, len)
+          setBarcodeInput((prev) => prev + e.key)
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleGlobalKeyDown)
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown)
+  }, [view, paymentHotkeys, barcodeInput])
 
   const exportBackup = () => {
     const content = JSON.stringify({ version: 1, savedAt: new Date().toISOString(), data: { products, sales, expenses, printOrders, printSettings, operator, aiMessages } }, null, 2)
@@ -475,36 +631,65 @@ function GlobalitiApp() {
     <div className="globaliti-shell">
       {storageError && <div role="alert" className="storage-warning">{storageError}</div>}
       <aside className="sidebar">
-        <div className="brand-lockup">
-          <div className="brand-tile">GC</div>
-          <div>
-            <strong>Globaliti</strong>
-            <span>Creative Center</span>
+        <div className="brand-lockup brand-card">
+          <div className="brand-tile">
+            <img src="/globaliti-creative-center-icon.png" alt="Globaliti Creative Center" width={38} height={38} />
+          </div>
+          <div className="brand-info">
+            <span className="brand-eyebrow">SMKS TI BALI GLOBAL</span>
+            <div className="brand-heading">
+              <strong>Globaliti</strong>
+              <span className="brand-badge">POS</span>
+            </div>
+            <span className="brand-sub">Creative Center</span>
           </div>
         </div>
-        <div className="sidebar-section">
-          <span className="sidebar-label">Operasional</span>
-          <button className={view === 'pos' ? 'nav-item active' : 'nav-item'} onClick={() => setView('pos')}>
-            <ShoppingCart size={18} /> Kasir POS
-          </button>
-          <button className={view === 'products' ? 'nav-item active' : 'nav-item'} onClick={() => setView('products')}>
-            <Cube size={18} /> Katalog & Stok
-          </button>
-          <button className={view === 'print' ? 'nav-item active' : 'nav-item'} onClick={() => setView('print')}>
-            <Printer size={18} /> Jasa Print Word
-          </button>
-        </div>
-        <div className="sidebar-section">
-          <span className="sidebar-label">Pembukuan & Kendali</span>
-          <button className={view === 'finance' ? 'nav-item active' : 'nav-item'} onClick={() => setView('finance')}>
-            <FileText size={18} /> Laporan Keuangan
-          </button>
-          <button className={view === 'settings' ? 'nav-item active' : 'nav-item'} onClick={() => setView('settings')}>
-            <GearSix size={18} /> Pengaturan
-          </button>
-        </div>
+        <nav className="sidebar-nav-container" aria-label="Navigasi Utama">
+          <div className="sidebar-section">
+            <span className="sidebar-label">Operasional</span>
+            <button className={view === 'pos' ? 'nav-item active' : 'nav-item'} onClick={() => setView('pos')}>
+              <span className="nav-indicator" aria-hidden="true" />
+              <ShoppingCart size={18} />
+              <span className="nav-label-text">Kasir POS</span>
+            </button>
+            <button className={view === 'products' ? 'nav-item active' : 'nav-item'} onClick={() => setView('products')}>
+              <span className="nav-indicator" aria-hidden="true" />
+              <Cube size={18} />
+              <span className="nav-label-text">Katalog & Stok</span>
+            </button>
+            <button className={view === 'print' ? 'nav-item active' : 'nav-item'} onClick={() => setView('print')}>
+              <span className="nav-indicator" aria-hidden="true" />
+              <Printer size={18} />
+              <span className="nav-label-text">Jasa Print Word</span>
+            </button>
+          </div>
+          <div className="sidebar-section">
+            <span className="sidebar-label">Pembukuan & Kendali</span>
+            <button className={view === 'finance' ? 'nav-item active' : 'nav-item'} onClick={() => setView('finance')}>
+              <span className="nav-indicator" aria-hidden="true" />
+              <FileText size={18} />
+              <span className="nav-label-text">Laporan Keuangan</span>
+            </button>
+            <button className={view === 'settings' ? 'nav-item active' : 'nav-item'} onClick={() => setView('settings')}>
+              <span className="nav-indicator" aria-hidden="true" />
+              <GearSix size={18} />
+              <span className="nav-label-text">Pengaturan</span>
+            </button>
+          </div>
+        </nav>
         <div className="sidebar-foot">
-          <span className="status-dot" /> Sistem lokal aktif
+          <div className="operator-mini-card">
+            <div className="operator-avatar" aria-hidden="true">
+              {operator ? operator.charAt(0).toUpperCase() : 'P'}
+            </div>
+            <div className="operator-meta">
+              <span className="operator-name">{operator || 'Pengelola 1'}</span>
+              <span className="operator-status">
+                <span className="status-beacon" aria-hidden="true" />
+                <span>Lokal • Aktif</span>
+              </span>
+            </div>
+          </div>
         </div>
       </aside>
 
@@ -519,7 +704,8 @@ function GlobalitiApp() {
           </div>
         </header>
 
-        <main className="app-main pos-layout">
+        <main className={`app-main ${view === 'pos' ? 'pos-layout' : 'app-main-full'}`}>
+
           {view === 'pos' && (
             <>
           <section className="pos-left">
@@ -542,7 +728,7 @@ function GlobalitiApp() {
               </div>
               <form className="scan-form" onSubmit={handleBarcode}>
                 <Barcode size={21} />
-                <input value={barcodeInput} onChange={(event) => setBarcodeInput(event.target.value)} placeholder="Scan atau ketik barcode, lalu Enter" autoComplete="off" aria-label="Input barcode produk" />
+                <input ref={barcodeInputRef} value={barcodeInput} onChange={(event) => setBarcodeInput(event.target.value)} placeholder="Scan atau ketik barcode, lalu Enter" autoComplete="off" aria-label="Input barcode produk" />
                 <button type="submit" className="scan-submit">Tambah</button>
               </form>
               <div className="scan-hint"><Scan size={14} /> Scanner USB mode keyboard akan langsung mengisi kolom ini.</div>
@@ -630,8 +816,20 @@ function GlobalitiApp() {
               <div><span>Total transaksi</span><strong>{formatRupiah(cartTotal)}</strong></div>
               <div className="payment-label"><span>Metode pembayaran</span><span>{paymentMethod}</span></div>
               <div className="payment-options">
-                <button className={paymentMethod === 'Tunai' ? 'payment-option active' : 'payment-option'} onClick={() => setPaymentMethod('Tunai')}><Wallet size={17} /> Tunai</button>
-                <button className={paymentMethod === 'QRIS' ? 'payment-option active' : 'payment-option'} onClick={() => setPaymentMethod('QRIS')}><Barcode size={17} /> QRIS</button>
+                <button
+                  className={paymentMethod === 'Tunai' ? 'payment-option active' : 'payment-option'}
+                  onClick={() => setPaymentMethod('Tunai')}
+                  title={`Pilih metode pembayaran Tunai (Hotkey [${paymentHotkeys.tunai}])`}
+                >
+                  <Wallet size={17} /> Tunai <kbd className="hotkey-badge">{paymentHotkeys.tunai}</kbd>
+                </button>
+                <button
+                  className={paymentMethod === 'QRIS' ? 'payment-option active' : 'payment-option'}
+                  onClick={() => setPaymentMethod('QRIS')}
+                  title={`Pilih metode pembayaran QRIS (Hotkey [${paymentHotkeys.qris}])`}
+                >
+                  <Barcode size={17} /> QRIS <kbd className="hotkey-badge">{paymentHotkeys.qris}</kbd>
+                </button>
               </div>
               <button className="complete-sale-button" onClick={completeSale} disabled={cart.length === 0}><Check size={19} weight="bold" /> Bayar {formatRupiah(cartTotal)}</button>
               <span className="cart-footnote">Transaksi yang sudah dibayar tidak dapat dibatalkan.</span>
@@ -662,28 +860,118 @@ function GlobalitiApp() {
                 <div className="catalog-filter"><span className="filter-dot" /> Menampilkan {catalogProducts.length} produk</div>
               </div>
 
-              <div className="catalog-table" role="table" aria-label="Daftar produk">
-                <div className="catalog-row catalog-head" role="row">
-                  <span>Produk</span><span>Barcode</span><span>Harga</span><span>Stok</span><span>Status</span><span>Aksi</span>
-                </div>
-                {catalogProducts.map((product) => (
-                  <div className={`catalog-row product-row ${product.active ? '' : 'inactive'}`} key={product.id} role="row">
-                    <div className="catalog-product-cell">
-                      <div className="catalog-product-image" style={{ backgroundImage: `url(${getProductImage(product.id)})` }} />
-                      <div><strong>{product.name}</strong><span>{product.category} · {product.unit}</span></div>
-                    </div>
-                    <code>{product.barcode}</code>
-                    <div className="catalog-price"><strong>{formatRupiah(product.price)}</strong><span>Modal {formatRupiah(product.cost)}</span></div>
-                    <div className={`stock-meter ${product.stock <= product.reorderPoint ? 'low' : ''}`}><span style={{ width: `${Math.min(100, (product.stock / (product.reorderPoint * 4)) * 100)}%` }} /><strong>{product.stock} {product.unit}</strong></div>
-                    <span className={`status-pill ${product.active ? 'live' : 'paused'}`}>{product.active ? 'Aktif' : 'Nonaktif'}</span>
-                    <div className="row-actions">
-                      <button title="Sesuaikan stok" onClick={() => openStockAdjustment(product)}><Package size={16} /></button>
-                      <button title="Edit produk" onClick={() => openEditProduct(product)}><PencilSimple size={16} /></button>
-                      <button title={product.active ? 'Nonaktifkan produk' : 'Aktifkan produk'} onClick={() => toggleProduct(product)}><Power size={16} /></button>
-                    </div>
+              <div className="catalog-boxes-grid" role="region" aria-label="Daftar produk persediaan">
+                {catalogProducts.map((product) => {
+                  const isLowStock = product.stock <= product.reorderPoint
+                  const margin = product.price - product.cost
+                  const marginPercent = product.price > 0 ? Math.round((margin / product.price) * 100) : 0
+                  const stockPercent = Math.min(100, Math.round((product.stock / (product.reorderPoint * 3 || 1)) * 100))
+
+                  return (
+                    <article
+                      className={`catalog-box-card ${product.active ? '' : 'inactive'}`}
+                      key={product.id}
+                    >
+                      <div className="catalog-box-image-wrap">
+                        <div
+                          className="catalog-box-image"
+                          style={{ backgroundImage: `url(${getProductImage(product.id)})` }}
+                          role="img"
+                          aria-label={product.name}
+                        />
+                        <div className="catalog-box-badges">
+                          <span className="box-category-badge">{product.category}</span>
+                          <span className={`status-pill ${product.active ? 'live' : 'paused'}`}>
+                            {product.active ? 'Aktif' : 'Nonaktif'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="catalog-box-body">
+                        <div className="catalog-box-title-row">
+                          <h3 className="catalog-box-title">{product.name}</h3>
+                          <div className="catalog-box-barcode">
+                            <Barcode size={13} />
+                            <code>{product.barcode}</code>
+                          </div>
+                        </div>
+
+                        <div className="catalog-box-financials">
+                          <div className="box-price-col">
+                            <span className="box-fin-label">Harga Jual</span>
+                            <strong className="box-price-val">{formatRupiah(product.price)}</strong>
+                          </div>
+                          <div className="box-cost-col">
+                            <span className="box-fin-label">Harga Modal</span>
+                            <span className="box-cost-val">{formatRupiah(product.cost)}</span>
+                          </div>
+                          <div className="box-margin-col">
+                            <span className="box-fin-label">Est. Margin</span>
+                            <span className="box-margin-val">+{marginPercent}%</span>
+                          </div>
+                        </div>
+
+                        <div className={`catalog-box-stock ${isLowStock ? 'low' : ''}`}>
+                          <div className="box-stock-header">
+                            <div>
+                              <span className="box-stock-label">Stok Fisik Tersedia</span>
+                              <div className="box-stock-amount">
+                                <strong>{product.stock}</strong>
+                                <span>{product.unit}</span>
+                              </div>
+                            </div>
+                            <span className={`box-stock-pill ${isLowStock ? 'low' : 'safe'}`}>
+                              {isLowStock
+                                ? `⚠️ Reorder (≤ ${product.reorderPoint})`
+                                : `✓ Aman (Min ${product.reorderPoint})`}
+                            </span>
+                          </div>
+
+                          <div className="box-stock-bar-track">
+                            <div
+                              className={`box-stock-bar-fill ${isLowStock ? 'low' : ''}`}
+                              style={{ width: `${stockPercent}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="catalog-box-actions">
+                          <button
+                            type="button"
+                            className="box-btn-adjust"
+                            title="Sesuaikan stok"
+                            onClick={() => openStockAdjustment(product)}
+                          >
+                            <Package size={16} weight="bold" />
+                            <span>Sesuaikan stok</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="box-btn-edit"
+                            title="Edit produk"
+                            onClick={() => openEditProduct(product)}
+                          >
+                            <PencilSimple size={16} />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            type="button"
+                            className={`box-btn-toggle ${product.active ? 'active' : 'inactive'}`}
+                            title={product.active ? 'Nonaktifkan produk' : 'Aktifkan produk'}
+                            onClick={() => toggleProduct(product)}
+                          >
+                            <Power size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  )
+                })}
+                {catalogProducts.length === 0 && (
+                  <div className="table-empty">
+                    <SearchEmpty /> Tidak ada produk yang sesuai dengan pencarian.
                   </div>
-                ))}
-                {catalogProducts.length === 0 && <div className="table-empty"><SearchEmpty /> Tidak ada produk yang sesuai dengan pencarian.</div>}
+                )}
               </div>
             </section>
           )}
@@ -759,6 +1047,7 @@ function GlobalitiApp() {
               printOrders={printOrders}
               expenses={expenses}
               onAddExpense={handleAddExpense}
+              operator={operator}
             />
           )}
 
@@ -770,6 +1059,11 @@ function GlobalitiApp() {
               expenses={expenses}
               groqKey={groqKey}
               messages={aiMessages}
+              paymentHotkeys={paymentHotkeys}
+              onUpdatePaymentHotkeys={(newKeys) => {
+                setPaymentHotkeys(newKeys)
+                notify(`Hotkey pembayaran berhasil diubah: Tunai [${newKeys.tunai}], QRIS [${newKeys.qris}]`)
+              }}
               onUpdateMessages={setAiMessages}
               onClearChat={handleClearChat}
               onAdjustStock={handleAiAdjustStock}
@@ -856,7 +1150,7 @@ function GlobalitiApp() {
 
       {stockProduct && (
         <div className="modal-backdrop-globaliti" role="presentation" onClick={() => setStockProduct(null)}>
-          <form className="form-modal" role="dialog" aria-modal="true" onSubmit={submitStockAdjustment} onClick={(event) => event.stopPropagation()}>
+          <form className="form-modal" role="dialog" aria-modal="true" aria-label={`Penyesuaian Stok ${stockProduct.name}`} onSubmit={submitStockAdjustment} onClick={(event) => event.stopPropagation()}>
             <div className="modal-header"><div><span className="page-kicker">PENYESUAIAN STOK</span><h2>{stockProduct.name}</h2></div><button type="button" className="icon-button" onClick={() => setStockProduct(null)} aria-label="Tutup"><X size={18} /></button></div>
             <div className="stock-preview"><span>Stok saat ini</span><strong>{stockProduct.stock} {stockProduct.unit}</strong></div>
             <label className="field"><span>Perubahan stok</span><input type="number" value={stockDelta} onChange={(event) => setStockDelta(Number(event.target.value))} placeholder="Contoh: 10 atau -3" /></label>

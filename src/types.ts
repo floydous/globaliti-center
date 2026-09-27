@@ -9,6 +9,7 @@ export type Product = {
   stock: number
   reorderPoint: number
   active: boolean
+  image?: string
 }
 
 export type SaleItem = {
@@ -52,6 +53,11 @@ export type PrintSettings = {
   basis: 'Halaman' | 'Kertas'
 }
 
+export type PaymentHotkeys = {
+  tunai: string
+  qris: string
+}
+
 export type AiActionType =
   | 'adjust_stock'
   | 'record_sale'
@@ -60,6 +66,7 @@ export type AiActionType =
   | 'update_print_order'
   | 'add_product'
   | 'update_price'
+  | 'update_payment_hotkeys'
 
 export type AiAction = {
   id: string
@@ -75,6 +82,8 @@ export type AiMessage = {
   text: string
   time: string
   action?: AiAction
+  actions?: AiAction[]
+  streaming?: boolean
 }
 
 export type Status = 'locked' | 'available' | 'in-progress' | 'mastered'

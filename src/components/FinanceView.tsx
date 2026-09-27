@@ -1,10 +1,14 @@
 import { useMemo, useState } from 'react'
 import {
   Check,
+  Eye,
+  FileText,
   Plus,
   Printer,
+  X,
 } from '@phosphor-icons/react'
 import type { Expense, PrintOrder, Product, Sale } from '../types'
+import FormalFinancialReport from './FormalFinancialReport'
 
 type FinanceViewProps = {
   products: Product[]
@@ -12,6 +16,7 @@ type FinanceViewProps = {
   printOrders: PrintOrder[]
   expenses: Expense[]
   onAddExpense: (expense: Omit<Expense, 'id'>) => void
+  operator?: string
 }
 
 const formatRupiah = (value: number) =>
@@ -27,9 +32,11 @@ export default function FinanceView({
   printOrders,
   expenses,
   onAddExpense,
+  operator = 'Pengelola 1',
 }: FinanceViewProps) {
   const [tab, setTab] = useState<'laba_rugi' | 'neraca' | 'penjualan' | 'beban'>('laba_rugi')
   const [showExpenseModal, setShowExpenseModal] = useState(false)
+  const [showPreviewModal, setShowPreviewModal] = useState(false)
   const [expenseForm, setExpenseForm] = useState({
     label: '',
     category: 'Operasional',
@@ -127,8 +134,16 @@ export default function FinanceView({
             <Plus size={16} weight="bold" /> Catat Beban
           </button>
           <button
+            className="secondary-button"
+            onClick={() => setShowPreviewModal(true)}
+            title="Lihat format dokumen resmi sebelum mencetak"
+          >
+            <Eye size={16} /> Pratinjau Dokumen
+          </button>
+          <button
             className="primary-action"
             onClick={() => window.print()}
+            title="Cetak Laporan Keuangan Resmi (PDF / Printer)"
           >
             <Printer size={16} /> Cetak Laporan
           </button>
@@ -444,6 +459,95 @@ export default function FinanceView({
               </button>
             </div>
           </form>
+        </div>
+      )}
+      {/* Target Cetak Dokumen Formal (Aktif saat window.print() / @media print) */}
+      <div className="formal-report-print-target">
+        <FormalFinancialReport
+          products={products}
+          sales={sales}
+          printOrders={printOrders}
+          expenses={expenses}
+          operator={operator}
+          iceCreamRevenue={iceCreamRevenue}
+          printRevenue={printRevenue}
+          totalRevenue={totalRevenue}
+          cogsIceCream={cogsIceCream}
+          grossProfit={grossProfit}
+          totalExpenses={totalExpenses}
+          netIncome={netIncome}
+          inventoryValue={inventoryValue}
+          accountsReceivable={accountsReceivable}
+          cashInHand={cashInHand}
+          totalAssets={totalAssets}
+          totalLiabilities={totalLiabilities}
+          initialEquity={initialEquity}
+          retainedEarnings={retainedEarnings}
+        />
+      </div>
+
+      {/* Modal Pratinjau Dokumen Formal */}
+      {showPreviewModal && (
+        <div
+          className="preview-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Pratinjau Dokumen Laporan Keuangan"
+          onClick={() => setShowPreviewModal(false)}
+        >
+          <div
+            className="preview-modal-shell"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="preview-modal-bar">
+              <div className="preview-bar-title">
+                <FileText size={20} weight="bold" />
+                <div>
+                  <strong>Pratinjau Dokumen Laporan Keuangan</strong>
+                  <span>Format Standar SAK EMKM Pertanggungjawaban Sekolah</span>
+                </div>
+              </div>
+              <div className="preview-bar-actions">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => setShowPreviewModal(false)}
+                >
+                  <X size={16} /> Tutup
+                </button>
+                <button
+                  type="button"
+                  className="primary-action"
+                  onClick={() => window.print()}
+                >
+                  <Printer size={16} /> Cetak Sekarang (PDF)
+                </button>
+              </div>
+            </div>
+            <div className="preview-paper-container">
+              <FormalFinancialReport
+                products={products}
+                sales={sales}
+                printOrders={printOrders}
+                expenses={expenses}
+                operator={operator}
+                iceCreamRevenue={iceCreamRevenue}
+                printRevenue={printRevenue}
+                totalRevenue={totalRevenue}
+                cogsIceCream={cogsIceCream}
+                grossProfit={grossProfit}
+                totalExpenses={totalExpenses}
+                netIncome={netIncome}
+                inventoryValue={inventoryValue}
+                accountsReceivable={accountsReceivable}
+                cashInHand={cashInHand}
+                totalAssets={totalAssets}
+                totalLiabilities={totalLiabilities}
+                initialEquity={initialEquity}
+                retainedEarnings={retainedEarnings}
+              />
+            </div>
+          </div>
         </div>
       )}
     </section>

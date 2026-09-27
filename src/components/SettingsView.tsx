@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Check,
   CheckCircle,
@@ -25,13 +25,79 @@ export default function SettingsView({
   const [operator, setOperator] = useState(activeOperator)
   const [apiKey, setApiKey] = useState(groqKey)
   const [savedNotice, setSavedNotice] = useState(false)
+  const [testingKey, setTestingKey] = useState(false)
+  const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null)
+
+  useEffect(() => {
+    setApiKey(groqKey)
+  }, [groqKey])
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault()
+    const cleanKey = apiKey.trim()
     onChangeOperator(operator)
-    onSaveGroqKey(apiKey)
+    onSaveGroqKey(cleanKey)
+    setApiKey(cleanKey)
     setSavedNotice(true)
     setTimeout(() => setSavedNotice(false), 2500)
+  }
+
+  const handleTestGroq = async () => {
+    const key = apiKey.trim()
+    if (!key) {
+      setTestResult({ ok: false, message: 'Harap masukkan kunci API terlebih dahulu.' })
+      return
+    }
+    setTestingKey(true)
+    setTestResult(null)
+
+    const testModels = [
+      'qwen/qwen3.8-27b',
+      'groq/compound-mini',
+      'groq/compound',
+      'openai/gpt-oss-120b',
+      'openai/gpt-oss-20b',
+      'allam-2-7b',
+      'llama-3.3-70b-versatile',
+      'llama-3.1-8b-instant',
+    ]
+
+    let successModel = ''
+    let lastErr = ''
+
+    for (const m of testModels) {
+      try {
+        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${key}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: m,
+            messages: [{ role: 'user', content: 'tes koneksi' }],
+            max_tokens: 5,
+          }),
+        })
+        if (res.ok) {
+          successModel = m
+          break
+        } else {
+          const data = await res.json().catch(() => null)
+          lastErr = data?.error?.message || `HTTP ${res.status}`
+        }
+      } catch (e) {
+        lastErr = e instanceof Error ? e.message : 'Koneksi jaringan gagal'
+      }
+    }
+
+    setTestingKey(false)
+    if (successModel) {
+      setTestResult({ ok: true, message: `Berhasil terhubung ke Groq! Model aktif: ${successModel}` })
+      onSaveGroqKey(key)
+    } else {
+      setTestResult({ ok: false, message: `Gagal terhubung ke Groq: ${lastErr}` })
+    }
   }
 
   return (
@@ -125,6 +191,32 @@ export default function SettingsView({
                 Kunci disimpan di browser ini. Saat memakai AI, kunci, percakapan, dan ringkasan data toko dikirim ke Groq. Gunakan hanya pada perangkat tepercaya.
               </small>
             </label>
+            <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={handleTestGroq}
+                disabled={testingKey || !apiKey.trim()}
+              >
+                {testingKey ? 'Menguji Koneksi...' : 'Uji Koneksi Groq API'}
+              </button>
+              {testResult && (
+                <span
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: testResult.ok ? '#15803d' : '#b91c1c',
+                    background: testResult.ok ? '#f0fdf4' : '#fef2f2',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    border: `1px solid ${testResult.ok ? '#bbf7d0' : '#fecaca'}`,
+                  }}
+                >
+                  {testResult.ok ? '✓ ' : '✕ '}
+                  {testResult.message}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

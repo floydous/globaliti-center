@@ -5,9 +5,9 @@
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba(22, 45, 38, 0.28);
+  background: rgba(22, 45, 38, 0.32);
   backdrop-filter: blur(8px);
-  animation: gc-fade-in 160ms ease both;
+  animation: gc-fade-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .sale-modal {
@@ -17,7 +17,7 @@
   border-radius: 22px;
   background: #ffffff;
   box-shadow: 0 30px 90px rgba(22, 45, 38, 0.2);
-  animation: gc-pop-in 180ms ease both;
+  animation: gc-pop-in 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .success-mark {
@@ -108,7 +108,7 @@
   font-size: 11px;
   font-weight: 700;
   box-shadow: var(--gc-shadow);
-  animation: gc-toast-in 180ms ease both;
+  animation: gc-toast-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes gc-fade-in {
@@ -117,11 +117,11 @@
 }
 
 @keyframes gc-pop-in {
-  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes gc-toast-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }

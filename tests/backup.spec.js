@@ -10,7 +10,7 @@ test('backup contains data, not credentials', async ({ page }) => {
   const text = await fs.readFile(await file.path(), 'utf8')
   const backup = JSON.parse(text)
   expect(backup.version).toBe(1)
-  expect(backup.data.products.length).toBe(4)
+  expect(backup.data.products.length).toBe(36)
   expect(text).not.toMatch(/gsk_|gc_groq_key/)
 })
 
