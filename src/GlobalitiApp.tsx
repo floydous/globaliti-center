@@ -899,49 +899,32 @@ function GlobalitiApp() {
                         />
                         <div className="catalog-box-badges">
                           <span className="box-category-badge">{product.category}</span>
-                          <span className={`status-pill ${product.active ? 'live' : 'paused'}`}>
-                            {product.active ? 'Aktif' : 'Nonaktif'}
-                          </span>
+                          {!product.active && <span className="status-pill paused">Nonaktif</span>}
                         </div>
                       </div>
 
                       <div className="catalog-box-body">
                         <div className="catalog-box-title-row">
                           <h3 className="catalog-box-title">{product.name}</h3>
-                          <div className="catalog-box-barcode">
-                            <Barcode size={13} />
-                            <code>{product.barcode}</code>
-                          </div>
+                          <strong className="box-price-val">{formatRupiah(product.price)}</strong>
                         </div>
 
-                        <div className="catalog-box-financials">
-                          <div className="box-price-col">
-                            <span className="box-fin-label">Harga Jual</span>
-                            <strong className="box-price-val">{formatRupiah(product.price)}</strong>
-                          </div>
-                          <div className="box-cost-col">
-                            <span className="box-fin-label">Harga Modal</span>
-                            <span className="box-cost-val">{formatRupiah(product.cost)}</span>
-                          </div>
-                          <div className="box-margin-col">
-                            <span className="box-fin-label">Est. Margin</span>
-                            <span className="box-margin-val">+{marginPercent}%</span>
-                          </div>
+                        <div className="catalog-box-meta">
+                          <span className="box-cost-val">Modal {formatRupiah(product.cost)}</span>
+                          <span className="box-margin-val">+{marginPercent}%</span>
+                          <code className="catalog-box-barcode">{product.barcode}</code>
                         </div>
 
                         <div className={`catalog-box-stock ${isLowStock ? 'low' : ''}`}>
                           <div className="box-stock-header">
-                            <div>
-                              <span className="box-stock-label">Stok Fisik Tersedia</span>
-                              <div className="box-stock-amount">
-                                <strong>{product.stock}</strong>
-                                <span>{product.unit}</span>
-                              </div>
+                            <div className="box-stock-amount">
+                              <strong>{product.stock}</strong>
+                              <span>{product.unit}</span>
                             </div>
                             <span className={`box-stock-pill ${isLowStock ? 'low' : 'safe'}`}>
                               {isLowStock
-                                ? <><Warning size={13} /> Reorder (≤ {product.reorderPoint})</>
-                                : <><CheckCircle size={13} /> Aman (Min {product.reorderPoint})</>}
+                                ? <><Warning size={12} /> Reorder</>
+                                : <><CheckCircle size={12} /> Aman</>}
                             </span>
                           </div>
 

@@ -238,13 +238,13 @@
   gap: 8px;
 }
 
+/* Every product shares this category, so the chip stays a quiet caption */
 .box-category-badge {
   padding: 2px 7px;
-  border: 1px solid var(--gc-border);
   border-radius: var(--gc-radius-xs);
-  background: #ffffff;
-  color: var(--gc-muted);
-  font-size: var(--gc-fs-small);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--gc-faint);
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -252,13 +252,14 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 14px;
-  padding: 14px 16px 16px;
+  gap: 10px;
+  padding: 12px 14px 14px;
 }
 
+/* Name leads, price sits on the same line at the right edge */
 .catalog-box-title-row {
   display: flex;
-  align-items: flex-start;
+  align-items: baseline;
   justify-content: space-between;
   gap: 12px;
 }
@@ -272,73 +273,51 @@
   line-height: 1.3;
 }
 
+/* One quiet line: cost, margin, barcode */
+.catalog-box-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
 .catalog-box-barcode {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  overflow: hidden;
   color: var(--gc-faint);
-}
-
-.catalog-box-barcode code {
-  color: var(--gc-faint);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-size: 12px;
-}
-
-/* Three figures on one row, one right edge */
-.catalog-box-financials {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  padding: 12px 0;
-  border-top: 1px solid var(--gc-rule);
-  border-bottom: 1px solid var(--gc-rule);
-}
-
-.box-price-col,
-.box-cost-col,
-.box-margin-col {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.box-fin-label {
-  color: var(--gc-faint);
-  font-size: 12px;
-  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .box-price-val {
+  flex-shrink: 0;
   color: var(--gc-text);
-  font-size: var(--gc-fs-small);
+  font-size: var(--gc-fs-body);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .box-cost-val,
 .box-margin-val {
-  color: var(--gc-muted);
-  font-size: var(--gc-fs-small);
-  font-weight: 500;
+  flex-shrink: 0;
+  color: var(--gc-faint);
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
 }
 
 /* ===== Stock ===== */
 
 .catalog-box-stock {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .box-stock-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-}
-
-.box-stock-label {
-  display: block;
-  color: var(--gc-faint);
-  font-size: 12px;
 }
 
 .box-stock-amount {
@@ -349,30 +328,32 @@
 
 .box-stock-amount strong {
   color: var(--gc-text);
-  font-size: var(--gc-fs-section);
+  font-size: var(--gc-fs-body);
   font-weight: 600;
 }
 
 .box-stock-amount span {
-  color: var(--gc-muted);
-  font-size: var(--gc-fs-small);
+  color: var(--gc-faint);
+  font-size: 12px;
 }
 
+/* Stock state: plain when fine, tinted only when it needs attention */
 .box-stock-pill {
+  display: inline-flex;
   flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
   padding: 2px 7px;
-  border: 1px solid var(--gc-border);
+  border: 1px solid transparent;
   border-radius: var(--gc-radius-xs);
-  color: var(--gc-muted);
+  color: var(--gc-faint);
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
 }
 
 .box-stock-pill.safe {
-  border-color: #bbf7d0;
-  background: var(--gc-positive-soft);
-  color: var(--gc-positive);
+  color: var(--gc-faint);
 }
 
 .box-stock-pill.low {
@@ -382,7 +363,7 @@
 }
 
 .box-stock-bar-track {
-  height: 4px;
+  height: 3px;
   overflow: hidden;
   border-radius: 99px;
   background: var(--gc-surface-strong);
@@ -391,7 +372,7 @@
 .box-stock-bar-fill {
   height: 100%;
   border-radius: 99px;
-  background: var(--gc-signature);
+  background: var(--gc-border-strong);
 }
 
 .box-stock-bar-fill.low {
@@ -403,7 +384,7 @@
 .catalog-box-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-top: auto;
   padding-top: 4px;
 }
@@ -411,16 +392,17 @@
 .box-btn-adjust,
 .box-btn-edit {
   display: inline-flex;
-  height: 32px;
+  height: 30px;
   align-items: center;
-  gap: 6px;
-  padding: 0 10px;
+  gap: 5px;
+  padding: 0 9px;
   border: 1px solid var(--gc-border);
   border-radius: var(--gc-radius-sm);
   background: var(--gc-surface);
   color: var(--gc-muted);
-  font-size: var(--gc-fs-small);
+  font-size: 12px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .box-btn-adjust:hover,
