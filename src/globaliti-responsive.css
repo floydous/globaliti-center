@@ -14,6 +14,12 @@
 }
 
 @media (max-width: 940px) {
+  /* Tinggi blok chrome atas (brand + nav) pada band ini. Topbar menempel tepat di
+     bawahnya, jadi judul halaman tidak pernah tertutup nav yang sticky. */
+  .globaliti-shell {
+    --gc-mobile-chrome-h: 101px;
+  }
+
   .sidebar {
     position: sticky;
     top: 0;
@@ -103,8 +109,13 @@
   }
 
   .topbar-globaliti {
+    /* Nav dan topbar sama-sama sticky; topbar menempel di bawah nav, bukan di atasnya,
+       supaya judul halaman tidak pernah tertutup saat digulir. */
+    top: var(--gc-mobile-chrome-h);
     height: 48px;
     padding: 0 16px;
+    border-bottom: 1px solid var(--gc-border);
+    background: var(--gc-bg);
   }
 
   .topbar-globaliti h1 {

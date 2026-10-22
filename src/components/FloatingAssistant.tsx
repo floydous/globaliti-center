@@ -22,10 +22,10 @@ export default function FloatingAssistant({
     requestAnimationFrame(() => panel.current?.querySelector<HTMLInputElement>('input')?.focus())
   }
   return (
-    <div className="assistant-widget" onKeyDown={(event) => {
-      if (event.key === 'Escape' && open) { event.stopPropagation(); close() }
-    }}>
-      <div id="assistant-panel" className="assistant-panel" ref={panel} hidden={!open} role="dialog" aria-labelledby="assistant-title">
+    <>
+      <div id="assistant-panel" className="assistant-panel" ref={panel} hidden={!open} role="dialog" aria-labelledby="assistant-title" onKeyDown={(event) => {
+        if (event.key === 'Escape' && open) { event.stopPropagation(); close() }
+      }}>
         <header className="assistant-panel-header">
           <div className="assistant-panel-brand">
             <div className="assistant-panel-avatar">
@@ -54,8 +54,9 @@ export default function FloatingAssistant({
         <p className="assistant-disclaimer">Periksa usulan perubahan sebelum menyetujuinya.</p>
       </div>
       <button ref={launcher} type="button" className="assistant-launcher" aria-label={open ? 'Tutup percakapan asisten' : 'Buka asisten Globaliti'} aria-expanded={open} aria-controls="assistant-panel" onClick={toggle}>
-        {open ? <X size={26} aria-hidden="true" /> : <Sparkle size={28} weight="fill" aria-hidden="true" />}
+        {open ? <X size={18} weight="bold" aria-hidden="true" /> : <Sparkle size={20} weight="fill" aria-hidden="true" />}
+        <span>Asisten AI</span>
       </button>
-    </div>
+    </>
   )
 }

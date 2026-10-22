@@ -232,10 +232,10 @@ function GlobalitiApp() {
       const activeEl = document.activeElement as HTMLElement | null
 
       // PENTING: Jangan pernah mencegat atau mengalihkan keystroke jika pengguna sedang
-      // berada di dalam panel Asisten AI (.assistant-widget, .assistant-panel, .ai-page, form ai), atau modal dialog apa pun
+      // berada di dalam panel Asisten AI (.assistant-panel, .ai-page, form ai), atau modal dialog apa pun
       const isInsideAssistantOrDialog =
-        Boolean(targetEl?.closest?.('.assistant-widget, .assistant-panel, #assistant-panel, .ai-page, .ai-floating, .ai-input-form, .modal-backdrop-globaliti, .modal-backdrop, [role="dialog"]')) ||
-        Boolean(activeEl?.closest?.('.assistant-widget, .assistant-panel, #assistant-panel, .ai-page, .ai-floating, .ai-input-form, .modal-backdrop-globaliti, .modal-backdrop, [role="dialog"]'))
+        Boolean(targetEl?.closest?.('.assistant-panel, #assistant-panel, .ai-page, .ai-floating, .ai-input-form, .modal-backdrop-globaliti, .modal-backdrop, [role="dialog"]')) ||
+        Boolean(activeEl?.closest?.('.assistant-panel, #assistant-panel, .ai-page, .ai-floating, .ai-input-form, .modal-backdrop-globaliti, .modal-backdrop, [role="dialog"]'))
 
       if (isInsideAssistantOrDialog) {
         return
@@ -588,6 +588,31 @@ function GlobalitiApp() {
           </div>
           <div className="topbar-actions">
             <div className="date-chip">{new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+            <FloatingAssistant onClearChat={handleClearChat}>
+              <AiView variant="floating"
+                products={products}
+                sales={sales}
+                expenses={expenses}
+                groqKey={groqKey}
+                messages={aiMessages}
+                paymentHotkeys={paymentHotkeys}
+                onUpdatePaymentHotkeys={(newKeys) => {
+                  setPaymentHotkeys(newKeys)
+                  notify(`Hotkey pembayaran berhasil diubah: Tunai [${newKeys.tunai}], QRIS [${newKeys.qris}]`)
+                }}
+                onUpdateMessages={setAiMessages}
+                onClearChat={handleClearChat}
+                onAdjustStock={handleAiAdjustStock}
+                onRecordSale={handleAiRecordSale}
+                onRecordExpense={handleAiRecordExpense}
+                onUpdatePrice={handleAiUpdatePrice}
+                onAddProduct={(newProdData) => {
+                  const newProd: Product = { id: `p${Date.now()}`, ...newProdData, active: true }
+                  setProducts((curr) => [newProd, ...curr])
+                  notify('Produk baru ditambahkan via asisten AI')
+                }}
+              />
+            </FloatingAssistant>
             <div className="manager-chip"><span>P</span> {operator}</div>
           </div>
         </header>
@@ -634,10 +659,10 @@ function GlobalitiApp() {
                 {filteredProducts.map((product) => (
                   <button key={product.id} className="product-tile" onClick={() => addToCart(product)}>
                     <div className="product-image" style={{ backgroundImage: `url(${getProductImage(product.id)})` }}>
-                      <span className={`stock-chip ${product.stock <= product.reorderPoint ? 'low' : ''}`}>{product.stock} {product.unit}</span>
+                      <span className={`stock-chip ${product.stock <= product.reorderPoint ? 'low' : ''}`}>{product.stock}</span>
                     </div>
                     <div className="product-tile-copy">
-                      <div><strong>{product.name}</strong><span>{product.unit}</span></div>
+                      <div><strong>{product.name}</strong></div>
                       <b>{formatRupiah(product.price)}</b>
                     </div>
                     <span className="tile-add"><Plus size={17} weight="bold" /></span>
@@ -686,7 +711,7 @@ function GlobalitiApp() {
                       <div className="cart-line-image" style={{ backgroundImage: `url(${getProductImage(product.id)})` }} />
                       <div className="cart-line-copy">
                         <strong>{product.name}</strong>
-                        <span>{formatRupiah(item.price)} / {product.unit}</span>
+                        <span>{formatRupiah(item.price)}</span>
                         <div className="quantity-control">
                           <button onClick={() => updateQuantity(product.id, item.quantity - 1)} aria-label={`Kurangi ${product.name}`}><Minus size={14} /></button>
                           <b>{item.quantity}</b>
@@ -738,7 +763,7 @@ function GlobalitiApp() {
 
               <div className="catalog-stats">
                 <div className="catalog-stat"><span>Total Jenis Produk</span><strong>{products.length}</strong><small>Item terdaftar</small></div>
-                <div className="catalog-stat"><span>Total Unit Fisik</span><strong>{products.reduce((sum, product) => sum + product.stock, 0)}</strong><small>Unit tersedia di toko</small></div>
+                <div className="catalog-stat"><span>Total Stok Fisik</span><strong>{products.reduce((sum, product) => sum + product.stock, 0)}</strong><small>Item tersedia di toko</small></div>
                 <div className="catalog-stat"><span>Nilai Persediaan</span><strong>{formatRupiah(inventoryValue)}</strong><small>Berdasarkan harga modal</small></div>
                 <div className="catalog-stat"><span>Stok Perlu Reorder</span><strong>{lowStockCount}</strong><small>Di bawah batas minimum</small></div>
               </div>
@@ -855,32 +880,6 @@ function GlobalitiApp() {
               operator={operator}
             />
           )}
-
-          <FloatingAssistant onClearChat={handleClearChat}>
-            <AiView variant="floating"
-              products={products}
-              sales={sales}
-              expenses={expenses}
-              groqKey={groqKey}
-              messages={aiMessages}
-              paymentHotkeys={paymentHotkeys}
-              onUpdatePaymentHotkeys={(newKeys) => {
-                setPaymentHotkeys(newKeys)
-                notify(`Hotkey pembayaran berhasil diubah: Tunai [${newKeys.tunai}], QRIS [${newKeys.qris}]`)
-              }}
-              onUpdateMessages={setAiMessages}
-              onClearChat={handleClearChat}
-              onAdjustStock={handleAiAdjustStock}
-              onRecordSale={handleAiRecordSale}
-              onRecordExpense={handleAiRecordExpense}
-              onUpdatePrice={handleAiUpdatePrice}
-              onAddProduct={(newProdData) => {
-                const newProd: Product = { id: `p${Date.now()}`, ...newProdData, active: true }
-                setProducts((curr) => [newProd, ...curr])
-                notify('Produk baru ditambahkan via asisten AI')
-              }}
-            />
-          </FloatingAssistant>
 
           {view === 'settings' && (
             <SettingsView

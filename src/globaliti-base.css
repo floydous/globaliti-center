@@ -79,6 +79,9 @@ body {
   color: var(--gc-text);
   font-size: var(--gc-fs-body);
   line-height: 1.5;
+  /* Angka di kasir (harga, stok, jumlah) berubah saat bertransaksi; digit lebar
+     tetap supaya kolom tidak bergeser. */
+  font-variant-numeric: tabular-nums;
 }
 
 button,

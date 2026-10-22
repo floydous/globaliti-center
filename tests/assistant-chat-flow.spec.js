@@ -40,7 +40,7 @@ test('chatbot full autonomy: handles unrecorded sales, expenses, and price chang
 
   // Close assistant and check POS view: sales now 4 nota, Rp 47.000, Matcha Cup stock 23!
   await page.getByRole('button', { name: 'Tutup asisten', exact: true }).click()
-  await expect(page.getByRole('button', { name: '23 cup Matcha Cup cup Rp 8.000', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: '23 Matcha Cup Rp 8.000', exact: true })).toBeVisible()
   await expect(page.locator('.pos-summary-bar')).toContainText('4 nota')
   await expect(page.locator('.pos-summary-bar')).toContainText('Rp 47.000')
 
@@ -60,7 +60,7 @@ test('chatbot full autonomy: handles unrecorded sales, expenses, and price chang
   await page.getByRole('button', { name: 'Tutup asisten', exact: true }).click()
 
   // Verify Vanilla Cone price changed in POS
-  await expect(page.getByRole('button', { name: '18 cone Vanilla Cone cone Rp 7.000', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: '18 Vanilla Cone Rp 7.000', exact: true })).toBeVisible()
 
   // Verify Expense and Revenue reflected in Finance view
   await page.getByRole('button', { name: 'Laporan Keuangan', exact: true }).click()
@@ -106,7 +106,7 @@ test('handles physical stock discrepancy (freezer count) and stock opname adjust
 
   // 5. Check in POS that Vanilla Cone stock is now 12 cone
   await page.getByRole('button', { name: 'Tutup asisten', exact: true }).click()
-  await expect(page.getByRole('button', { name: /12 cone\s+Vanilla Cone/i })).toBeVisible()
+  await expect(page.getByRole('button', { name: /12\s+Vanilla Cone/i })).toBeVisible()
 
   // 6. Test Clear Chat functionality
   await launcher.click()

@@ -21,7 +21,7 @@ for (const [width, height] of [[320,568],[390,844],[768,1024],[1024,768],[1440,9
     await input.press('Escape')
     await expect(page.getByRole('dialog', { name: 'Asisten Globaliti' })).toBeHidden()
     await expect(launcher).toBeFocused()
-    await expect(page.getByRole('button', { name: '26 cup Matcha Cup cup Rp 8.000', exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: '26 Matcha Cup Rp 8.000', exact: true })).toBeVisible()
     await page.getByRole('button', { name: 'Katalog & Stok', exact: true }).click()
     await launcher.click()
     await expect(page.getByRole('log')).toContainText('Telah Diterapkan')
@@ -39,7 +39,7 @@ for (const [width, height] of [[320,568],[390,844],[768,1024],[1024,768],[1440,9
     await page.screenshot({ path: `dogfood-output/screenshots/chat-${width}.png` })
     await page.getByRole('button', { name: 'Tutup asisten', exact: true }).click()
     await page.getByRole('button', { name: 'Kasir POS', exact: true }).click()
-    await expect(page.getByRole('button', { name: '26 cup Matcha Cup cup Rp 8.000', exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: '26 Matcha Cup Rp 8.000', exact: true })).toBeVisible()
     expect(errors).toEqual([])
   })
 }

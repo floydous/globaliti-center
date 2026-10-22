@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Check,
   Eye,
@@ -41,6 +41,16 @@ export default function FinanceView({
     amount: 50000,
     date: new Date().toISOString().slice(0, 10),
   })
+
+  // Escape menutup pratinjau dokumen, sama seperti tombol Tutup
+  useEffect(() => {
+    if (!showPreviewModal) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowPreviewModal(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [showPreviewModal])
 
   // Perhitungan Pendapatan
   const iceCreamRevenue = useMemo(

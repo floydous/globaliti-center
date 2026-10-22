@@ -9,7 +9,7 @@ test('stock correction and chat action survive reload', async ({ page }) => {
   await input.press('Enter')
   await page.getByRole('button', { name: 'Terapkan Perubahan', exact: true }).click()
   await page.reload()
-  await expect(page.getByRole('button', { name: '26 cup Matcha Cup cup Rp 8.000', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: '26 Matcha Cup Rp 8.000', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Buka asisten Globaliti', exact: true }).click()
   await expect(page.getByRole('log')).toContainText('Telah Diterapkan')
   await expect(page.getByRole('button', { name: 'Terapkan Perubahan', exact: true })).toHaveCount(0)

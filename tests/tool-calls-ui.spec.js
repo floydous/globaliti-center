@@ -116,9 +116,9 @@ Semua stok masih di atas batas minimum, jadi aman.
   await page.getByRole('button', { name: 'Tutup asisten', exact: true }).click()
 
   // Matcha Cup initially 24 - 2 = 22
-  await expect(page.getByRole('button', { name: /22 cup Matcha Cup/i })).toBeVisible()
+  await expect(page.getByRole('button', { name: /22 Matcha Cup/i })).toBeVisible()
   // Vanilla Cone initially 18 - 5 = 13
-  await expect(page.getByRole('button', { name: /13 cone Vanilla Cone/i })).toBeVisible()
+  await expect(page.getByRole('button', { name: /13\s+Vanilla Cone/i })).toBeVisible()
   // Strawberry Cup initially 11 - 3 = 8
-  await expect(page.getByRole('button', { name: /8 cup Strawberry Cup/i })).toBeVisible()
+  await expect(page.getByRole('button', { name: /8 Strawberry Cup/i })).toBeVisible()
 })
