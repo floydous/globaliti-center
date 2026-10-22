@@ -27,30 +27,12 @@ export type Sale = {
   payment: 'Tunai' | 'QRIS'
 }
 
-export type PrintOrder = {
-  id: string
-  time: string
-  fileName: string
-  mode: 'Hitam putih' | 'Berwarna'
-  quantity: number
-  basis: 'Halaman' | 'Kertas'
-  total: number
-  payment: 'Lunas di muka' | 'Bayar di akhir' | 'Lunas setelah cetak'
-  status: 'Menunggu cetak' | 'Dicetak' | 'Selesai'
-}
-
 export type Expense = {
   id: string
   label: string
   category: string
   amount: number
   date: string
-}
-
-export type PrintSettings = {
-  bwRate: number
-  colorRate: number
-  basis: 'Halaman' | 'Kertas'
 }
 
 export type PaymentHotkeys = {
@@ -62,8 +44,6 @@ export type AiActionType =
   | 'adjust_stock'
   | 'record_sale'
   | 'record_expense'
-  | 'create_print_order'
-  | 'update_print_order'
   | 'add_product'
   | 'update_price'
   | 'update_payment_hotkeys'

@@ -52,7 +52,6 @@ test('formal financial report preview displays authentic SAK EMKM statements and
   await expect(modal).toContainText('ASET (AKTIVA)')
   await expect(modal).toContainText('LIABILITAS & EKUITAS (PASIVA)')
   await expect(modal).toContainText('Kas dan Setara Kas')
-  await expect(modal).toContainText('Piutang Usaha (Jasa Print Belum Lunas)')
   await expect(modal).toContainText('Persediaan Barang Dagangan (Stok Es Krim)')
   await expect(modal).toContainText('JUMLAH ASET')
   await expect(modal).toContainText('JUMLAH LIABILITAS & EKUITAS')

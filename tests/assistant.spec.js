@@ -22,7 +22,7 @@ for (const [width, height] of [[320,568],[390,844],[768,1024],[1024,768],[1440,9
     await expect(page.getByRole('dialog', { name: 'Asisten Globaliti' })).toBeHidden()
     await expect(launcher).toBeFocused()
     await expect(page.getByRole('button', { name: '26 cup Matcha Cup cup Rp 8.000', exact: true })).toBeVisible()
-    await page.getByRole('button', { name: 'Jasa Print Word', exact: true }).click()
+    await page.getByRole('button', { name: 'Katalog & Stok', exact: true }).click()
     await launcher.click()
     await expect(page.getByRole('log')).toContainText('Telah Diterapkan')
     await input.fill('Tambah stok Matcha Cup 3')

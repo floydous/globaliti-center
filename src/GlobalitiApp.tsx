@@ -13,7 +13,6 @@ import {
   PencilSimple,
   Plus,
   Power,
-  Printer,
   Receipt,
   Scan,
   ShoppingBag,
@@ -23,13 +22,12 @@ import {
   Warning,
   X,
 } from '@phosphor-icons/react'
-import type { PrintOrder, PrintSettings, Product, Sale, SaleItem } from './types'
+import type { Product, Sale, SaleItem } from './types'
 import './index.css'
 import './globaliti-base.css'
 import './globaliti-layout.css'
 import './globaliti-overlays.css'
 import './globaliti-catalog.css'
-import './globaliti-print.css'
 import './globaliti-finance.css'
 import './globaliti-formal-report.css'
 import './globaliti-ai.css'
@@ -46,14 +44,8 @@ import type { AiMessage, Expense, PaymentHotkeys } from './types'
 // Dials: DESIGN_VARIANCE 4, MOTION_INTENSITY 3, VISUAL_DENSITY 7.
 // Signature: a mint "scan rail" that turns a barcode scan into a visible transaction receipt.
 
-type View = 'pos' | 'products' | 'print' | 'finance' | 'settings'
+type View = 'pos' | 'products' | 'finance' | 'settings'
 type ProductForm = Omit<Product, 'id' | 'active'>
-type PrintForm = {
-  fileName: string
-  mode: 'Hitam putih' | 'Berwarna'
-  quantity: number
-  payment: 'Lunas di muka' | 'Bayar di akhir'
-}
 
 const initialProducts: Product[] = [
   { id: 'p1', barcode: '8990000000010', name: 'Matcha Cup', category: 'Es krim', unit: 'cup', price: 8000, cost: 4500, stock: 24, reorderPoint: 8, active: true, image: '/products/histeria-matcha.webp' },
@@ -100,17 +92,9 @@ const initialSales: Sale[] = [
   { id: 'TRX-0003', time: '10:26', operator: 'Pengelola 2', items: [{ productId: 'p2', quantity: 3, price: 6000 }], total: 18000, payment: 'Tunai' },
 ]
 
-const initialSettings: PrintSettings = { bwRate: 500, colorRate: 1000, basis: 'Halaman' }
-
 const initialExpenses: Expense[] = [
   { id: 'exp-1', label: 'Pembelian Kertas HVS A4 2 Rim', category: 'Bahan Habis Pakai', amount: 96000, date: '2026-09-17' },
-  { id: 'exp-2', label: 'Tinta Printer Black & Color Refill', category: 'Bahan Habis Pakai', amount: 150000, date: '2026-09-16' },
-]
-
-const initialPrintOrders: PrintOrder[] = [
-  { id: 'PRINT-0001', time: '08:44', fileName: 'Makalah_Bab_1.docx', mode: 'Hitam putih', quantity: 4, basis: 'Halaman', total: 2000, payment: 'Lunas di muka', status: 'Selesai' },
-  { id: 'PRINT-0002', time: '10:18', fileName: 'Lampiran_Tugas.docx', mode: 'Berwarna', quantity: 2, basis: 'Halaman', total: 2000, payment: 'Bayar di akhir', status: 'Dicetak' },
-  { id: 'PRINT-0003', time: '11:05', fileName: 'Proposal_Kegiatan.docx', mode: 'Hitam putih', quantity: 6, basis: 'Halaman', total: 3000, payment: 'Lunas di muka', status: 'Menunggu cetak' },
+  { id: 'exp-2', label: 'Cup dan Sedotan Es Krim', category: 'Bahan Habis Pakai', amount: 150000, date: '2026-09-16' },
 ]
 
 const productImages: Record<string, string> = {
@@ -168,7 +152,7 @@ const defaultPaymentHotkeys: PaymentHotkeys = { tunai: '1', qris: '2' }
 const defaultAiWelcomeMessage: AiMessage = {
   id: 'msg-welcome',
   role: 'assistant',
-  text: 'Halo! Saya Asisten Globaliti. Ada yang bisa saya bantu untuk cek stok es krim, jasa print dokumen, atau operasional toko hari ini? Anda bisa langsung bertanya atau meminta bantuan dengan bahasa santai sehari-hari.',
+  text: 'Halo! Saya Asisten Globaliti. Ada yang bisa saya bantu untuk cek stok es krim atau operasional toko hari ini? Anda bisa langsung bertanya atau meminta bantuan dengan bahasa santai sehari-hari.',
   time: '08:00',
 }
 
@@ -227,23 +211,15 @@ function GlobalitiApp() {
   const [groqKey, setGroqKey] = useState<string>(() => {
     return localStorage.getItem('gc_groq_key') || ''
   })
-  const [printOrders, setPrintOrders] = useState<PrintOrder[]>(restored.printOrders ?? initialPrintOrders)
-  const [printSettings, setPrintSettings] = useState<PrintSettings>(restored.printSettings ?? initialSettings)
-  const [showPrintForm, setShowPrintForm] = useState(false)
-  const [showPrintSettings, setShowPrintSettings] = useState(false)
-  const [printForm, setPrintForm] = useState<PrintForm>({ fileName: '', mode: 'Hitam putih', quantity: 1, payment: 'Lunas di muka' })
-  const [printQuery, setPrintQuery] = useState('')
-  const [settingsDraft, setSettingsDraft] = useState<PrintSettings>(restored.printSettings ?? initialSettings)
-
   useEffect(() => {
     if (storageBlocked) return
     try {
-      saveStore({ products, sales, expenses, printOrders, printSettings, operator, aiMessages, paymentHotkeys })
+      saveStore({ products, sales, expenses, operator, aiMessages, paymentHotkeys })
       setStorageError('')
     } catch {
       setStorageError('Penyimpanan gagal. Jangan tutup halaman. Ekspor cadangan sebelum melanjutkan.')
     }
-  }, [products, sales, expenses, printOrders, printSettings, operator, aiMessages, paymentHotkeys, storageBlocked])
+  }, [products, sales, expenses, operator, aiMessages, paymentHotkeys, storageBlocked])
 
   useEffect(() => {
     if (view !== 'pos') return
@@ -323,7 +299,7 @@ function GlobalitiApp() {
   }, [view, paymentHotkeys, barcodeInput])
 
   const exportBackup = () => {
-    const content = JSON.stringify({ version: 1, savedAt: new Date().toISOString(), data: { products, sales, expenses, printOrders, printSettings, operator, aiMessages } }, null, 2)
+    const content = JSON.stringify({ version: 1, savedAt: new Date().toISOString(), data: { products, sales, expenses, operator, aiMessages } }, null, 2)
     const url = URL.createObjectURL(new Blob([content], { type: 'application/json' }))
     const link = document.createElement('a')
     link.href = url
@@ -336,9 +312,6 @@ function GlobalitiApp() {
   const lowStockCount = useMemo(() => products.filter((product) => product.stock <= product.reorderPoint).length, [products])
   const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart])
   const cartTotal = useMemo(() => cart.reduce((sum, item) => sum + item.quantity * item.price, 0), [cart])
-  const printRevenue = useMemo(() => printOrders.filter((order) => order.status === 'Selesai' || order.payment === 'Lunas di muka').reduce((sum, order) => sum + order.total, 0), [printOrders])
-  const pendingPrintCount = useMemo(() => printOrders.filter((order) => order.status !== 'Selesai').length, [printOrders])
-  const unpaidPrintCount = useMemo(() => printOrders.filter((order) => order.payment === 'Bayar di akhir').length, [printOrders])
 
   const notify = (message: string) => {
     setNotice(message)
@@ -524,46 +497,6 @@ function GlobalitiApp() {
     notify(`Beban ${description} (${formatRupiah(amount)}) berhasil dicatat`)
   }
 
-  const handleAiCreatePrintOrder = (
-    fileName: string,
-    mode: 'Hitam putih' | 'Berwarna',
-    quantity: number,
-    payment: 'Lunas di muka' | 'Bayar di akhir'
-  ) => {
-    const order: PrintOrder = {
-      id: `PRINT-${String(printOrders.length + 1).padStart(4, '0')}`,
-      time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-      fileName: fileName.trim(),
-      mode,
-      quantity,
-      basis: printSettings.basis,
-      total: quantity * (mode === 'Hitam putih' ? printSettings.bwRate : printSettings.colorRate),
-      payment,
-      status: 'Menunggu cetak',
-    }
-    setPrintOrders((current) => [order, ...current])
-    notify(`Order print ${order.id} dibuat (${order.fileName})`)
-  }
-
-  const handleAiUpdatePrintOrder = (
-    orderId: string,
-    status?: 'Menunggu cetak' | 'Dicetak' | 'Selesai',
-    payment?: 'Lunas di muka' | 'Bayar di akhir' | 'Lunas setelah cetak'
-  ) => {
-    setPrintOrders((current) =>
-      current.map((order) =>
-        order.id === orderId
-          ? {
-              ...order,
-              ...(status ? { status } : {}),
-              ...(payment ? { payment } : {}),
-            }
-          : order
-      )
-    )
-    notify(`Status order print ${orderId} berhasil diperbarui`)
-  }
-
   const handleAiUpdatePrice = (productId: string, newPrice: number) => {
     setProducts((current) =>
       current.map((product) => (product.id === productId ? { ...product, price: newPrice } : product))
@@ -578,64 +511,6 @@ function GlobalitiApp() {
     }
     setExpenses((current) => [newExp, ...current])
     notify('Beban operasional berhasil dicatat')
-  }
-
-  const filteredPrintOrders = printOrders.filter((order) => `${order.fileName} ${order.id}`.toLowerCase().includes(printQuery.toLowerCase()))
-  const printRateFor = (mode: 'Hitam putih' | 'Berwarna') => mode === 'Hitam putih' ? printSettings.bwRate : printSettings.colorRate
-  const openNewPrintOrder = () => {
-    setPrintForm({ fileName: '', mode: 'Hitam putih', quantity: 1, payment: 'Lunas di muka' })
-    setShowPrintForm(true)
-  }
-  const updatePrintForm = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = event.target
-    setPrintForm((current) => ({ ...current, [name]: name === 'quantity' ? Number(value) : value }))
-  }
-  const submitPrintOrder = (event: FormEvent) => {
-    event.preventDefault()
-    if (!printForm.fileName.trim() || printForm.quantity < 1) {
-      notify('Nama dokumen dan jumlah halaman wajib diisi')
-      return
-    }
-    const order: PrintOrder = {
-      id: `PRINT-${String(printOrders.length + 1).padStart(4, '0')}`,
-      time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-      fileName: printForm.fileName.trim(),
-      mode: printForm.mode,
-      quantity: printForm.quantity,
-      basis: printSettings.basis,
-      total: printForm.quantity * printRateFor(printForm.mode),
-      payment: printForm.payment,
-      status: 'Menunggu cetak',
-    }
-    setPrintOrders((current) => [order, ...current])
-    setShowPrintForm(false)
-    notify('Order print dibuat')
-  }
-  const completePrintOrder = (id: string) => {
-    setPrintOrders((current) => current.map((order) => order.id === id ? { ...order, status: 'Selesai' } : order))
-    notify('Order print ditandai selesai')
-  }
-  const markPrintPaid = (id: string) => {
-    setPrintOrders((current) => current.map((order) => order.id === id ? { ...order, payment: 'Lunas setelah cetak' } : order))
-    notify('Pembayaran print dicatat lunas')
-  }
-  const openPrintSettings = () => {
-    setSettingsDraft({ ...printSettings })
-    setShowPrintSettings(true)
-  }
-  const updateSettingsDraft = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = event.target
-    setSettingsDraft((current) => ({ ...current, [name]: ['bwRate', 'colorRate'].includes(name) ? Number(value) : value }))
-  }
-  const submitPrintSettings = (event: FormEvent) => {
-    event.preventDefault()
-    if (settingsDraft.bwRate <= 0 || settingsDraft.colorRate <= 0) {
-      notify('Tarif print harus lebih dari nol')
-      return
-    }
-    setPrintSettings({ ...settingsDraft })
-    setShowPrintSettings(false)
-    notify('Tarif print diperbarui')
   }
 
   if (storageBlocked) return <main className="storage-warning" role="alert"><h1>Data lokal tidak dapat dibaca</h1><p>Data asli tidak ditimpa. Jangan hapus penyimpanan browser. Hubungi pengelola untuk memulihkan cadangan.</p></main>
@@ -675,11 +550,6 @@ function GlobalitiApp() {
               <Cube size={18} />
               <span className="nav-label-text">Katalog & Stok</span>
             </button>
-            <button className={view === 'print' ? 'nav-item active' : 'nav-item'} onClick={() => setView('print')}>
-              <span className="nav-indicator" aria-hidden="true" />
-              <Printer size={18} />
-              <span className="nav-label-text">Jasa Print Word</span>
-            </button>
           </div>
           <div className="sidebar-section">
             <span className="sidebar-label">Pembukuan & Kendali</span>
@@ -714,7 +584,7 @@ function GlobalitiApp() {
       <div className="app-column">
         <header className="topbar-globaliti">
           <div>
-            <h1>{view === 'pos' ? 'Kasir Toko' : view === 'products' ? 'Katalog & Stok' : view === 'print' ? 'Jasa Print Word' : view === 'finance' ? 'Laporan Keuangan' : 'Pengaturan'}</h1>
+            <h1>{view === 'pos' ? 'Kasir Toko' : view === 'products' ? 'Katalog & Stok' : view === 'finance' ? 'Laporan Keuangan' : 'Pengaturan'}</h1>
           </div>
           <div className="topbar-actions">
             <div className="date-chip">{new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
@@ -919,7 +789,6 @@ function GlobalitiApp() {
                           <div className="box-stock-header">
                             <div className="box-stock-amount">
                               <strong>{product.stock}</strong>
-                              <span>{product.unit}</span>
                             </div>
                             <span className={`box-stock-pill ${isLowStock ? 'low' : 'safe'}`}>
                               {isLowStock
@@ -977,74 +846,10 @@ function GlobalitiApp() {
             </section>
           )}
 
-          {view === 'print' && (
-            <section className="print-page">
-              <div className="page-intro-row">
-                <div>
-                  <h2>Order cetak dan pembayaran</h2>
-                  <p>Input dokumen Word satu per satu, pilih hitam putih atau berwarna, lalu tentukan bayar di muka atau setelah cetak.</p>
-                </div>
-                <button className="primary-action" onClick={openNewPrintOrder}><Plus size={18} weight="bold" /> Buat order print</button>
-              </div>
-
-              <div className="print-stats">
-                <div className="print-stat"><span>Order hari ini</span><strong>{printOrders.length}</strong><small>Dokumen Word masuk</small></div>
-                <div className="print-stat"><span>Pendapatan print</span><strong>{formatRupiah(printRevenue)}</strong><small>Order selesai atau prabayar</small></div>
-                <div className="print-stat"><span>Menunggu diproses</span><strong>{pendingPrintCount}</strong><small>Belum ditandai selesai</small></div>
-                <div className="print-stat warning"><span>Belum dibayar</span><strong>{unpaidPrintCount}</strong><small>Perlu ditagih atau dikonfirmasi</small></div>
-              </div>
-
-              <div className="print-workspace">
-                <div className="print-orders-panel">
-                  <div className="print-panel-header">
-                    <div><h3>Dokumen masuk</h3></div>
-                    <div className="print-search"><MagnifyingGlass size={17} /><input value={printQuery} onChange={(event) => setPrintQuery(event.target.value)} placeholder="Cari dokumen atau ID" aria-label="Cari order print" /></div>
-                  </div>
-                  <div className="print-list">
-                    {filteredPrintOrders.map((order) => (
-                      <div className="print-order-row" key={order.id}>
-                        <div className="print-file-icon"><FileText size={20} /></div>
-                        <div className="print-order-copy">
-                          <strong>{order.fileName}</strong>
-                          <span>{order.id} · {order.time} · {order.quantity} {order.basis.toLowerCase()}</span>
-                          <div className="print-meta"><span className={`print-mode ${order.mode === 'Berwarna' ? 'color' : ''}`}>{order.mode}</span><span>{order.basis}</span></div>
-                        </div>
-                        <div className="print-order-total"><span>Total</span><strong>{formatRupiah(order.total)}</strong></div>
-                        <div className="print-order-state">
-                          <span className={`status-pill ${order.status === 'Selesai' ? 'live' : order.status === 'Dicetak' ? 'info' : 'waiting'}`}>{order.status}</span>
-                          <span className={`payment-pill ${order.payment === 'Lunas di muka' || order.payment === 'Lunas setelah cetak' ? 'paid' : 'unpaid'}`}>{order.payment}</span>
-                        </div>
-                        <div className="print-order-actions">
-                          {order.status !== 'Selesai' && <button className="small-action" onClick={() => completePrintOrder(order.id)}><CheckCircle size={15} /> Selesai</button>}
-                          {order.payment === 'Bayar di akhir' && order.status === 'Selesai' && <button className="small-action" onClick={() => markPrintPaid(order.id)}><Check size={15} weight="bold" /> Tandai lunas</button>}
-                        </div>
-                      </div>
-                    ))}
-                    {filteredPrintOrders.length === 0 && <div className="print-empty"><SearchEmpty /> Tidak ada order print yang sesuai.</div>}
-                  </div>
-                </div>
-
-                <aside className="print-side-panel">
-                  <div className="print-rate-card">
-                    <div className="rate-card-header">
-                      <h3>Tarif Print Word</h3>
-                      <button className="icon-button" onClick={openPrintSettings} aria-label="Atur tarif print"><GearSix size={17} /></button>
-                    </div>
-                    <div className="rate-line"><span>Hitam putih</span><strong>{formatRupiah(printSettings.bwRate)} <small>/ {printSettings.basis.toLowerCase()}</small></strong></div>
-                    <div className="rate-line"><span>Berwarna</span><strong>{formatRupiah(printSettings.colorRate)} <small>/ {printSettings.basis.toLowerCase()}</small></strong></div>
-                    <div className="rate-basis"><CheckCircle size={15} /> Dasar hitung: <strong>{printSettings.basis}</strong></div>
-                    <p>Tarif dihitung per dokumen Word. Perubahan tarif dapat diatur sewaktu-waktu oleh pengelola.</p>
-                  </div>
-                </aside>
-              </div>
-            </section>
-          )}
-
           {view === 'finance' && (
             <FinanceView
               products={products}
               sales={sales}
-              printOrders={printOrders}
               expenses={expenses}
               onAddExpense={handleAddExpense}
               operator={operator}
@@ -1055,7 +860,6 @@ function GlobalitiApp() {
             <AiView variant="floating"
               products={products}
               sales={sales}
-              printOrders={printOrders}
               expenses={expenses}
               groqKey={groqKey}
               messages={aiMessages}
@@ -1069,8 +873,6 @@ function GlobalitiApp() {
               onAdjustStock={handleAiAdjustStock}
               onRecordSale={handleAiRecordSale}
               onRecordExpense={handleAiRecordExpense}
-              onCreatePrintOrder={handleAiCreatePrintOrder}
-              onUpdatePrintOrder={handleAiUpdatePrintOrder}
               onUpdatePrice={handleAiUpdatePrice}
               onAddProduct={(newProdData) => {
                 const newProd: Product = { id: `p${Date.now()}`, ...newProdData, active: true }
@@ -1098,33 +900,6 @@ function GlobalitiApp() {
           )}
         </main>
       </div>
-
-      {showPrintForm && (
-        <div className="modal-backdrop-globaliti" role="presentation" onClick={() => setShowPrintForm(false)}>
-          <form className="form-modal" role="dialog" aria-modal="true" onSubmit={submitPrintOrder} onClick={(event) => event.stopPropagation()}>
-            <div className="modal-header"><div><h2>Print dokumen Word</h2></div><button type="button" className="icon-button" onClick={() => setShowPrintForm(false)} aria-label="Tutup"><X size={18} /></button></div>
-            <label className="field full"><span>Nama file dokumen</span><div className="field-with-icon"><FileText size={17} /><input name="fileName" value={printForm.fileName} onChange={updatePrintForm} placeholder="Contoh: Makalah_Bab_1.docx" /></div><small>Gunakan satu nama file untuk satu order.</small></label>
-            <label className="field"><span>Mode cetak</span><select name="mode" value={printForm.mode} onChange={updatePrintForm}><option>Hitam putih</option><option>Berwarna</option></select></label>
-            <label className="field"><span>Jumlah {printSettings.basis.toLowerCase()}</span><input name="quantity" type="number" min="1" value={printForm.quantity} onChange={updatePrintForm} /></label>
-            <label className="field full"><span>Waktu pembayaran</span><select name="payment" value={printForm.payment} onChange={updatePrintForm}><option>Lunas di muka</option><option>Bayar di akhir</option></select></label>
-            <div className="print-total-preview"><span>Estimasi total</span><strong>{formatRupiah(printForm.quantity * printRateFor(printForm.mode))}</strong><small>{printForm.quantity} {printSettings.basis.toLowerCase()} × {formatRupiah(printRateFor(printForm.mode))}</small></div>
-            <div className="modal-footer"><button type="button" className="secondary-button" onClick={() => setShowPrintForm(false)}>Batal</button><button className="modal-primary" type="submit"><Check size={17} weight="bold" /> Simpan order</button></div>
-          </form>
-        </div>
-      )}
-
-      {showPrintSettings && (
-        <div className="modal-backdrop-globaliti" role="presentation" onClick={() => setShowPrintSettings(false)}>
-          <form className="form-modal" role="dialog" aria-modal="true" onSubmit={submitPrintSettings} onClick={(event) => event.stopPropagation()}>
-            <div className="modal-header"><div><h2>Tarif dan dasar hitung</h2></div><button type="button" className="icon-button" onClick={() => setShowPrintSettings(false)} aria-label="Tutup"><X size={18} /></button></div>
-            <label className="field"><span>Tarif hitam putih</span><input name="bwRate" type="number" min="1" value={settingsDraft.bwRate} onChange={updateSettingsDraft} /></label>
-            <label className="field"><span>Tarif berwarna</span><input name="colorRate" type="number" min="1" value={settingsDraft.colorRate} onChange={updateSettingsDraft} /></label>
-            <label className="field full"><span>Dasar hitung</span><select name="basis" value={settingsDraft.basis} onChange={updateSettingsDraft}><option>Halaman</option><option>Kertas</option></select></label>
-            <div className="settings-note"><CheckCircle size={16} /> Perubahan berlaku untuk order print berikutnya.</div>
-            <div className="modal-footer"><button type="button" className="secondary-button" onClick={() => setShowPrintSettings(false)}>Batal</button><button className="modal-primary" type="submit"><Check size={17} weight="bold" /> Simpan tarif</button></div>
-          </form>
-        </div>
-      )}
 
       {showProductForm && (
         <div className="modal-backdrop-globaliti" role="presentation" onClick={() => setShowProductForm(false)}>

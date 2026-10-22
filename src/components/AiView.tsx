@@ -8,7 +8,6 @@ import {
   Package,
   PaperPlaneTilt,
   PlusCircle,
-  Printer,
   Receipt,
   ShoppingCart,
   Sparkle,
@@ -18,12 +17,11 @@ import {
 } from '@phosphor-icons/react'
 import MarkdownContent from './MarkdownContent'
 import { SYSTEM_MANUAL_MD } from '../docs/systemManual'
-import type { AiAction, AiMessage, Expense, PaymentHotkeys, PrintOrder, Product, Sale } from '../types'
+import type { AiAction, AiMessage, Expense, PaymentHotkeys, Product, Sale } from '../types'
 
 type AiViewProps = {
   products: Product[]
   sales: Sale[]
-  printOrders: PrintOrder[]
   expenses: Expense[]
   groqKey?: string
   messages: AiMessage[]
@@ -31,8 +29,6 @@ type AiViewProps = {
   onAdjustStock: (productId: string, delta: number, reason: string) => void
   onRecordSale?: (items: Array<{ productId: string; quantity: number; price: number }>, payment: 'Tunai' | 'QRIS') => void
   onRecordExpense?: (category: 'Operasional' | 'Bahan' | 'Lainnya', description: string, amount: number) => void
-  onCreatePrintOrder?: (fileName: string, mode: 'Hitam putih' | 'Berwarna', quantity: number, payment: 'Lunas di muka' | 'Bayar di akhir') => void
-  onUpdatePrintOrder?: (orderId: string, status?: 'Menunggu cetak' | 'Dicetak' | 'Selesai', payment?: 'Lunas di muka' | 'Bayar di akhir' | 'Lunas setelah cetak') => void
   onUpdatePrice?: (productId: string, newPrice: number) => void
   onAddProduct?: (product: Omit<Product, 'id' | 'active'>) => void
   onClearChat?: () => void
@@ -51,7 +47,6 @@ const formatRupiah = (value: number) =>
 export default function AiView({
   products,
   sales,
-  printOrders,
   expenses,
   groqKey,
   messages,
@@ -59,8 +54,6 @@ export default function AiView({
   onAdjustStock,
   onRecordSale,
   onRecordExpense,
-  onCreatePrintOrder,
-  onUpdatePrintOrder,
   onUpdatePrice,
   onAddProduct,
   onClearChat,
@@ -100,10 +93,6 @@ export default function AiView({
         return { label: 'Penyesuaian Stok', icon: <Package size={15} /> }
       case 'record_expense':
         return { label: 'Pengeluaran Toko', icon: <Receipt size={15} /> }
-      case 'create_print_order':
-        return { label: 'Order Cetak Word', icon: <Printer size={15} /> }
-      case 'update_print_order':
-        return { label: 'Status Order Print', icon: <Printer size={15} /> }
       case 'update_price':
         return { label: 'Perubahan Harga', icon: <Tag size={15} /> }
       case 'update_payment_hotkeys':
@@ -156,7 +145,7 @@ export default function AiView({
     const isGreeting = /^(halo|hai|hi|hey|hei|pagi|siang|sore|malam|selamat pagi|selamat siang|selamat sore|selamat malam|tes|test|halo\?|assalamualaikum)[\s?!.]*$/i.test(q)
     if (isGreeting) {
       return {
-        text: 'Halo! Ada yang bisa saya bantu untuk operasional kasir, cek stok es krim, atau jasa print hari ini? Anda bisa tanya stok, minta bantu catat barang keluar/masuk, atau cek penjualan.',
+        text: 'Halo! Ada yang bisa saya bantu untuk operasional kasir atau cek stok es krim hari ini? Anda bisa tanya stok, minta bantu catat barang keluar/masuk, atau cek penjualan.',
       }
     }
 
@@ -172,7 +161,7 @@ export default function AiView({
     const isRecallIntent =
       /(?:ingat|mengingat|percakapan|obrolan|bicara|bahas|ngomong|tadi)\b/i.test(q) &&
       /(?:kamu|ingat|apa\s+saja|hal|tadi|sebelumnya|riwayat|rekap|sebelum)/i.test(q) &&
-      !hasWord(q, ['stok', 'beli', 'jual', 'print', 'beban', 'harga'])
+      !hasWord(q, ['stok', 'beli', 'jual', 'beban', 'harga'])
 
     if (isRecallIntent) {
       const userTurns = history.filter((m) => m.role === 'user')
@@ -228,24 +217,6 @@ export default function AiView({
 
       return {
         text: `Halo! Pelanggan terakhir yang bertransaksi tercatat pada **Nota ${last.id}** pukul **${last.time}** (kasir: ${last.operator}):\n\n${itemsDetail}\n\n- **Total Tagihan:** **${formatRupiah(last.total)}**\n- **Metode Pembayaran:** **${last.payment}**\n\nSeluruh data ini tersimpan aman di basis data kasir POS toko. Ada yang ingin Anda tindak lanjuti?`,
-      }
-    }
-
-    // 5.6 Cek Order Jasa Cetak Dokumen Terakhir
-    // Contoh: "order print terakhir apa?", "siapa yang ngeprint terakhir?"
-    if (
-      (q.includes('print terakhir') || q.includes('cetak terakhir') || q.includes('order print paling baru') || q.includes('antrean print terakhir') || (q.includes('print') && q.includes('terakhir')))
-    ) {
-      const sortedPrintOrders = [...printOrders].sort((a, b) => b.id.localeCompare(a.id))
-      const lastPrint = sortedPrintOrders[0]
-      if (!lastPrint) {
-        return {
-          text: 'Belum ada antrean pesanan jasa cetak Word yang masuk ke sistem.',
-        }
-      }
-
-      return {
-        text: `Order cetak dokumen paling baru adalah **${lastPrint.id}** pukul **${lastPrint.time}**:\n\n- **Nama File:** **${lastPrint.fileName}**\n- **Mode Cetak:** ${lastPrint.mode}\n- **Volume:** ${lastPrint.quantity} halaman\n- **Total Biaya:** **${formatRupiah(lastPrint.total)}**\n- **Status Pembayaran:** **${lastPrint.payment}**\n- **Status Pengerjaan:** **${lastPrint.status}**`,
       }
     }
 
@@ -477,126 +448,6 @@ export default function AiView({
       }
     }
 
-    // 5. Intent Order Print Dokumen Word (Termasuk variasi percakapan seperti "ngeprint proposal 32 halaman, 3 warna lunas")
-    const isPrintOrder =
-      hasWord(q, ['print', 'ngeprint', 'cetak']) ||
-      ['order print', 'cetak dokumen', 'print word', 'print tugas', 'order cetak', 'buat order print', 'jasa print'].some((k) => q.includes(k))
-    if (isPrintOrder) {
-      const isPostpaid = ['bayar di akhir', 'bayar akhir', 'pascabayar', 'nanti', 'tempo'].some((k) => q.includes(k))
-      const payment: 'Lunas di muka' | 'Bayar di akhir' = isPostpaid ? 'Bayar di akhir' : 'Lunas di muka'
-
-      // Ekstrak nama file (misal xxx.docx atau nama setelah kata print/cetak)
-      const fileMatch = q.match(/[\w-]+\.(?:docx|doc|pdf)/i) || q.match(/(?:print|ngeprint|cetak)\s+([\w\s_-]+?)(?:,|\s+\d+|\s+jumlah|\s+halaman|\s+hitam|\s+warna|$)/i)
-      const rawFileName = fileMatch ? (fileMatch[1] ? fileMatch[1].trim() : fileMatch[0].trim()) : 'Proposal_Dokumen'
-      const cleanFileName = rawFileName.replace(/^(?:dokumen|berkas)\s+/i, '').trim() || 'Proposal_Dokumen'
-      const fileName = cleanFileName.includes('.') ? cleanFileName : `${cleanFileName}.docx`
-
-      // Cek apakah ada pembagian halaman campuran (warna & hitam putih)
-      const colorMatch = q.match(/(\d+)\s*(?:halaman|hal|lbr|lembar)?\s*(?:berwarna|warna|color)/i) ||
-                         q.match(/(?:berwarna|warna|color)\s*(?:cuma|hanya)?\s*(\d+)/i)
-      const bwMatch = q.match(/(\d+)\s*(?:halaman|hal|lbr|lembar)?\s*(?:hitam[- ]putih|bw|b\/w)/i) ||
-                      q.match(/(?:hitam[- ]putih|bw)\s*(?:cuma|hanya)?\s*(\d+)/i)
-      const totalMatch = q.match(/(?:total|jumlah|sebanyak|isi)?\s*(\d+)\s*(?:halaman|hal|lembar)/i)
-
-      const colorCount = colorMatch ? parseInt(colorMatch[1], 10) : 0
-      let totalPages = totalMatch ? parseInt(totalMatch[1], 10) : (extractedQty || 1)
-      let bwCount = bwMatch ? parseInt(bwMatch[1], 10) : 0
-
-      if (totalPages > 0 && colorCount > 0 && bwCount === 0 && totalPages > colorCount) {
-        bwCount = totalPages - colorCount
-      }
-
-      // Jika campuran warna + hitam putih
-      if (colorCount > 0 && bwCount > 0) {
-        const costColor = colorCount * 1000
-        const costBw = bwCount * 500
-        const grandTotal = costColor + costBw
-
-        const actColor: AiAction = {
-          id: `act-${Date.now()}-1`,
-          action: 'create_print_order',
-          description: `Order print ${fileName} - Bagian Berwarna (${colorCount} hal, Rp ${costColor.toLocaleString('id-ID')})`,
-          params: {
-            fileName: `${fileName.replace(/\.[^/.]+$/, '')}_Warna.docx`,
-            mode: 'Berwarna',
-            quantity: colorCount,
-            payment,
-          },
-          status: 'pending',
-        }
-
-        const actBw: AiAction = {
-          id: `act-${Date.now()}-2`,
-          action: 'create_print_order',
-          description: `Order print ${fileName} - Bagian Hitam Putih (${bwCount} hal, Rp ${costBw.toLocaleString('id-ID')})`,
-          params: {
-            fileName: `${fileName.replace(/\.[^/.]+$/, '')}_Teks.docx`,
-            mode: 'Hitam putih',
-            quantity: bwCount,
-            payment,
-          },
-          status: 'pending',
-        }
-
-        return {
-          text: `Baik, saya telah menghitung rincian dan menyiapkan pencatatan order print **${fileName}** (${totalPages} halaman):\n\n- **Halaman Berwarna:** ${colorCount} hal × Rp 1.000 = **${formatRupiah(costColor)}**\n- **Halaman Hitam-Putih:** ${bwCount} hal × Rp 500 = **${formatRupiah(costBw)}**\n- **Total Biaya:** **${formatRupiah(grandTotal)}** (${payment})\n\nSilakan periksa 2 kartu tindakan di bawah dan klik **Terapkan Semua** untuk memasukkannya ke antrean cetak:`,
-          action: actColor,
-          actions: [actColor, actBw],
-        }
-      }
-
-      // Pesanan satu mode (hanya warna atau hanya hitam putih)
-      const isColorOnly = hasWord(q, ['warna', 'berwarna', 'color'])
-      const mode: 'Hitam putih' | 'Berwarna' = isColorOnly ? 'Berwarna' : 'Hitam putih'
-      const pages = totalPages > 0 ? totalPages : 1
-      const rate = mode === 'Berwarna' ? 1000 : 500
-      const totalCost = pages * rate
-
-      return {
-        text: `Saya telah menyiapkan order jasa cetak dokumen untuk Anda:\n\n- **Nama Dokumen:** \`${fileName}\`\n- **Mode Cetak:** ${mode}\n- **Jumlah:** ${pages} halaman\n- **Perkiraan Biaya:** **${formatRupiah(totalCost)}** (${payment})\n\nSilakan periksa kartu tindakan di bawah dan klik **Terapkan Perubahan** untuk memasukkan order ke antrean cetak.`,
-        action: {
-          id: `act-${Date.now()}`,
-          action: 'create_print_order',
-          description: `Buat order cetak ${fileName} (${pages} hal, ${mode}, ${payment})`,
-          params: {
-            fileName,
-            mode,
-            quantity: pages,
-            payment,
-          },
-          status: 'pending',
-        },
-      }
-    }
-
-    // 6. Intent Pelunasan / Selesai Order Print
-    // Contoh: "tandai lunas print PRINT-0001", "selesaikan order print PRINT-0002"
-    if (q.includes('print-') || (q.includes('order print') && (q.includes('lunas') || q.includes('selesai')))) {
-      const orderIdMatch = q.match(/print-\d+/i)
-      const targetOrderId = orderIdMatch ? orderIdMatch[0].toUpperCase() : printOrders[0]?.id
-      const targetOrder = printOrders.find((o) => o.id.toUpperCase() === targetOrderId?.toUpperCase())
-
-      if (targetOrder) {
-        const wantsLunas = q.includes('lunas') || q.includes('bayar')
-        const newStatus = q.includes('selesai') ? 'Selesai' : undefined
-        const newPayment = wantsLunas ? 'Lunas setelah cetak' : undefined
-
-        return {
-          text: `Saya telah menyiapkan pembaruan data untuk antrean print **${targetOrder.id}** (${targetOrder.fileName}):\n\n${newStatus ? `- **Status Pengerjaan:** Selesai\n` : ''}${newPayment ? `- **Status Pembayaran:** Lunas\n` : ''}\nSetelah diterapkan, sistem akan memperbarui antrean cetak dan mencatat penerimaan kas jika ada pelunasan.`,
-          action: {
-            id: `act-${Date.now()}`,
-            action: 'update_print_order',
-            description: `Perbarui order ${targetOrder.id}: ${newStatus || ''} ${newPayment || ''}`.trim(),
-            params: {
-              orderId: targetOrder.id,
-              status: newStatus,
-              payment: newPayment,
-            },
-            status: 'pending',
-          },
-        }
-      }
-    }
 
     // 5.5 Cek Pelanggan / Transaksi Penjualan Terakhir di Kasir POS
     // Contoh: "pelanggan terakhir ada beli apa ya?", "nota terakhir beli apa", "pembeli terakhir"
@@ -633,25 +484,7 @@ export default function AiView({
       }
     }
 
-    // 5.6 Cek Order Jasa Cetak Dokumen Terakhir
-    // Contoh: "order print terakhir apa?", "siapa yang ngeprint terakhir?"
-    if (
-      (q.includes('print terakhir') || q.includes('cetak terakhir') || q.includes('order print paling baru') || q.includes('antrean print terakhir'))
-    ) {
-      const sortedPrintOrders = [...printOrders].sort((a, b) => b.id.localeCompare(a.id))
-      const lastPrint = sortedPrintOrders[0]
-      if (!lastPrint) {
-        return {
-          text: 'Belum ada antrean pesanan jasa cetak Word yang masuk ke sistem.',
-        }
-      }
 
-      return {
-        text: `Order cetak dokumen paling baru adalah **${lastPrint.id}** pukul **${lastPrint.time}**:\n\n- **Nama File:** **${lastPrint.fileName}**\n- **Mode Cetak:** ${lastPrint.mode}\n- **Volume:** ${lastPrint.quantity} halaman\n- **Total Biaya:** **${formatRupiah(lastPrint.total)}**\n- **Status Pembayaran:** **${lastPrint.payment}**\n- **Status Pengerjaan:** **${lastPrint.status}**`,
-      }
-    }
-
-    // 5.7 Cek Produk Paling Laku / Terlaris Hari Ini
     // Contoh: "produk apa yang paling laku hari ini?", "es krim terlaris apa?"
     if (q.includes('paling laku') || q.includes('terlaris') || q.includes('paling laris') || q.includes('favorit')) {
       const productSalesCount: Record<string, number> = {}
@@ -774,10 +607,7 @@ export default function AiView({
     // 10. Cek Penjualan / Omzet / Laba Hari Ini
     if (q.includes('penjualan') || q.includes('omzet') || q.includes('pendapatan') || q.includes('laba') || q.includes('untung') || q.includes('keuangan')) {
       const iceCreamRev = sales.reduce((sum, s) => sum + s.total, 0)
-      const printRev = printOrders
-        .filter((o) => o.status === 'Selesai' || o.payment === 'Lunas di muka' || o.payment === 'Lunas setelah cetak')
-        .reduce((sum, o) => sum + o.total, 0)
-      const totalRev = iceCreamRev + printRev
+      const totalRev = iceCreamRev
 
       let cogs = 0
       sales.forEach((s) => {
@@ -791,7 +621,7 @@ export default function AiView({
       const netProfit = grossProfit - totalExp
 
       return {
-        text: `Ringkasan penjualan dan keuntungan hari ini:\n\n- **Penjualan Es Krim:** ${formatRupiah(iceCreamRev)} (${sales.length} nota transaksi)\n- **Pendapatan Jasa Print Word:** ${formatRupiah(printRev)}\n- **Total Pemasukan:** **${formatRupiah(totalRev)}**\n- **Beban Pokok (HPP Es Krim):** ${formatRupiah(cogs)}\n- **Beban Operasional Toko:** ${formatRupiah(totalExp)}\n- **Estimasi Laba Bersih:** **${formatRupiah(netProfit)}**\n\nData ini otomatis sinkron dengan Laporan Keuangan SAK EMKM toko.`,
+        text: `Ringkasan penjualan dan keuntungan hari ini:\n\n- **Penjualan Es Krim:** ${formatRupiah(iceCreamRev)} (${sales.length} nota transaksi)\n\n- **Total Pemasukan:** **${formatRupiah(totalRev)}**\n- **Beban Pokok (HPP Es Krim):** ${formatRupiah(cogs)}\n- **Beban Operasional Toko:** ${formatRupiah(totalExp)}\n- **Estimasi Laba Bersih:** **${formatRupiah(netProfit)}**\n\nData ini otomatis sinkron dengan Laporan Keuangan SAK EMKM toko.`,
       }
     }
 
@@ -802,11 +632,6 @@ export default function AiView({
           text: 'Cara Melayani Pembeli di Kasir POS:\n1. Klik kartu produk es krim yang dipilih pembeli (atau scan barcodenya jika ada scanner).\n2. Sesuaikan jumlah pesanan di panel keranjang belanja sebelah kanan.\n3. Pilih metode pembayaran: **Tunai** atau **QRIS**.\n4. Klik tombol hijau **Bayar** (atau tekan **Enter**) untuk menyelesaikan transaksi dan mencetak struk.',
         }
       }
-      if (q.includes('print') || q.includes('cetak') || q.includes('word') || q.includes('dokumen')) {
-        return {
-          text: 'Cara Mengelola Jasa Print Word:\n1. Buka tab **Jasa Print Word**, lalu klik **Buat order print**.\n2. Masukkan nama file dokumen Word, pilih hitam putih atau warna, dan isi jumlah halaman.\n3. Tentukan pembayaran: **Lunas di muka** (bayar sekarang) atau **Bayar di akhir** (ambil dulu, bayar nanti).\n4. Setelah selesai dicetak, klik tombol **Selesai**. Jika berstatus bayar di akhir, klik **Tandai lunas** setelah menerima pembayaran.',
-        }
-      }
       if (q.includes('stok') || q.includes('produk') || q.includes('barang')) {
         return {
           text: 'Cara Menambah atau Mengubah Stok:\n1. Buka tab **Katalog & Stok**.\n2. Untuk barang baru: klik **Tambah Produk** dan isi barcode, nama, serta harga.\n3. Untuk penyesuaian barang datang: klik tombol pensil/panah pada baris produk untuk menambah jumlah stok fisik.\n4. Anda juga bisa langsung meminta saya di sini, contoh: *"Tambah stok Matcha Cup 10"*.',
@@ -814,11 +639,11 @@ export default function AiView({
       }
       if (q.includes('laporan') || q.includes('neraca') || q.includes('beban') || q.includes('keuangan')) {
         return {
-          text: 'Cara Menggunakan Pembukuan & Laporan Keuangan:\n1. Buka tab **Laporan Keuangan**.\n2. Tab **Laba Rugi** otomatis menghitung omzet penjualan dikurangi HPP dan beban toko.\n3. Tab **Posisi Keuangan (Neraca)** memantau kas di tangan, piutang print yang belum dibayar, dan persediaan barang.\n4. Jika ada belanja operasional toko (seperti beli kertas atau tinta), klik tombol **Catat Beban**.',
+          text: 'Cara Menggunakan Pembukuan & Laporan Keuangan:\n1. Buka tab **Laporan Keuangan**.\n2. Tab **Laba Rugi** otomatis menghitung omzet penjualan dikurangi HPP dan beban toko.\n3. Tab **Posisi Keuangan (Neraca)** memantau kas di tangan dan persediaan barang.\n4. Jika ada belanja operasional toko (seperti beli kertas atau tinta), klik tombol **Catat Beban**.',
         }
       }
       return {
-        text: 'Panduan Sistem Globaliti Creative Center:\n- **Kasir POS:** Pindai barcode dan proses pembayaran belanja es krim.\n- **Katalog & Stok:** Pendaftaran produk baru dan penyesuaian unit fisik.\n- **Jasa Print Word:** Pengelolaan order cetak .docx (prabayar/pascabayar) dan tarif.\n- **Laporan Keuangan:** Neraca dan Laba Rugi otomatis standar SAK EMKM.\n- **Asisten AI:** Bantuan tanya jawab stok dan usulan perubahan data aman.\n\nSilakan tanyakan fitur yang ingin Anda ketahui!',
+        text: 'Panduan Sistem Globaliti Creative Center:\n- **Kasir POS:** Pindai barcode dan proses pembayaran belanja es krim.\n- **Katalog & Stok:** Pendaftaran produk baru dan penyesuaian unit fisik.\n- **Laporan Keuangan:** Neraca dan Laba Rugi otomatis standar SAK EMKM.\n- **Asisten AI:** Bantuan tanya jawab stok dan usulan perubahan data aman.\n\nSilakan tanyakan fitur yang ingin Anda ketahui!',
       }
     }
 
@@ -841,23 +666,6 @@ export default function AiView({
 
   // Definisi Custom Tools Schema Resmi OpenAI/Groq
   const GROQ_TOOLS = [
-    {
-      type: 'function',
-      function: {
-        name: 'create_print_order',
-        description: 'Catat pesanan cetak atau print dokumen baru ke antrean cetak jasa print Word/PDF. Jika dokumen memiliki campuran halaman warna dan hitam putih, panggil fungsi ini 2 kali (sekali untuk berwarna dan sekali untuk hitam putih).',
-        parameters: {
-          type: 'object',
-          properties: {
-            fileName: { type: 'string', description: 'Nama file dokumen (misal: Proposal_Kegiatan.docx)' },
-            mode: { type: 'string', enum: ['Hitam putih', 'Berwarna'], description: 'Mode cetak warna atau hitam putih' },
-            quantity: { type: 'integer', description: 'Jumlah halaman yang dicetak' },
-            payment: { type: 'string', enum: ['Lunas di muka', 'Bayar di akhir'], description: 'Status pembayaran' },
-          },
-          required: ['fileName', 'mode', 'quantity', 'payment'],
-        },
-      },
-    },
     {
       type: 'function',
       function: {
@@ -934,22 +742,6 @@ export default function AiView({
     {
       type: 'function',
       function: {
-        name: 'update_print_order',
-        description: 'Perbarui status pengerjaan atau status pelunasan antrean jasa cetak dokumen Word/PDF.',
-        parameters: {
-          type: 'object',
-          properties: {
-            orderId: { type: 'string', description: 'ID pesanan cetak (misal PRINT-0001, PRINT-0002)' },
-            status: { type: 'string', enum: ['Menunggu cetak', 'Dicetak', 'Selesai'], description: 'Status pengerjaan cetak' },
-            payment: { type: 'string', enum: ['Lunas di muka', 'Bayar di akhir', 'Lunas setelah cetak'], description: 'Status pembayaran' },
-          },
-          required: ['orderId'],
-        },
-      },
-    },
-    {
-      type: 'function',
-      function: {
         name: 'update_payment_hotkeys',
         description: 'Perbarui tombol pintasan keyboard (hotkey) metode pembayaran di kasir POS (contoh: tunai: "1" atau "T", qris: "2" atau "Q", atau F1/F2).',
         parameters: {
@@ -984,8 +776,6 @@ export default function AiView({
     // Siapkan data operasional lengkap agar Asisten memiliki kontrol dan visibilitas 100% penuh
     const sortedSales = [...sales].sort((a, b) => b.id.localeCompare(a.id))
     const lastSale = sortedSales[0]
-    const sortedPrintOrders = [...printOrders].sort((a, b) => b.id.localeCompare(a.id))
-    const lastPrintOrder = sortedPrintOrders[0]
     const sortedExpenses = [...expenses]
     const lastExpense = sortedExpenses[0]
 
@@ -1013,12 +803,7 @@ export default function AiView({
       return `  * [Nota: ${s.id}] Jam: ${s.time} | Kasir: ${s.operator} | Item: ${itemsStr} | Total: ${formatRupiah(s.total)} (${s.payment})`
     }).join('\n')
 
-    // Ringkasan antrean cetak Word terbaru
-    const recentPrintDetail = sortedPrintOrders.slice(0, 8).map((o) => {
-      return `  * [Order: ${o.id}] Jam: ${o.time} | File: ${o.fileName} | Mode: ${o.mode} | Hal: ${o.quantity} | Total: ${formatRupiah(o.total)} | Pembayaran: ${o.payment} | Status: ${o.status}`
-    }).join('\n')
 
-    // Ringkasan beban pengeluaran toko terbaru
     const recentExpenseDetail = sortedExpenses.slice(0, 6).map((e) => {
       return `  * [Beban: ${e.id}] Kategori: ${e.category} | Ket: ${e.label || (e as any).description} | Nominal: ${formatRupiah(e.amount)}`
     }).join('\n')
@@ -1043,13 +828,7 @@ ${recentSalesDetail || '  (Belum ada transaksi)'}
 
 - PRODUK TERLARIS HARI INI: ${topSellingSummary || 'Belum ada produk yang terjual hari ini'}
 
-- ORDER CETAK DOKUMEN WORD TERAKHIR:
-  ${lastPrintOrder ? `Order ${lastPrintOrder.id} (${lastPrintOrder.fileName}, ${lastPrintOrder.quantity} hal, ${lastPrintOrder.mode}, Total: ${formatRupiah(lastPrintOrder.total)}, Pembayaran: ${lastPrintOrder.payment}, Status: ${lastPrintOrder.status}) pada jam ${lastPrintOrder.time}` : 'Belum ada order cetak hari ini.'}
 
-- RIWAYAT ANTREAN PRINT DOKUMEN:
-${recentPrintDetail || '  (Belum ada antrean cetak)'}
-
-- PENGELUARAN / BEBAN TERAKHIR:
   ${lastExpense ? `Beban ${lastExpense.id} (${lastExpense.label || (lastExpense as any).description}): ${formatRupiah(lastExpense.amount)} (${lastExpense.category})` : 'Belum ada pengeluaran'}
 
 - RIWAYAT BEBAN PENGELUARAN TOKO:
@@ -1065,7 +844,6 @@ ${products.map((p) => `  * ${p.name} (ID: ${p.id}, Barcode: ${p.barcode}) | Stok
 
 - RINGKASAN FINANSIAL TOKO HARI INI:
   * Total Omzet Penjualan Es Krim: ${formatRupiah(sales.reduce((s, x) => s + x.total, 0))} (${sales.length} nota)
-  * Pendapatan Print Dokumen: ${formatRupiah(printOrders.filter((o) => o.status === 'Selesai' || o.payment === 'Lunas di muka' || o.payment === 'Lunas setelah cetak').reduce((s, x) => s + x.total, 0))} (${printOrders.length} order)
   * Total Beban Operasional: ${formatRupiah(expenses.reduce((s, x) => s + x.amount, 0))}
 
 Panduan Penggunaan Fitur Web:
@@ -1122,40 +900,7 @@ Format tindakan beban:
 }
 \`\`\`
 
-Format tindakan pesanan print/cetak dokumen:
-\`\`\`action
-{
-  "type": "create_print_order",
-  "fileName": "Proposal_Kegiatan.docx",
-  "mode": "Berwarna" atau "Hitam putih",
-  "quantity": 32,
-  "payment": "Lunas di muka" atau "Bayar di akhir",
-  "description": "Order print proposal (32 hal, Berwarna, Lunas)"
-}
-\`\`\`
-Jika pesanan cetak memiliki campuran halaman warna dan hitam putih (misal 3 halaman berwarna dan 29 halaman hitam putih), WAJIB buatkan 2 blok action terpisah di akhir pesanmu:
-\`\`\`action
-{
-  "type": "create_print_order",
-  "fileName": "Proposal_Warna.docx",
-  "mode": "Berwarna",
-  "quantity": 3,
-  "payment": "Lunas di muka",
-  "description": "Print proposal bagian warna (3 hal, Berwarna, Lunas)"
-}
-\`\`\`
-\`\`\`action
-{
-  "type": "create_print_order",
-  "fileName": "Proposal_Teks.docx",
-  "mode": "Hitam putih",
-  "quantity": 29,
-  "payment": "Lunas di muka",
-  "description": "Print proposal bagian teks (29 hal, Hitam putih, Lunas)"
-}
-\`\`\`
-
-PENTING: JANGAN PERNAH hanya menyebut perhitungan di teks tanpa menyertakan blok \`\`\`action. Setiap kali kasir meminta mencatat penjualan, beban, restok, atau order print, kamu WAJIB menyertakan blok \`\`\`action di akhir jawabanmu!
+ di teks tanpa menyertakan blok \`\`\`action. Setiap kali kasir meminta mencatat penjualan, beban, restok, kamu WAJIB menyertakan blok \`\`\`action di akhir jawabanmu!
 Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`action.`
 
     const conversationMessages = history.slice(0, -1).slice(-8).map((m) => ({
@@ -1318,28 +1063,7 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
             const tc = nativeToolCallsByIndex[Number(k)]
             try {
               const parsed = JSON.parse(tc.arguments.trim())
-              if (tc.name === 'create_print_order') {
-                const rawFileName = parsed.fileName || 'proposal.docx'
-                const fileName = rawFileName.includes('.') ? rawFileName : `${rawFileName}.docx`
-                const rawMode = String(parsed.mode || '').toLowerCase()
-                const mode: 'Hitam putih' | 'Berwarna' = rawMode.includes('warna') || rawMode.includes('color') ? 'Berwarna' : 'Hitam putih'
-                const qty = Math.max(1, Number(parsed.quantity || parsed.pages) || 1)
-                const rawPay = String(parsed.payment || '').toLowerCase()
-                const isPostpaid = rawPay.includes('akhir') || rawPay.includes('nanti') || rawPay.includes('tempo')
-                const payment: 'Lunas di muka' | 'Bayar di akhir' = isPostpaid ? 'Bayar di akhir' : 'Lunas di muka'
-                actionBlocks.push({
-                  id: tc.id || `act-${Date.now()}-${actionBlocks.length}`,
-                  action: 'create_print_order',
-                  description: `Order print ${fileName} (${qty} hal, ${mode}, ${payment})`,
-                  params: {
-                    fileName,
-                    mode,
-                    quantity: qty,
-                    payment,
-                  },
-                  status: 'pending',
-                })
-              } else if (tc.name === 'record_sale') {
+              if (tc.name === 'record_sale') {
                 if (parsed.items && Array.isArray(parsed.items) && parsed.items.length > 0) {
                   const saleItems = parsed.items.map((it: any) => {
                     const p = products.find((prod) => prod.id === it.productId)
@@ -1406,24 +1130,7 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
                     status: 'pending',
                   })
                 }
-              } else if (tc.name === 'update_print_order' && parsed.orderId) {
-                const target = printOrders.find((o) => o.id.toUpperCase() === parsed.orderId.toUpperCase()) || printOrders[0]
-                if (target) {
-                  const status = parsed.status || 'Selesai'
-                  const payment = parsed.payment || (target.payment === 'Bayar di akhir' ? 'Lunas setelah cetak' : target.payment)
-                  actionBlocks.push({
-                    id: tc.id || `act-${Date.now()}-${actionBlocks.length}`,
-                    action: 'update_print_order',
-                    description: `Perbarui order ${target.id}: status ${status}, ${payment}`,
-                    params: {
-                      orderId: target.id,
-                      status,
-                      payment,
-                    },
-                    status: 'pending',
-                  })
-                }
-              } else if (tc.name === 'update_payment_hotkeys' && parsed.tunai && parsed.qris) {
+
                 actionBlocks.push({
                   id: tc.id || `act-${Date.now()}-${actionBlocks.length}`,
                   action: 'update_payment_hotkeys',
@@ -1518,43 +1225,7 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
                   },
                   status: 'pending',
                 })
-              } else if (parsed.type === 'create_print_order' || parsed.type === 'print_order') {
-                const rawFileName = parsed.fileName || parsed.file || 'Dokumen_Proposal.docx'
-                const fileName = rawFileName.includes('.') ? rawFileName : `${rawFileName}.docx`
-                const rawMode = String(parsed.mode || '').toLowerCase()
-                const mode: 'Hitam putih' | 'Berwarna' = rawMode.includes('warna') || rawMode.includes('color') ? 'Berwarna' : 'Hitam putih'
-                const qty = Math.max(1, Number(parsed.quantity || parsed.pages || parsed.halaman || parsed.qty) || 1)
-                const rawPay = String(parsed.payment || '').toLowerCase()
-                const isPostpaid = rawPay.includes('akhir') || rawPay.includes('nanti') || rawPay.includes('tempo')
-                const payment: 'Lunas di muka' | 'Bayar di akhir' = isPostpaid ? 'Bayar di akhir' : 'Lunas di muka'
-                actionBlocks.push({
-                  id: `act-${Date.now()}-${actionBlocks.length}`,
-                  action: 'create_print_order',
-                  description: parsed.description || `Buat order cetak: ${fileName} (${qty} hal, ${mode}, ${payment})`,
-                  params: {
-                    fileName,
-                    mode,
-                    quantity: qty,
-                    payment,
-                  },
-                  status: 'pending',
-                })
-              } else if (parsed.type === 'update_print_order') {
-                const orderId = parsed.orderId || printOrders[0]?.id || 'PRINT-0001'
-                const status = parsed.status || 'Selesai'
-                const payment = parsed.payment || 'Lunas setelah cetak'
-                actionBlocks.push({
-                  id: `act-${Date.now()}-${actionBlocks.length}`,
-                  action: 'update_print_order',
-                  description: parsed.description || `Perbarui status ${orderId}: ${status} (${payment})`,
-                  params: {
-                    orderId,
-                    status,
-                    payment,
-                  },
-                  status: 'pending',
-                })
-              } else if (parsed.type === 'update_payment_hotkeys' && parsed.tunai && parsed.qris) {
+
                 actionBlocks.push({
                   id: `act-${Date.now()}-${actionBlocks.length}`,
                   action: 'update_payment_hotkeys',
@@ -1637,80 +1308,11 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
               })
             }
           }
-
-          // Fallback ekstraksi cerdas untuk pesanan cetak/print (misal: "32 halaman, 3 halaman berwarna lunas")
-          const isPrintMention = /\b(?:print|ngeprint|cetak|halaman|proposal|word|lembar)\b/i.test(q) ||
-                                 /\b(?:print|ngeprint|cetak|halaman|proposal|order cetak)\b/i.test(cleanText)
-          if (isPrintMention) {
-            const combinedText = `${userText} ${cleanText}`
-            const colorMatch = combinedText.match(/(\d+)\s*(?:halaman|hal|lbr|lembar)?\s*(?:berwarna|warna|color)/i) ||
-                               combinedText.match(/(?:berwarna|warna|color)\s*(?:cuma|hanya)?\s*(\d+)/i)
-            const bwMatch = combinedText.match(/(\d+)\s*(?:halaman|hal|lbr|lembar)?\s*(?:hitam[- ]putih|bw|b\/w)/i) ||
-                            combinedText.match(/(?:hitam[- ]putih|bw)\s*(?:cuma|hanya)?\s*(\d+)/i)
-            const totalMatch = combinedText.match(/(?:total|jumlah|sebanyak|isi)?\s*(\d+)\s*(?:halaman|hal|lembar)/i)
-
-            const colorCount = colorMatch ? parseInt(colorMatch[1], 10) : 0
-            let totalPages = totalMatch ? parseInt(totalMatch[1], 10) : (extractedQty || 0)
-            let bwCount = bwMatch ? parseInt(bwMatch[1], 10) : 0
-
-            if (totalPages > 0 && colorCount > 0 && bwCount === 0 && totalPages > colorCount) {
-              bwCount = totalPages - colorCount
-            }
-
-            const isPostpaid = /\b(?:bayar nanti|tempo|bayar di akhir|belum lunas|ngutang)\b/i.test(combinedText)
-            const payment: 'Lunas di muka' | 'Bayar di akhir' = isPostpaid ? 'Bayar di akhir' : 'Lunas di muka'
-            const fileBase = /proposal/i.test(combinedText) ? 'Proposal_Kegiatan' : 'Dokumen_Cetak'
-
-            if (colorCount > 0) {
-              actionBlocks.push({
-                id: `act-${Date.now()}-${actionBlocks.length}`,
-                action: 'create_print_order',
-                description: `Buat order cetak: ${fileBase}_Warna.docx (${colorCount} hal, Berwarna, ${payment})`,
-                params: {
-                  fileName: `${fileBase}_Warna.docx`,
-                  mode: 'Berwarna',
-                  quantity: colorCount,
-                  payment,
-                },
-                status: 'pending',
-              })
-            }
-
-            if (bwCount > 0) {
-              actionBlocks.push({
-                id: `act-${Date.now()}-${actionBlocks.length}`,
-                action: 'create_print_order',
-                description: `Buat order cetak: ${fileBase}_Teks.docx (${bwCount} hal, Hitam putih, ${payment})`,
-                params: {
-                  fileName: `${fileBase}_Teks.docx`,
-                  mode: 'Hitam putih',
-                  quantity: bwCount,
-                  payment,
-                },
-                status: 'pending',
-              })
-            } else if (colorCount === 0 && totalPages > 0) {
-              actionBlocks.push({
-                id: `act-${Date.now()}-${actionBlocks.length}`,
-                action: 'create_print_order',
-                description: `Buat order cetak: ${fileBase}.docx (${totalPages} hal, Hitam putih, ${payment})`,
-                params: {
-                  fileName: `${fileBase}.docx`,
-                  mode: 'Hitam putih',
-                  quantity: totalPages,
-                  payment,
-                },
-                status: 'pending',
-              })
-            }
-          }
         }
 
         // Jika model hanya mengeluarkan tool calls tanpa teks (misal gpt-oss-120b), siapkan teks pengantar kasir ramah
         if (!cleanText && actionBlocks.length > 0) {
-          if (actionBlocks.some((a) => a.action === 'create_print_order')) {
-            cleanText = `Baik, saya telah menyiapkan pencatatan ${actionBlocks.length} order cetak dokumen ke antrean print. Silakan periksa kartu tindakan di bawah dan terapkan:`
-          } else if (actionBlocks.some((a) => a.action === 'record_sale')) {
+          if (actionBlocks.some((a) => a.action === 'record_sale')) {
             cleanText = `Baik, saya telah menyiapkan pencatatan transaksi penjualan kasir untuk Anda. Silakan periksa rincian di bawah:`
           } else if (actionBlocks.some((a) => a.action === 'adjust_stock')) {
             cleanText = `Baik, saya telah menyiapkan kartu penyesuaian stok produk toko. Silakan periksa dan konfirmasi di bawah:`
@@ -1806,15 +1408,6 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
       onRecordSale(action.params.items, action.params.payment || 'Tunai')
     } else if (action.action === 'record_expense' && onRecordExpense) {
       onRecordExpense(action.params.category || 'Operasional', action.params.description, action.params.amount)
-    } else if (action.action === 'create_print_order' && onCreatePrintOrder) {
-      onCreatePrintOrder(
-        action.params.fileName,
-        action.params.mode || 'Hitam putih',
-        action.params.quantity || 1,
-        action.params.payment || 'Lunas di muka'
-      )
-    } else if (action.action === 'update_print_order' && onUpdatePrintOrder) {
-      onUpdatePrintOrder(action.params.orderId, action.params.status, action.params.payment)
     } else if (action.action === 'update_price' && onUpdatePrice) {
       onUpdatePrice(action.params.productId, action.params.newPrice)
     } else if (action.action === 'add_product' && onAddProduct && action.params.product) {
@@ -2012,13 +1605,7 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
                                   <span className="proposal-tag">Nominal: <strong>{formatRupiah(action.params.amount)}</strong></span>
                                 </div>
                               )}
-                              {action.action === 'create_print_order' && (
-                                <div className="proposal-meta-row">
-                                  <span className="proposal-tag"><strong>{action.params.fileName}</strong></span>
-                                  <span className="proposal-tag"><strong>{action.params.quantity} hal</strong> · {action.params.mode}</span>
-                                  <span className="proposal-tag method"><strong>{action.params.payment}</strong></span>
-                                </div>
-                              )}
+
                               {action.action === 'update_payment_hotkeys' && (
                                 <div className="proposal-meta-row">
                                   <span className="proposal-tag">Tunai: <strong>[{action.params.tunai}]</strong></span>

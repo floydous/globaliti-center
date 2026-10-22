@@ -7,8 +7,6 @@ for (const [width, height] of [[320,568], [390,844], [768,1024], [1440,900]]) {
     await page.setViewportSize({ width, height })
     await page.goto('http://127.0.0.1:4173')
     const plans = [
-      ['Jasa Print Word', 'Buat order print', 'print'],
-      ['Jasa Print Word', 'Atur tarif print', 'rates'],
       ['Katalog & Stok', 'Tambah Produk', 'product'],
       ['Katalog & Stok', 'Sesuaikan stok', 'stock'],
       ['Laporan Keuangan', 'Catat Beban', 'expense'],

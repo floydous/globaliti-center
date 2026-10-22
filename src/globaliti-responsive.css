@@ -9,17 +9,8 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .print-workspace {
-    grid-template-columns: minmax(0, 1fr) 280px;
-  }
 
-  .print-order-row {
-    grid-template-columns: 36px minmax(140px, 1.1fr) minmax(80px, auto) minmax(130px, auto);
-  }
 
-  .print-order-actions {
-    grid-column: 4;
-  }
 }
 
 @media (max-width: 940px) {
@@ -122,7 +113,6 @@
 
   .pos-layout,
   .catalog-page,
-  .print-page,
   .finance-page,
   .settings-page {
     min-height: auto;
@@ -147,23 +137,16 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .catalog-stats,
-  .print-stats {
+  .catalog-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .catalog-stat:nth-child(3),
-  .print-stat:nth-child(3) {
+  .catalog-stat:nth-child(3) {
     border-left: 0;
   }
 
-  .catalog-stat:nth-child(n + 3),
-  .print-stat:nth-child(n + 3) {
+  .catalog-stat:nth-child(n + 3) {
     border-top: 1px solid var(--gc-border);
-  }
-
-  .print-workspace {
-    grid-template-columns: 1fr;
   }
 
   .finance-grid-neraca {
@@ -189,7 +172,6 @@
 
   .pos-layout,
   .catalog-page,
-  .print-page,
   .finance-page,
   .settings-page {
     margin: 0 0 8px;
@@ -260,48 +242,13 @@
     grid-template-columns: 1fr;
   }
 
-  .print-panel-header {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 10px;
-  }
 
-  .print-search {
-    width: 100%;
-  }
 
-  .print-order-row {
-    grid-template-columns: 36px minmax(0, 1fr);
-    gap: 10px;
-    padding: 12px 14px;
-  }
 
-  .print-file-icon {
-    grid-column: 1;
-    grid-row: 1;
-  }
 
-  .print-order-copy {
-    grid-column: 2;
-    grid-row: 1;
-  }
 
-  .print-order-total {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    align-items: flex-start;
-  }
 
-  .print-order-state {
-    grid-column: 1 / -1;
-    grid-row: 3;
-  }
 
-  .print-order-actions {
-    grid-column: 1 / -1;
-    grid-row: 4;
-    justify-content: flex-start;
-  }
 
   .finance-tabs {
     gap: 16px;
@@ -328,18 +275,15 @@
 }
 
 @media (max-width: 430px) {
-  .catalog-stats,
-  .print-stats {
+  .catalog-stats {
     grid-template-columns: 1fr;
   }
 
-  .catalog-stat,
-  .print-stat {
+  .catalog-stat {
     border-left: 0;
   }
 
-  .catalog-stat:nth-child(n + 2),
-  .print-stat:nth-child(n + 2) {
+  .catalog-stat:nth-child(n + 2) {
     border-top: 1px solid var(--gc-border);
   }
 

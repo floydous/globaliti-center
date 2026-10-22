@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Assistant Full System Control & Transaction Visibility', () => {
-  test('Local Engine answers latest customer purchase, top selling, and last print order', async ({ page }) => {
+  test('Local Engine answers latest customer purchase, stock, and top selling', async ({ page }) => {
     const errors = []
     page.on('pageerror', (err) => errors.push(err.message))
 
@@ -26,13 +26,13 @@ test.describe('Assistant Full System Control & Transaction Visibility', () => {
     await expect(bubble1).toContainText('Vanilla Cone')
     await expect(bubble1).not.toContainText('tidak memiliki akses')
 
-    // 2. Test query: "order print terakhir apa ya?"
-    await input.fill('order print terakhir apa ya?')
+    // 2. Test query: "stok Matcha Cup sekarang berapa?"
+    await input.fill('stok Matcha Cup sekarang berapa?')
     await input.press('Enter')
 
     const bubble2 = page.locator('.ai-bubble-text').last()
-    await expect(bubble2).toContainText('PRINT-0003')
-    await expect(bubble2).toContainText('Proposal_Kegiatan.docx')
+    await expect(bubble2).toContainText('Matcha Cup')
+    await expect(bubble2).not.toContainText('tidak memiliki akses')
 
     // 3. Test query: "produk apa yang paling laku hari ini?"
     await input.fill('es krim apa yang paling laku hari ini?')

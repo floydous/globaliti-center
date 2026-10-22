@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-test('chatbot full autonomy: handles unrecorded sales, expenses, print orders, and price changes', async ({ page }) => {
+test('chatbot full autonomy: handles unrecorded sales, expenses, and price changes', async ({ page }) => {
   const errors = []
   page.on('pageerror', (err) => errors.push(err.message))
 
@@ -51,13 +51,7 @@ test('chatbot full autonomy: handles unrecorded sales, expenses, print orders, a
   await expect(log).toContainText('Catat beban Beli kertas (Bahan)')
   await page.getByRole('button', { name: 'Terapkan Perubahan', exact: true }).click()
 
-  // 4. Create print order via AI: "Buat order print dokumen_tugas.docx 5 halaman warna lunas"
-  await input.fill('Buat order print dokumen_tugas.docx 5 halaman warna lunas')
-  await input.press('Enter')
-  await expect(log).toContainText('Buat order cetak dokumen_tugas.docx (5 hal, Berwarna, Lunas di muka)')
-  await page.getByRole('button', { name: 'Terapkan Perubahan', exact: true }).click()
-
-  // 5. Change product price via AI: "Ubah harga Vanilla Cone jadi 7000"
+  // 4. Change product price via AI: "Ubah harga Vanilla Cone jadi 7000"
   await input.fill('Ubah harga Vanilla Cone jadi 7000')
   await input.press('Enter')
   await expect(log).toContainText('Ubah harga jual Vanilla Cone')
@@ -67,11 +61,6 @@ test('chatbot full autonomy: handles unrecorded sales, expenses, print orders, a
 
   // Verify Vanilla Cone price changed in POS
   await expect(page.getByRole('button', { name: '18 cone Vanilla Cone cone Rp 7.000', exact: true })).toBeVisible()
-
-  // Verify Print Order created in Print view
-  await page.getByRole('button', { name: 'Jasa Print Word', exact: true }).click()
-  await expect(page.locator('.print-list')).toContainText('dokumen_tugas.docx')
-  await expect(page.locator('.print-list')).toContainText('5 halaman')
 
   // Verify Expense and Revenue reflected in Finance view
   await page.getByRole('button', { name: 'Laporan Keuangan', exact: true }).click()

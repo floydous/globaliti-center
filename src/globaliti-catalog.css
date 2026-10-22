@@ -90,8 +90,7 @@
 
 /* ===== KPI strip: one container split by 1px dividers ===== */
 
-.catalog-stats,
-.print-stats {
+.catalog-stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   border: 1px solid var(--gc-border);
@@ -99,8 +98,7 @@
   background: var(--gc-surface);
 }
 
-.catalog-stat,
-.print-stat {
+.catalog-stat {
   display: flex;
   min-height: 92px;
   flex-direction: column;
@@ -110,20 +108,17 @@
   border-left: 1px solid var(--gc-border);
 }
 
-.catalog-stat:first-child,
-.print-stat:first-child {
+.catalog-stat:first-child {
   border-left: 0;
 }
 
-.catalog-stat span,
-.print-stat span {
+.catalog-stat span {
   color: var(--gc-muted);
   font-size: var(--gc-fs-small);
   font-weight: 500;
 }
 
-.catalog-stat strong,
-.print-stat strong {
+.catalog-stat strong {
   color: var(--gc-text);
   font-size: var(--gc-fs-kpi);
   font-weight: 500;
@@ -131,17 +126,10 @@
   line-height: 1.15;
 }
 
-.catalog-stat small,
-.print-stat small {
+.catalog-stat small {
   color: var(--gc-faint);
   font-size: var(--gc-fs-small);
 }
-
-.print-stat.warning strong {
-  color: var(--gc-warning);
-}
-
-/* The stat strip is one container split by 1px dividers; no icon, no tile */
 
 /* ===== Toolbar ===== */
 

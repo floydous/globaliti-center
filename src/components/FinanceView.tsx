@@ -7,13 +7,12 @@ import {
   Printer,
   X,
 } from '@phosphor-icons/react'
-import type { Expense, PrintOrder, Product, Sale } from '../types'
+import type { Expense, Product, Sale } from '../types'
 import FormalFinancialReport from './FormalFinancialReport'
 
 type FinanceViewProps = {
   products: Product[]
   sales: Sale[]
-  printOrders: PrintOrder[]
   expenses: Expense[]
   onAddExpense: (expense: Omit<Expense, 'id'>) => void
   operator?: string
@@ -29,7 +28,6 @@ const formatRupiah = (value: number) =>
 export default function FinanceView({
   products,
   sales,
-  printOrders,
   expenses,
   onAddExpense,
   operator = 'Pengelola 1',
@@ -50,15 +48,7 @@ export default function FinanceView({
     [sales]
   )
 
-  const printRevenue = useMemo(
-    () =>
-      printOrders
-        .filter((o) => o.payment === 'Lunas di muka' || o.payment === 'Lunas setelah cetak')
-        .reduce((sum, o) => sum + o.total, 0),
-    [printOrders]
-  )
-
-  const totalRevenue = iceCreamRevenue + printRevenue
+  const totalRevenue = iceCreamRevenue
 
   // Perhitungan Beban Pokok Penjualan (HPP Es Krim)
   const cogsIceCream = useMemo(() => {
@@ -89,17 +79,9 @@ export default function FinanceView({
     [products]
   )
 
-  const accountsReceivable = useMemo(
-    () =>
-      printOrders
-        .filter((o) => o.payment === 'Bayar di akhir')
-        .reduce((sum, o) => sum + o.total, 0),
-    [printOrders]
-  )
-
   const cashInHand = 1500000 + totalRevenue - totalExpenses // Modal kas awal 1.5jt + penerimaan kas - pengeluaran
 
-  const totalAssets = cashInHand + accountsReceivable + inventoryValue
+  const totalAssets = cashInHand + inventoryValue
   const totalLiabilities = 0
   const initialEquity = 1500000 + inventoryValue
   const retainedEarnings = totalAssets - initialEquity - totalLiabilities
@@ -200,10 +182,6 @@ export default function FinanceView({
               <span>Penjualan Es Krim</span>
               <strong>{formatRupiah(iceCreamRevenue)}</strong>
             </div>
-            <div className="statement-row">
-              <span>Pendapatan Jasa Print Word</span>
-              <strong>{formatRupiah(printRevenue)}</strong>
-            </div>
             <div className="statement-row subtotal">
               <strong>Total Pendapatan Usaha</strong>
               <strong>{formatRupiah(totalRevenue)}</strong>
@@ -257,10 +235,6 @@ export default function FinanceView({
               <div className="statement-row">
                 <span>Kas dan Setara Kas</span>
                 <strong>{formatRupiah(cashInHand)}</strong>
-              </div>
-              <div className="statement-row">
-                <span>Piutang Jasa Print (Belum Lunas)</span>
-                <strong>{formatRupiah(accountsReceivable)}</strong>
               </div>
               <div className="statement-row">
                 <span>Persediaan Barang Dagang (Stok Es Krim)</span>
@@ -466,18 +440,15 @@ export default function FinanceView({
         <FormalFinancialReport
           products={products}
           sales={sales}
-          printOrders={printOrders}
           expenses={expenses}
           operator={operator}
           iceCreamRevenue={iceCreamRevenue}
-          printRevenue={printRevenue}
           totalRevenue={totalRevenue}
           cogsIceCream={cogsIceCream}
           grossProfit={grossProfit}
           totalExpenses={totalExpenses}
           netIncome={netIncome}
           inventoryValue={inventoryValue}
-          accountsReceivable={accountsReceivable}
           cashInHand={cashInHand}
           totalAssets={totalAssets}
           totalLiabilities={totalLiabilities}
@@ -528,19 +499,16 @@ export default function FinanceView({
               <FormalFinancialReport
                 products={products}
                 sales={sales}
-                printOrders={printOrders}
-                expenses={expenses}
+                      expenses={expenses}
                 operator={operator}
                 iceCreamRevenue={iceCreamRevenue}
-                printRevenue={printRevenue}
-                totalRevenue={totalRevenue}
+                      totalRevenue={totalRevenue}
                 cogsIceCream={cogsIceCream}
                 grossProfit={grossProfit}
                 totalExpenses={totalExpenses}
                 netIncome={netIncome}
                 inventoryValue={inventoryValue}
-                accountsReceivable={accountsReceivable}
-                cashInHand={cashInHand}
+                      cashInHand={cashInHand}
                 totalAssets={totalAssets}
                 totalLiabilities={totalLiabilities}
                 initialEquity={initialEquity}

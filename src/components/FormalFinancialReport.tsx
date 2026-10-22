@@ -1,20 +1,17 @@
-import type { Expense, PrintOrder, Product, Sale } from '../types'
+import type { Expense, Product, Sale } from '../types'
 
 export type FormalFinancialReportProps = {
   products: Product[]
   sales: Sale[]
-  printOrders: PrintOrder[]
   expenses: Expense[]
   operator?: string
   iceCreamRevenue: number
-  printRevenue: number
   totalRevenue: number
   cogsIceCream: number
   grossProfit: number
   totalExpenses: number
   netIncome: number
   inventoryValue: number
-  accountsReceivable: number
   cashInHand: number
   totalAssets: number
   totalLiabilities: number
@@ -34,18 +31,15 @@ const formatDeduction = (value: number) => '(' + formatRupiah(Math.abs(value)) +
 export default function FormalFinancialReport({
   products,
   sales,
-  printOrders,
   expenses,
   operator: _operator = 'Pengelola 1',
   iceCreamRevenue,
-  printRevenue,
   totalRevenue,
   cogsIceCream,
   grossProfit,
   totalExpenses,
   netIncome,
   inventoryValue,
-  accountsReceivable,
   cashInHand,
   totalAssets,
   totalLiabilities,
@@ -112,7 +106,7 @@ export default function FormalFinancialReport({
             <td><strong>Nomor Dokumen:</strong> 09/LK-GCC/TI-BGD/IX/2026</td>
           </tr>
           <tr>
-            <td><strong>Unit Bisnis:</strong> Es Krim Retail & Jasa Print Word</td>
+            <td><strong>Unit Bisnis:</strong> Es Krim Retail</td>
             <td><strong>Mata Uang:</strong> Rupiah Indonesia (IDR)</td>
           </tr>
           <tr>
@@ -146,12 +140,6 @@ export default function FormalFinancialReport({
               <td className="formal-indent">Pendapatan Penjualan Es Krim</td>
               <td className="text-center">1</td>
               <td className="text-right">{formatRupiah(iceCreamRevenue)}</td>
-              <td className="text-right"></td>
-            </tr>
-            <tr>
-              <td className="formal-indent">Pendapatan Jasa Cetak Dokumen Word</td>
-              <td className="text-center">2</td>
-              <td className="text-right">{formatRupiah(printRevenue)}</td>
               <td className="text-right"></td>
             </tr>
             <tr className="formal-subtotal-row">
@@ -239,10 +227,6 @@ export default function FormalFinancialReport({
                 <tr>
                   <td className="formal-indent">Kas dan Setara Kas</td>
                   <td className="text-right">{formatRupiah(cashInHand)}</td>
-                </tr>
-                <tr>
-                  <td className="formal-indent">Piutang Usaha (Jasa Print Belum Lunas)</td>
-                  <td className="text-right">{formatRupiah(accountsReceivable)}</td>
                 </tr>
                 <tr>
                   <td className="formal-indent">Persediaan Barang Dagangan (Stok Es Krim)</td>
@@ -356,10 +340,7 @@ export default function FormalFinancialReport({
               <strong>Persediaan Barang Dagangan:</strong> Nilai persediaan fisik es krim sebesar {formatRupiah(inventoryValue)} ({totalItemsStock} unit aktif) dinilai dengan metode harga perolehan (HPP per unit).
             </li>
             <li>
-              <strong>Piutang Usaha:</strong> Piutang jasa cetak sistem pascabayar tercatat sebesar {formatRupiah(accountsReceivable)} atas berkas yang telah selesai dicetak dan dalam proses pelunasan oleh siswa/guru.
-            </li>
-            <li>
-              <strong>Volume Transaksi:</strong> Terdiri dari {sales.length} transaksi ritel POS kasir es krim dan {printOrders.length} berkas layanan order dokumen Word.
+              <strong>Volume Transaksi:</strong> Terdiri dari {sales.length} transaksi ritel POS kasir es krim.
             </li>
           </ol>
         </div>

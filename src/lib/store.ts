@@ -1,11 +1,9 @@
-import type { AiMessage, Expense, PaymentHotkeys, PrintOrder, PrintSettings, Product, Sale } from '../types'
+import type { AiMessage, Expense, PaymentHotkeys, Product, Sale } from '../types'
 
 export type StoreData = {
   products: Product[]
   sales: Sale[]
   expenses: Expense[]
-  printOrders: PrintOrder[]
-  printSettings: PrintSettings
   operator: string
   aiMessages: AiMessage[]
   paymentHotkeys?: PaymentHotkeys
@@ -17,8 +15,8 @@ export function loadStore(): Partial<StoreData> {
   if (!raw) return {}
   const saved = JSON.parse(raw)
   if (saved.version !== 1 || !saved.data ||
-      !['products', 'sales', 'expenses', 'printOrders', 'aiMessages'].every(key => Array.isArray(saved.data[key])) ||
-      typeof saved.data.operator !== 'string' || !saved.data.printSettings) {
+      !['products', 'sales', 'expenses', 'aiMessages'].every(key => Array.isArray(saved.data[key])) ||
+      typeof saved.data.operator !== 'string') {
     throw new Error('Format penyimpanan tidak didukung')
   }
   return saved.data
