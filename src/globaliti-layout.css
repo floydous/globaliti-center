@@ -1043,6 +1043,19 @@
   color: var(--gc-signature-dark);
 }
 
+.complete-sale-button .hotkey-badge-enter {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: var(--gc-signature-dark);
+  padding: 0 6px;
+  margin-left: 0;
+}
+
+.complete-sale-button:disabled .hotkey-badge-enter {
+  background: rgba(255, 255, 255, 0.7);
+  color: #33544a;
+}
+
 .complete-sale-button {
   display: flex;
   width: 100%;

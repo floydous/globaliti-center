@@ -199,6 +199,8 @@ function GlobalitiApp() {
   const [notice, setNotice] = useState('')
   const [barcodeInput, setBarcodeInput] = useState('')
   const barcodeInputRef = useRef<HTMLInputElement | null>(null)
+  // Menyimpan completeSale terbaru supaya handler keyboard tidak perlu didaftarkan ulang tiap render
+  const completeSaleRef = useRef<() => boolean>(() => false)
   const [productQuery, setProductQuery] = useState('')
   const [showProductForm, setShowProductForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
@@ -301,6 +303,17 @@ function GlobalitiApp() {
           const len = inputEl.value.length
           inputEl.setSelectionRange(len, len)
           setBarcodeInput((prev) => prev + e.key)
+        }
+      }
+
+      // Prioritas 3: Enter sebagai hotkey tombol Bayar.
+      // Hanya aktif bila fokus tidak berada di kolom teks atau kontrol yang memakai
+      // Enter secara native (tombol, select, link), supaya aksi lain tidak terpotong.
+      if (e.key === 'Enter') {
+        const activeTag = activeEl?.tagName
+        const isNativeControl = activeTag === 'BUTTON' || activeTag === 'SELECT' || activeTag === 'A'
+        if (!isInputFocused && !isNativeControl && completeSaleRef.current()) {
+          e.preventDefault()
         }
       }
     }
@@ -444,8 +457,8 @@ function GlobalitiApp() {
     setCart((currentCart) => currentCart.filter((item) => item.productId !== productId))
   }
 
-  const completeSale = () => {
-    if (cart.length === 0) return
+  const completeSale = (): boolean => {
+    if (cart.length === 0) return false
     const now = new Date()
     const sale: Sale = {
       id: `TRX-${String(sales.length + 1).padStart(4, '0')}`,
@@ -462,9 +475,14 @@ function GlobalitiApp() {
     setSales((currentSales) => [sale, ...currentSales])
     setSaleComplete(sale)
     setCart([])
+    return true
   }
 
   const startNewSale = () => setSaleComplete(null)
+
+  useEffect(() => {
+    completeSaleRef.current = completeSale
+  })
 
   const handleAiAdjustStock = (productId: string, delta: number, reason: string) => {
     setProducts((current) =>
@@ -831,7 +849,7 @@ function GlobalitiApp() {
                   <Barcode size={17} /> QRIS <kbd className="hotkey-badge">{paymentHotkeys.qris}</kbd>
                 </button>
               </div>
-              <button className="complete-sale-button" onClick={completeSale} disabled={cart.length === 0}><Check size={19} weight="bold" /> Bayar {formatRupiah(cartTotal)}</button>
+              <button className="complete-sale-button" onClick={completeSale} disabled={cart.length === 0} title="Tekan Enter untuk membayar"><Check size={19} weight="bold" /> Bayar {formatRupiah(cartTotal)} <kbd className="hotkey-badge hotkey-badge-enter">Enter</kbd></button>
               <span className="cart-footnote">Transaksi yang sudah dibayar tidak dapat dibatalkan.</span>
             </div>
           </aside>

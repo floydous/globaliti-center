@@ -789,7 +789,7 @@ export default function AiView({
     if (q.includes('cara') || q.includes('panduan') || q.includes('bagaimana') || q.includes('tutorial') || q.includes('ajarin')) {
       if (q.includes('kasir') || q.includes('pos') || q.includes('jual') || q.includes('bayar') || q.includes('transaksi')) {
         return {
-          text: 'Cara Melayani Pembeli di Kasir POS:\n1. Klik kartu produk es krim yang dipilih pembeli (atau scan barcodenya jika ada scanner).\n2. Sesuaikan jumlah pesanan di panel keranjang belanja sebelah kanan.\n3. Pilih metode pembayaran: **Tunai** atau **QRIS**.\n4. Klik tombol hijau **Bayar** untuk menyelesaikan transaksi dan mencetak struk.',
+          text: 'Cara Melayani Pembeli di Kasir POS:\n1. Klik kartu produk es krim yang dipilih pembeli (atau scan barcodenya jika ada scanner).\n2. Sesuaikan jumlah pesanan di panel keranjang belanja sebelah kanan.\n3. Pilih metode pembayaran: **Tunai** atau **QRIS**.\n4. Klik tombol hijau **Bayar** (atau tekan **Enter**) untuk menyelesaikan transaksi dan mencetak struk.',
         }
       }
       if (q.includes('print') || q.includes('cetak') || q.includes('word') || q.includes('dokumen')) {

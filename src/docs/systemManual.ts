@@ -7,7 +7,7 @@ Unit Usaha SMKS TI Bali Global Denpasar
 - Pindai barcode produk via USB Barcode Scanner (mode keyboard) atau klik kartu es krim.
 - Atur kuantitas produk dengan tombol (+) atau (-).
 - Pilih metode pembayaran: Tunai atau QRIS.
-- Klik tombol Bayar untuk mencetak nota transaksi kasir.
+- Klik tombol Bayar (atau tekan tombol Enter) untuk mencetak nota transaksi kasir.
 - Transaksi bersifat final dan langsung mengurangi stok fisik barang.
 
 ## 2. Katalog & Pengelolaan Stok
