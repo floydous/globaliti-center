@@ -4,7 +4,6 @@ import {
   CaretRight,
   Check,
   CheckCircle,
-  ClockCounterClockwise,
   Cube,
   FileText,
   GearSix,
@@ -32,6 +31,7 @@ import './globaliti-overlays.css'
 import './globaliti-catalog.css'
 import './globaliti-print.css'
 import './globaliti-finance.css'
+import './globaliti-formal-report.css'
 import './globaliti-ai.css'
 import './globaliti-responsive.css'
 import './globaliti-settings.css'
@@ -515,7 +515,7 @@ function GlobalitiApp() {
   const handleAiRecordExpense = (category: 'Operasional' | 'Bahan' | 'Lainnya', description: string, amount: number) => {
     const newExp: Expense = {
       id: `exp-${Date.now()}`,
-      date: '17 Sep 2026',
+      date: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
       category,
       label: description,
       amount,
@@ -654,7 +654,7 @@ function GlobalitiApp() {
             <img src="/globaliti-creative-center-icon.png" alt="Globaliti Creative Center" width={38} height={38} />
           </div>
           <div className="brand-info">
-            <span className="brand-eyebrow">SMKS TI BALI GLOBAL</span>
+            <span className="brand-school">SMKS TI BALI GLOBAL</span>
             <div className="brand-heading">
               <strong>Globaliti</strong>
               <span className="brand-badge">POS</span>
@@ -717,7 +717,7 @@ function GlobalitiApp() {
             <h1>{view === 'pos' ? 'Kasir Toko' : view === 'products' ? 'Katalog & Stok' : view === 'print' ? 'Jasa Print Word' : view === 'finance' ? 'Laporan Keuangan' : 'Pengaturan'}</h1>
           </div>
           <div className="topbar-actions">
-            <div className="date-chip">17 Sep 2026</div>
+            <div className="date-chip">{new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
             <div className="manager-chip"><span>P</span> {operator}</div>
           </div>
         </header>
@@ -780,7 +780,7 @@ function GlobalitiApp() {
             <div className="recent-sales">
               <div className="recent-heading">
                 <h2>Transaksi Terakhir</h2>
-                <CaretRight size={18} />
+                <span className="recent-count">{sales.length} nota</span>
               </div>
               <div className="recent-list">
                 {sales.slice(0, 3).map((sale) => (
@@ -867,10 +867,10 @@ function GlobalitiApp() {
               </div>
 
               <div className="catalog-stats">
-                <div className="catalog-stat"><div><Cube size={18} /></div><span>Total Jenis Produk</span><strong>{products.length}</strong><small>Item terdaftar</small></div>
-                <div className="catalog-stat"><div><Package size={18} /></div><span>Total Unit Fisik</span><strong>{products.reduce((sum, product) => sum + product.stock, 0)}</strong><small>Unit tersedia di toko</small></div>
-                <div className="catalog-stat"><div><Wallet size={18} /></div><span>Nilai Persediaan</span><strong>{formatRupiah(inventoryValue)}</strong><small>Berdasarkan harga modal</small></div>
-                <div className="catalog-stat"><div><Warning size={18} /></div><span>Stok Perlu Reorder</span><strong>{lowStockCount}</strong><small>Di bawah batas minimum</small></div>
+                <div className="catalog-stat"><span>Total Jenis Produk</span><strong>{products.length}</strong><small>Item terdaftar</small></div>
+                <div className="catalog-stat"><span>Total Unit Fisik</span><strong>{products.reduce((sum, product) => sum + product.stock, 0)}</strong><small>Unit tersedia di toko</small></div>
+                <div className="catalog-stat"><span>Nilai Persediaan</span><strong>{formatRupiah(inventoryValue)}</strong><small>Berdasarkan harga modal</small></div>
+                <div className="catalog-stat"><span>Stok Perlu Reorder</span><strong>{lowStockCount}</strong><small>Di bawah batas minimum</small></div>
               </div>
 
               <div className="catalog-toolbar">
@@ -940,8 +940,8 @@ function GlobalitiApp() {
                             </div>
                             <span className={`box-stock-pill ${isLowStock ? 'low' : 'safe'}`}>
                               {isLowStock
-                                ? `⚠️ Reorder (≤ ${product.reorderPoint})`
-                                : `✓ Aman (Min ${product.reorderPoint})`}
+                                ? <><Warning size={13} /> Reorder (≤ {product.reorderPoint})</>
+                                : <><CheckCircle size={13} /> Aman (Min {product.reorderPoint})</>}
                             </span>
                           </div>
 
@@ -998,7 +998,6 @@ function GlobalitiApp() {
             <section className="print-page">
               <div className="page-intro-row">
                 <div>
-                  <span className="page-kicker">JASA PRINT WORD</span>
                   <h2>Order cetak dan pembayaran</h2>
                   <p>Input dokumen Word satu per satu, pilih hitam putih atau berwarna, lalu tentukan bayar di muka atau setelah cetak.</p>
                 </div>
@@ -1006,16 +1005,16 @@ function GlobalitiApp() {
               </div>
 
               <div className="print-stats">
-                <div className="print-stat"><div><Printer size={18} /></div><span>Order hari ini</span><strong>{printOrders.length}</strong><small>Dokumen Word masuk</small></div>
-                <div className="print-stat"><div><Wallet size={18} /></div><span>Pendapatan print</span><strong>{formatRupiah(printRevenue)}</strong><small>Order selesai atau prabayar</small></div>
-                <div className="print-stat"><div><ClockCounterClockwise size={18} /></div><span>Menunggu diproses</span><strong>{pendingPrintCount}</strong><small>Belum ditandai selesai</small></div>
-                <div className="print-stat warning"><div><Warning size={18} /></div><span>Belum dibayar</span><strong>{unpaidPrintCount}</strong><small>Perlu ditagih atau dikonfirmasi</small></div>
+                <div className="print-stat"><span>Order hari ini</span><strong>{printOrders.length}</strong><small>Dokumen Word masuk</small></div>
+                <div className="print-stat"><span>Pendapatan print</span><strong>{formatRupiah(printRevenue)}</strong><small>Order selesai atau prabayar</small></div>
+                <div className="print-stat"><span>Menunggu diproses</span><strong>{pendingPrintCount}</strong><small>Belum ditandai selesai</small></div>
+                <div className="print-stat warning"><span>Belum dibayar</span><strong>{unpaidPrintCount}</strong><small>Perlu ditagih atau dikonfirmasi</small></div>
               </div>
 
               <div className="print-workspace">
                 <div className="print-orders-panel">
                   <div className="print-panel-header">
-                    <div><span className="section-label">DAFTAR ORDER</span><h3>Dokumen masuk</h3></div>
+                    <div><h3>Dokumen masuk</h3></div>
                     <div className="print-search"><MagnifyingGlass size={17} /><input value={printQuery} onChange={(event) => setPrintQuery(event.target.value)} placeholder="Cari dokumen atau ID" aria-label="Cari order print" /></div>
                   </div>
                   <div className="print-list">
@@ -1120,7 +1119,7 @@ function GlobalitiApp() {
       {showPrintForm && (
         <div className="modal-backdrop-globaliti" role="presentation" onClick={() => setShowPrintForm(false)}>
           <form className="form-modal" role="dialog" aria-modal="true" onSubmit={submitPrintOrder} onClick={(event) => event.stopPropagation()}>
-            <div className="modal-header"><div><span className="page-kicker">ORDER BARU</span><h2>Print dokumen Word</h2></div><button type="button" className="icon-button" onClick={() => setShowPrintForm(false)} aria-label="Tutup"><X size={18} /></button></div>
+            <div className="modal-header"><div><h2>Print dokumen Word</h2></div><button type="button" className="icon-button" onClick={() => setShowPrintForm(false)} aria-label="Tutup"><X size={18} /></button></div>
             <label className="field full"><span>Nama file dokumen</span><div className="field-with-icon"><FileText size={17} /><input name="fileName" value={printForm.fileName} onChange={updatePrintForm} placeholder="Contoh: Makalah_Bab_1.docx" /></div><small>Gunakan satu nama file untuk satu order.</small></label>
             <label className="field"><span>Mode cetak</span><select name="mode" value={printForm.mode} onChange={updatePrintForm}><option>Hitam putih</option><option>Berwarna</option></select></label>
             <label className="field"><span>Jumlah {printSettings.basis.toLowerCase()}</span><input name="quantity" type="number" min="1" value={printForm.quantity} onChange={updatePrintForm} /></label>
@@ -1134,7 +1133,7 @@ function GlobalitiApp() {
       {showPrintSettings && (
         <div className="modal-backdrop-globaliti" role="presentation" onClick={() => setShowPrintSettings(false)}>
           <form className="form-modal" role="dialog" aria-modal="true" onSubmit={submitPrintSettings} onClick={(event) => event.stopPropagation()}>
-            <div className="modal-header"><div><span className="page-kicker">PENGATURAN PRINT</span><h2>Tarif dan dasar hitung</h2></div><button type="button" className="icon-button" onClick={() => setShowPrintSettings(false)} aria-label="Tutup"><X size={18} /></button></div>
+            <div className="modal-header"><div><h2>Tarif dan dasar hitung</h2></div><button type="button" className="icon-button" onClick={() => setShowPrintSettings(false)} aria-label="Tutup"><X size={18} /></button></div>
             <label className="field"><span>Tarif hitam putih</span><input name="bwRate" type="number" min="1" value={settingsDraft.bwRate} onChange={updateSettingsDraft} /></label>
             <label className="field"><span>Tarif berwarna</span><input name="colorRate" type="number" min="1" value={settingsDraft.colorRate} onChange={updateSettingsDraft} /></label>
             <label className="field full"><span>Dasar hitung</span><select name="basis" value={settingsDraft.basis} onChange={updateSettingsDraft}><option>Halaman</option><option>Kertas</option></select></label>
@@ -1148,7 +1147,7 @@ function GlobalitiApp() {
         <div className="modal-backdrop-globaliti" role="presentation" onClick={() => setShowProductForm(false)}>
           <form className="form-modal wide-modal" role="dialog" aria-modal="true" onSubmit={submitProduct} onClick={(event) => event.stopPropagation()}>
             <div className="modal-header">
-              <div><span className="page-kicker">{editingProduct ? 'EDIT PRODUK' : 'PRODUK BARU'}</span><h2>{editingProduct ? 'Perbarui produk' : 'Tambah produk'}</h2></div>
+              <div><h2>{editingProduct ? 'Perbarui produk' : 'Tambah produk'}</h2></div>
               <button type="button" className="icon-button" onClick={() => setShowProductForm(false)} aria-label="Tutup"><X size={18} /></button>
             </div>
             <div className="form-grid">
@@ -1169,7 +1168,7 @@ function GlobalitiApp() {
       {stockProduct && (
         <div className="modal-backdrop-globaliti" role="presentation" onClick={() => setStockProduct(null)}>
           <form className="form-modal" role="dialog" aria-modal="true" aria-label={`Penyesuaian Stok ${stockProduct.name}`} onSubmit={submitStockAdjustment} onClick={(event) => event.stopPropagation()}>
-            <div className="modal-header"><div><span className="page-kicker">PENYESUAIAN STOK</span><h2>{stockProduct.name}</h2></div><button type="button" className="icon-button" onClick={() => setStockProduct(null)} aria-label="Tutup"><X size={18} /></button></div>
+            <div className="modal-header"><div><h2>{stockProduct.name}</h2></div><button type="button" className="icon-button" onClick={() => setStockProduct(null)} aria-label="Tutup"><X size={18} /></button></div>
             <div className="stock-preview"><span>Stok saat ini</span><strong>{stockProduct.stock} {stockProduct.unit}</strong></div>
             <label className="field"><span>Perubahan stok</span><input type="number" value={stockDelta} onChange={(event) => setStockDelta(Number(event.target.value))} placeholder="Contoh: 10 atau -3" /></label>
             <label className="field"><span>Alasan</span><select value={stockReason} onChange={(event) => setStockReason(event.target.value)}><option>Stok masuk</option><option>Stok keluar</option><option>Koreksi stok</option><option>Rusak atau hilang</option></select></label>
@@ -1183,7 +1182,6 @@ function GlobalitiApp() {
         <div className="modal-backdrop-globaliti" role="presentation" onClick={startNewSale}>
           <div className="sale-modal" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
             <div className="success-mark"><Check size={28} weight="bold" /></div>
-            <span className="modal-kicker-globaliti">TRANSAKSI TERSIMPAN</span>
             <h2>Pembayaran berhasil</h2>
             <p>Stok telah diperbarui dan transaksi masuk ke riwayat hari ini.</p>
             <div className="sale-receipt">

@@ -1,107 +1,164 @@
-.assistant-widget { position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); z-index: 60; }
-.assistant-launcher { display: grid; place-items: center; width: 56px; height: 56px; margin-left: auto; border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #047857 100%); color: #ffffff; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35); transition: transform var(--gc-transition-fast), box-shadow var(--gc-transition-fast); }
-.assistant-launcher:hover { background: linear-gradient(135deg, #34d399 0%, #059669 100%); transform: translateY(-3px) scale(1.05); box-shadow: 0 14px 34px rgba(16, 185, 129, 0.45); }
-.assistant-launcher:active { transform: scale(.93); }
-.assistant-widget button:focus-visible, .assistant-widget input:focus-visible { outline: 3px solid #317352; outline-offset: 3px; }
-.assistant-panel { width: min(420px, calc(100vw - 32px)); height: min(620px, calc(100dvh - 106px)); display: flex; flex-direction: column; margin-bottom: 12px; border: 1px solid var(--gc-border-strong); border-radius: 18px; background: white; box-shadow: 0 16px 60px #234d392b; overflow: hidden; transform-origin: bottom right; animation: assistant-open 280ms cubic-bezier(0.16, 1, 0.3, 1) both; }
-.assistant-panel[hidden] { display: none; }
+/* ===== Floating assistant: the one overlay that floats ===== */
+
+.assistant-widget {
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 60;
+}
+
+.assistant-launcher {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin-left: auto;
+  place-items: center;
+  border: 1px solid var(--gc-border-strong);
+  border-radius: 50%;
+  background: var(--gc-signature);
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(18, 23, 28, 0.16);
+  transition: background-color var(--gc-transition-fast), transform var(--gc-transition-fast);
+}
+
+.assistant-launcher:hover {
+  background: var(--gc-signature-dark);
+}
+
+.assistant-launcher:active {
+  transform: scale(0.94);
+}
+
+.assistant-widget button:focus-visible,
+.assistant-widget input:focus-visible {
+  outline: 2px solid var(--gc-signature);
+  outline-offset: 2px;
+}
+
+.assistant-panel {
+  display: flex;
+  width: min(400px, calc(100vw - 32px));
+  height: min(600px, calc(100dvh - 96px));
+  flex-direction: column;
+  margin-bottom: 12px;
+  overflow: hidden;
+  border: 1px solid var(--gc-border);
+  border-radius: var(--gc-radius-sheet);
+  background: #ffffff;
+  box-shadow: 0 20px 56px rgba(18, 23, 28, 0.2);
+  transform-origin: bottom right;
+  animation: assistant-open 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.assistant-panel[hidden] {
+  display: none;
+}
+
 .assistant-panel-header {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--gc-border);
-  color: #214f3c;
-  background: #f3f8f5;
-  flex-shrink: 0;
-}
-.assistant-panel-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  flex: 1;
-}
-.assistant-panel-avatar {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.22);
-  flex-shrink: 0;
-}
-.assistant-panel-titles {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-.assistant-panel-header h2 {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.25;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: #1b4332;
-}
-.assistant-panel-header p {
-  margin: 2px 0 0;
-  font-size: 11px;
-  line-height: 1.35;
-  color: #53675d;
-}
-.assistant-panel-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-.assistant-panel-header button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 8px;
-  color: #2e5947;
-  cursor: pointer;
-  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
-}
-.assistant-panel-header button:hover {
-  background: #e2ede6;
-  border-color: #c9ded2;
-  color: #1b4332;
-}
-.assistant-panel-header button:active {
-  background: #d5e5db;
-  transform: scale(0.96);
-}
-.assistant-panel .ai-floating { flex: 1; min-height: 0; width: 100%; padding: 0; margin: 0; display: flex; }
-.ai-floating .ai-chat-card { flex: 1; width: 100%; height: auto; min-height: 0; border: 0; border-radius: 0; box-shadow: none; }
-.ai-floating .ai-messages-list { flex: 1; min-height: 0; padding: 16px; overflow-y: auto; overscroll-behavior: contain; }
-.ai-floating .ai-message-bubble { max-width: 100%; gap: 8px; }
-.ai-floating .ai-bubble-content { min-width: 0; overflow-wrap: anywhere; }
-.ai-floating .ai-avatar { display: none; }
-.ai-floating .ai-bubble-text { font-size: 13px; line-height: 1.65; }
-.ai-floating .ai-input-bar { flex-shrink: 0; padding: 12px; gap: 8px; }
-.ai-floating .ai-input-bar input { min-width: 0; width: 100%; font-size: 16px; }
-.ai-floating .ai-input-bar button { min-height: 44px; flex-shrink: 0; }
-.ai-floating .ai-action-head, .ai-floating .ai-action-buttons { flex-wrap: wrap; }
-.assistant-disclaimer { margin: 0; padding: 0 12px 10px; font-size: 10px; color: #53675d; text-align: center; }
-.notice-toast { top: 88px; bottom: auto; max-width: calc(100vw - 40px); pointer-events: none; }
-.globaliti-shell:has(.assistant-panel:not([hidden])) .notice-toast { top: 10px; }
-.app-main { padding-bottom: 100px; }
-@keyframes assistant-open { from { opacity: 0; transform: translateY(12px) scale(.95); } to { opacity: 1; transform: none; } }
-@media (max-width: 540px) {
-  .assistant-widget { right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); }
-  .assistant-panel { width: calc(100vw - 24px); height: calc(100dvh - 96px); border-radius: 14px; }
-  .assistant-launcher { width: 54px; height: 54px; }
+  background: var(--gc-surface-strong);
 }
 
-@media (prefers-reduced-motion: reduce) { .assistant-panel { animation: none; } .assistant-launcher { transition: none; } }
+.assistant-panel-brand {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+}
+
+.assistant-panel-avatar {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--gc-signature-soft);
+  color: var(--gc-signature-dark);
+}
+
+.assistant-panel-titles {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.assistant-panel-titles strong {
+  color: var(--gc-text);
+  font-size: var(--gc-fs-body);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.assistant-panel-titles span {
+  color: var(--gc-muted);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.assistant-panel-header-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.assistant-panel-header-actions button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: var(--gc-radius-xs);
+  background: transparent;
+  color: var(--gc-muted);
+}
+
+.assistant-panel-header-actions button:hover {
+  background: #ffffff;
+  color: var(--gc-text);
+}
+
+/* The chat body inherits the AI styles */
+.assistant-panel .ai-messages-list {
+  padding: 14px;
+}
+
+.assistant-panel .ai-message-bubble {
+  max-width: 100%;
+}
+
+.assistant-panel .ai-input-bar {
+  padding: 10px 12px;
+}
+
+.assistant-disclaimer {
+  padding: 8px 12px;
+  border-top: 1px solid var(--gc-border);
+  color: var(--gc-faint);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+@keyframes assistant-open {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 600px) {
+  .assistant-launcher {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assistant-panel { animation: none; }
+  .assistant-launcher { transition: none; }
+}

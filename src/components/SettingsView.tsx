@@ -5,6 +5,7 @@ import {
   Key,
   ShieldCheck,
   User,
+  WarningCircle,
 } from '@phosphor-icons/react'
 
 type SettingsViewProps = {
@@ -201,18 +202,8 @@ export default function SettingsView({
                 {testingKey ? 'Menguji Koneksi...' : 'Uji Koneksi Groq API'}
               </button>
               {testResult && (
-                <span
-                  style={{
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    color: testResult.ok ? '#15803d' : '#b91c1c',
-                    background: testResult.ok ? '#f0fdf4' : '#fef2f2',
-                    padding: '6px 12px',
-                    borderRadius: '8px',
-                    border: `1px solid ${testResult.ok ? '#bbf7d0' : '#fecaca'}`,
-                  }}
-                >
-                  {testResult.ok ? '✓ ' : '✕ '}
+                <span className={`status-pill ${testResult.ok ? 'live' : 'paused'}`}>
+                  {testResult.ok ? <CheckCircle size={13} /> : <WarningCircle size={13} />}
                   {testResult.message}
                 </span>
               )}

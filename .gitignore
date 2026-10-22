@@ -16,6 +16,8 @@ dist-ssr
 test-results/
 dogfood-output/
 .pi/
+graphify-out/
+.taste-skill/
 
 .vscode/*
 !.vscode/extensions.json

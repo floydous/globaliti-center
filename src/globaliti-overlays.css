@@ -1,52 +1,43 @@
-.modal-backdrop-globaliti {
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  display: grid;
-  place-items: center;
-  padding: 20px;
-  background: rgba(22, 45, 38, 0.32);
-  backdrop-filter: blur(8px);
-  animation: gc-fade-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
+/* ===== Overlays: modals and toasts ===== */
 
 .sale-modal {
-  width: min(420px, 100%);
-  padding: 28px;
+  width: min(400px, 100%);
+  padding: 24px;
   border: 1px solid var(--gc-border);
-  border-radius: 22px;
-  background: #ffffff;
-  box-shadow: 0 30px 90px rgba(22, 45, 38, 0.2);
-  animation: gc-pop-in 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  border-radius: var(--gc-radius-sheet);
+  background: var(--gc-surface);
+  box-shadow: 0 24px 60px rgba(18, 23, 28, 0.18);
+  animation: gc-pop-in 220ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 .success-mark {
   display: grid;
-  width: 58px;
-  height: 58px;
+  width: 44px;
+  height: 44px;
   place-items: center;
-  margin-bottom: 18px;
-  border-radius: 19px;
-  background: var(--gc-signature);
-  color: #ffffff;
-  box-shadow: 0 12px 26px rgba(88, 185, 145, 0.28);
+  margin-bottom: 14px;
+  border-radius: 50%;
+  background: var(--gc-positive-soft);
+  color: var(--gc-positive);
 }
 
 .modal-kicker-globaliti {
-  color: var(--gc-signature-dark);
+  color: var(--gc-faint);
 }
 
 .sale-modal h2 {
-  margin: 7px 0 8px;
-  font-size: 27px;
-  letter-spacing: -0.06em;
+  margin: 6px 0 6px;
+  color: var(--gc-text);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 
 .sale-modal p {
-  margin-bottom: 19px;
+  margin-bottom: 16px;
   color: var(--gc-muted);
-  font-size: 12px;
-  line-height: 1.6;
+  font-size: var(--gc-fs-body);
+  line-height: 1.5;
 }
 
 .sale-receipt {
@@ -54,61 +45,85 @@
   gap: 1px;
   overflow: hidden;
   border: 1px solid var(--gc-border);
-  border-radius: 13px;
+  border-radius: var(--gc-radius-sm);
   background: var(--gc-border);
 }
 
 .sale-receipt > div {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 16px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   background: #ffffff;
 }
 
 .sale-receipt span {
   color: var(--gc-muted);
-  font-size: 10px;
-  font-weight: 700;
+  font-size: var(--gc-fs-small);
 }
 
 .sale-receipt strong {
-  font-size: 11px;
+  color: var(--gc-text);
+  font-size: var(--gc-fs-small);
+  font-weight: 600;
 }
 
 .modal-primary {
   display: flex;
   width: 100%;
-  height: 43px;
+  height: 38px;
   align-items: center;
   justify-content: center;
   gap: 8px;
   margin-top: 16px;
-  border-radius: 11px;
-  background: var(--gc-text);
+  border-radius: var(--gc-radius-sm);
+  background: var(--gc-signature);
   color: #ffffff;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: var(--gc-fs-small);
+  font-weight: 500;
+}
+
+.modal-primary:hover {
+  background: var(--gc-signature-dark);
 }
 
 .notice-toast {
   position: fixed;
-  right: 22px;
-  bottom: 22px;
+  right: 20px;
+  bottom: 20px;
   z-index: 100;
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 12px 15px;
-  border: 1px solid var(--gc-border-strong);
-  border-radius: 12px;
+  max-width: calc(100vw - 40px);
+  padding: 10px 14px;
+  border: 1px solid var(--gc-border);
+  border-radius: var(--gc-radius-sm);
   background: #ffffff;
   color: var(--gc-text);
-  font-size: 11px;
-  font-weight: 700;
-  box-shadow: var(--gc-shadow);
-  animation: gc-toast-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  font-size: var(--gc-fs-small);
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(18, 23, 28, 0.12);
+  animation: gc-toast-in 200ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.storage-warning {
+  padding: 12px 20px;
+  border-bottom: 1px solid #fde68a;
+  background: var(--gc-warning-soft);
+  color: var(--gc-warning);
+  font-size: var(--gc-fs-small);
+}
+
+.storage-warning h1 {
+  margin: 0 0 4px;
+  font-size: var(--gc-fs-body);
+  font-weight: 600;
+}
+
+.storage-warning p {
+  margin: 0;
 }
 
 @keyframes gc-fade-in {
@@ -117,11 +132,11 @@
 }
 
 @keyframes gc-pop-in {
-  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes gc-toast-in {
-  from { opacity: 0; transform: translateY(14px) scale(0.96); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

@@ -1,13 +1,14 @@
-@import "@fontsource/geist/latin-400.css";
-@import "@fontsource/geist/latin-500.css";
-@import "@fontsource/geist/latin-600.css";
-@import "@fontsource/geist/latin-700.css";
+@import "@fontsource/ibm-plex-sans/latin-400.css";
+@import "@fontsource/ibm-plex-sans/latin-500.css";
+@import "@fontsource/ibm-plex-sans/latin-600.css";
+@import "@fontsource/ibm-plex-mono/latin-400.css";
+@import "@fontsource/ibm-plex-mono/latin-500.css";
 @import "tailwindcss";
 
 :root {
-  font-family: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: #f2f1ef;
-  background: #121212;
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #12171c;
+  background: #eef1f4;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -18,13 +19,13 @@
 
 html {
   scroll-behavior: smooth;
-  background: #121212;
+  background: #eef1f4;
 }
 
 body {
   margin: 0;
   min-width: 320px;
-  background: #121212;
+  background: #eef1f4;
 }
 
 button,

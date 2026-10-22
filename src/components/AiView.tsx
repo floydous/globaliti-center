@@ -1,10 +1,20 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   Broom,
   Check,
+  Desktop,
+  Keyboard,
+  Lightning,
+  Package,
   PaperPlaneTilt,
+  PlusCircle,
+  Printer,
+  Receipt,
+  ShoppingCart,
   Sparkle,
+  Tag,
   User,
+  Warning,
 } from '@phosphor-icons/react'
 import MarkdownContent from './MarkdownContent'
 import { SYSTEM_MANUAL_MD } from '../docs/systemManual'
@@ -82,26 +92,26 @@ export default function AiView({
 
   // Helper untuk mencocokkan kata utuh dengan batasan kata (menghindari false-positive seperti 'rak' dalam 'bicarakan')
   // Helper untuk melabeli kategori tindakan secara manusiawi dan elegan
-  const getActionCategory = (type: string): { label: string; icon: string } => {
+  const getActionCategory = (type: string): { label: string; icon: ReactNode } => {
     switch (type) {
       case 'record_sale':
-        return { label: 'Pencatatan Penjualan', icon: '🛒' }
+        return { label: 'Pencatatan Penjualan', icon: <ShoppingCart size={15} /> }
       case 'adjust_stock':
-        return { label: 'Penyesuaian Stok', icon: '📦' }
+        return { label: 'Penyesuaian Stok', icon: <Package size={15} /> }
       case 'record_expense':
-        return { label: 'Pengeluaran Toko', icon: '🧾' }
+        return { label: 'Pengeluaran Toko', icon: <Receipt size={15} /> }
       case 'create_print_order':
-        return { label: 'Order Cetak Word', icon: '🖨️' }
+        return { label: 'Order Cetak Word', icon: <Printer size={15} /> }
       case 'update_print_order':
-        return { label: 'Status Order Print', icon: '🖨️' }
+        return { label: 'Status Order Print', icon: <Printer size={15} /> }
       case 'update_price':
-        return { label: 'Perubahan Harga', icon: '🏷️' }
+        return { label: 'Perubahan Harga', icon: <Tag size={15} /> }
       case 'update_payment_hotkeys':
-        return { label: 'Pintasan Hotkey Kasir', icon: '⌨️' }
+        return { label: 'Pintasan Hotkey Kasir', icon: <Keyboard size={15} /> }
       case 'add_product':
-        return { label: 'Pendaftaran Produk', icon: '✨' }
+        return { label: 'Pendaftaran Produk', icon: <PlusCircle size={15} /> }
       default:
-        return { label: 'Tindakan Sistem', icon: '⚡' }
+        return { label: 'Tindakan Sistem', icon: <Lightning size={15} /> }
     }
   }
 
@@ -737,7 +747,7 @@ export default function AiView({
 
       const isLow = matchedProduct.stock <= matchedProduct.reorderPoint
       const stockNote = isLow
-        ? `⚠️ **Perhatian:** Stok sudah menipis (di bawah batas aman ${matchedProduct.reorderPoint} ${matchedProduct.unit}). Sebaiknya segera pesan kembali.`
+        ? `**Perhatian:** Stok sudah menipis (di bawah batas aman ${matchedProduct.reorderPoint} ${matchedProduct.unit}). Sebaiknya segera pesan kembali.`
         : `Stok saat ini masih aman di atas batas minimum (${matchedProduct.reorderPoint} ${matchedProduct.unit}).`
 
       return {
@@ -1864,12 +1874,14 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
         <div className="ai-header-controls">
           <div className="ai-engine-status">
             {engineError ? (
-              <span className="status-pill paused" title={engineError} style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
-                ⚠️ Groq Offline (Lokal)
+              <span className="status-pill waiting" title={engineError}>
+                <Warning size={13} /> Groq Offline (Lokal)
               </span>
             ) : (
               <span className={`status-pill ${groqKey && groqKey.startsWith('gsk_') ? 'live' : 'paused'}`}>
-                {groqKey && groqKey.startsWith('gsk_') ? `⚡ ${engineStatus}` : '💻 Engine Lokal'}
+                {groqKey && groqKey.startsWith('gsk_')
+                  ? <><Lightning size={13} /> {engineStatus}</>
+                  : <><Desktop size={13} /> Engine Lokal</>}
               </span>
             )}
           </div>
@@ -1964,7 +1976,7 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
                                 {action.status === 'pending'
                                   ? 'Perlu Konfirmasi'
                                   : action.status === 'applied'
-                                  ? '✓ Telah Diterapkan'
+                                  ? 'Telah Diterapkan'
                                   : 'Dibatalkan'}
                               </span>
                             </div>
