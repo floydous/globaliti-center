@@ -48,4 +48,40 @@ test.describe('Aice Product Catalog & Images', () => {
     expect(bgStyle).toContain('background-image: url(')
     expect(bgStyle).not.toContain('default-icecream.svg')
   })
+
+  test('uploaded product image shows in catalog and POS, survives reload, and can be removed', async ({ page }) => {
+    // PNG 2x2
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAEElEQVR4nGP4z8AARAwQCgAf7gP9i18U1AAAAABJRU5ErkJggg==', 'base64')
+    await page.goto('http://127.0.0.1:4173')
+    await page.getByRole('button', { name: 'Katalog & Stok', exact: true }).click()
+    await page.getByRole('button', { name: 'Tambah Produk', exact: true }).click()
+    const dialog = page.getByRole('dialog')
+    await dialog.locator('input[name="barcode"]').fill('8990000009999')
+    await dialog.locator('input[name="name"]').fill('Es Uji Gambar')
+
+    // File selain gambar ditolak dan tidak mengubah pratinjau
+    await dialog.getByLabel('Berkas gambar produk').setInputFiles({ name: 'catatan.txt', mimeType: 'text/plain', buffer: Buffer.from('bukan gambar') })
+    await expect(page.locator('.notice-toast')).toContainText('Format gambar harus PNG, JPG, atau WebP')
+    await expect(dialog.locator('.image-field-preview')).toHaveAttribute('style', /default-icecream\.svg/)
+
+    await dialog.getByLabel('Berkas gambar produk').setInputFiles({ name: 'es.png', mimeType: 'image/png', buffer: png })
+    await expect(dialog.locator('.image-field-preview')).toHaveAttribute('style', /data:image\//)
+    await dialog.getByRole('button', { name: 'Simpan produk' }).click()
+
+    const card = page.locator('.catalog-box-card').filter({ hasText: 'Es Uji Gambar' })
+    await expect(card.locator('.catalog-box-image')).toHaveAttribute('style', /data:image\//)
+
+    await page.reload()
+    await page.getByRole('button', { name: 'Katalog & Stok', exact: true }).click()
+    await expect(page.locator('.catalog-box-card').filter({ hasText: 'Es Uji Gambar' }).locator('.catalog-box-image')).toHaveAttribute('style', /data:image\//)
+    await page.getByRole('button', { name: 'Kasir POS', exact: true }).click()
+    await expect(page.locator('.product-tile').filter({ hasText: 'Es Uji Gambar' }).locator('.product-image')).toHaveAttribute('style', /data:image\//)
+
+    // Hapus gambar mengembalikan gambar bawaan
+    await page.getByRole('button', { name: 'Katalog & Stok', exact: true }).click()
+    await page.locator('.catalog-box-card').filter({ hasText: 'Es Uji Gambar' }).getByRole('button', { name: 'Edit' }).click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Hapus gambar' }).click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Simpan produk' }).click()
+    await expect(page.locator('.catalog-box-card').filter({ hasText: 'Es Uji Gambar' }).locator('.catalog-box-image')).toHaveAttribute('style', /default-icecream\.svg/)
+  })
 })

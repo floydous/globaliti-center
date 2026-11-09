@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { useLocalAssistant } from './helpers/groqKey.js'
 
 for (const [width, height] of [[320,568],[390,844],[768,1024],[1024,768],[1440,900]]) {
   test(`assistant full cycle ${width}x${height}`, async ({ page }) => {
@@ -6,7 +7,7 @@ for (const [width, height] of [[320,568],[390,844],[768,1024],[1024,768],[1440,9
     page.on('pageerror', error => errors.push(error.message))
     await page.setViewportSize({ width, height })
     // Isolated browser context; force local fallback without using a real credential.
-    await page.route('https://api.groq.com/**', route => route.abort())
+    await useLocalAssistant(page)
     await page.goto('http://127.0.0.1:4173')
     await expect(page.locator('.sidebar')).not.toContainText('Asisten AI')
     const launcher = page.getByRole('button', { name: 'Buka asisten Globaliti', exact: true })

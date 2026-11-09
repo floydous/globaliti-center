@@ -11,17 +11,20 @@ Unit Usaha SMKS TI Bali Global Denpasar
 - Transaksi bersifat final dan langsung mengurangi stok fisik barang.
 
 ## 2. Katalog & Pengelolaan Stok
-- Tambah Produk Baru: Klik "Tambah Produk", masukkan barcode, nama, unit (cup/cone/stick/pcs), harga modal, harga jual, stok awal, dan batas reorder point.
+- Tambah Produk Baru: Klik "Tambah Produk", masukkan barcode, nama, harga jual, stok awal, dan batas reorder point.
 - Penyesuaian Stok: Klik ikon penyesuaian pada kartu produk untuk mencatat stok masuk (kulakan), barang rusak, atau koreksi opname.
 - Peringatan: Produk dengan stok di bawah reorder point akan ditandai lencana peringatan.
 
 ## 3. Laporan Keuangan SAK EMKM
-- Laba Rugi: Pendapatan penjualan es krim dikurangi HPP menghasilkan Laba Bruto, kemudian dikurangi Beban Operasional menghasilkan Laba Bersih.
+- Laba Rugi (satu langkah): Total Pendapatan dikurangi Total Beban Usaha (HPP ditambah beban operasional) langsung menghasilkan Laba atau Rugi Bersih, tanpa subtotal Laba Bruto.
 - Posisi Keuangan (Neraca): Menyajikan keseimbangan Aset Lancar (Kas, Nilai Persediaan Stok) terhadap Liabilitas dan Ekuitas Modal.
-- Penjualan Harian & Beban: Menampilkan log nota transaksi kasir dan pencatatan beban operasional toko (seperti kertas HVS, tinta printer).
+- Penjualan Harian: rekap per hari (nota, item, pendapatan, laba kotor estimasi) dengan pemilih rentang tanggal; seret dari satu tanggal ke tanggal lain, atau klik satu tanggal untuk laporan satu hari. Tiap hari menampilkan produk terjual dengan perubahan stok awal → akhir hari dan daftar nota.
+- Beban: pencatatan beban operasional toko (seperti kertas HVS, tinta printer).
 - Cetak Laporan: Tombol "Cetak Laporan" menghasilkan format cetak/PDF standar pertanggungjawaban sekolah.
 
 ## 4. Asisten AI Toko & Kendali Groq
+- Diaktifkan lewat tombol "Asisten AI" di bilah atas. Tombol mati bila kunci API Groq belum diatur.
+- Kunci API Groq diatur di Pengaturan dan disimpan sebagai file lokal di perangkat ini, bukan di browser. Gunakan "Uji Koneksi Groq API" sebelum menyimpan.
 - Cek data stok inventori dan status reorder produk secara langsung.
 - Memberikan ringkasan keuangan harian dan laba rugi.
 - Memandu pengelola langkah demi langkah cara mengoperasikan setiap fitur web.

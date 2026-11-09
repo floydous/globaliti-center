@@ -1,15 +1,12 @@
 import { test, expect } from '@playwright/test'
+import { mockGroqStatus, mockGroqChat } from './helpers/groqKey.js'
 
 test('multiple tool calls render dedicated UI and do not leak raw markdown into chat bubble', async ({ page }) => {
-  await page.goto('http://127.0.0.1:4173')
-
-  // Set Groq key in localStorage
-  await page.evaluate(() => {
-    localStorage.setItem('gc_groq_key', 'gsk_mock_test_key_for_ui')
-  })
+  // Kunci terkonfigurasi (asisten aktif) dan Groq dijawab lewat proxy lokal.
+  await mockGroqStatus(page, { enabled: true })
 
   // Mock Groq API response with the exact 3 tool calls from user transcript
-  await page.route('https://api.groq.com/openai/v1/chat/completions', async (route) => {
+  await mockGroqChat(page, async (route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -62,6 +59,8 @@ Semua stok masih di atas batas minimum, jadi aman.
       }),
     })
   })
+
+  await page.goto('http://127.0.0.1:4173')
 
   // Open AI Assistant
   const launcher = page.getByRole('button', { name: 'Buka asisten Globaliti', exact: true })

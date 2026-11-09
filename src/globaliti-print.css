@@ -1,0 +1,31 @@
+/* ===== Halaman cetak dokumen resmi tanpa kepala/kaki halaman dari peramban ===== */
+
+@page doc {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  .formal-report-print-target,
+  #daily-print-root {
+    page: doc;
+  }
+
+  .print-frame {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .print-frame > thead > tr > td,
+  .print-frame > tfoot > tr > td {
+    padding: 0;
+  }
+
+  .print-frame-gap {
+    height: 12mm;
+  }
+
+  .print-frame > tbody > tr > .print-frame-body {
+    padding: 0 14mm;
+  }
+}

@@ -14,10 +14,15 @@ dist-ssr
 
 # Test and tool outputs
 test-results/
+playwright-report/
+/*.zip
 dogfood-output/
 .pi/
 graphify-out/
 .taste-skill/
+
+# Kunci API Groq (disimpan sebagai file lokal, jangan pernah masuk repo)
+.globaliti/
 
 .vscode/*
 !.vscode/extensions.json

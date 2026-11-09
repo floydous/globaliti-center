@@ -1,17 +1,14 @@
 import { test, expect } from '@playwright/test'
+import { storeRealKey, useLocalAssistant } from './helpers/groqKey.js'
 
 test.describe('Assistant Full System Control & Transaction Visibility', () => {
   test('Local Engine answers latest customer purchase, stock, and top selling', async ({ page }) => {
     const errors = []
     page.on('pageerror', (err) => errors.push(err.message))
 
+    // Kunci terkonfigurasi tapi Groq tidak terjangkau, jadi mesin bawaan yang menjawab.
+    await useLocalAssistant(page)
     await page.goto('http://127.0.0.1:4173')
-
-    // Ensure no Groq key so local engine is used
-    await page.evaluate(() => {
-      localStorage.removeItem('gc_groq_key')
-    })
-    await page.reload()
 
     // Open assistant
     await page.getByRole('button', { name: 'Buka asisten Globaliti', exact: true }).click()
@@ -50,13 +47,9 @@ test.describe('Assistant Full System Control & Transaction Visibility', () => {
     const errors = []
     page.on('pageerror', (err) => errors.push(err.message))
 
+    // Kunci asli disimpan sebagai file lokal di server, bukan di browser.
+    await storeRealKey(page, process.env.GROQ_API_KEY)
     await page.goto('http://127.0.0.1:4173')
-
-    // Set valid Groq key
-    await page.evaluate((key) => {
-      localStorage.setItem('gc_groq_key', key)
-    }, process.env.GROQ_API_KEY)
-    await page.reload()
 
     await page.getByRole('button', { name: 'Buka asisten Globaliti', exact: true }).click()
     const input = page.getByRole('textbox', { name: 'Pesan untuk asisten' })

@@ -5,11 +5,15 @@ const coveredBy = (page, selector) =>
   page.evaluate((sel) => {
     const layers = [...document.querySelectorAll('.assistant-launcher, .assistant-panel, .notice-toast')]
     const hits = []
+    // Konten yang menggulir di bawah bar atas yang menempel tersembunyi oleh bar itu sendiri,
+    // bukan oleh lapisan melayang; hanya kontrol di luar bar yang diperiksa.
+    const barBottom = document.querySelector('.topbar-globaliti')?.getBoundingClientRect().bottom ?? 0
     for (const el of document.querySelectorAll(sel)) {
       if (layers.some(l => l === el || l.contains(el) || el.contains(l))) continue
       const r = el.getBoundingClientRect()
       if (r.width === 0 || r.height === 0) continue
       if (r.bottom < 0 || r.top > innerHeight) continue
+      if (r.top < barBottom) continue
       for (const layer of layers) {
         const l = layer.getBoundingClientRect()
         if (l.width === 0 || l.height === 0) continue

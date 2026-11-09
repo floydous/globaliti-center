@@ -14,6 +14,16 @@ test('backup contains data, not credentials', async ({ page }) => {
   expect(text).not.toMatch(/gsk_|gc_groq_key/)
 })
 
+test('the Groq key never reaches browser storage', async ({ page }) => {
+  await page.goto('http://127.0.0.1:4173')
+  const stored = await page.evaluate(() => ({
+    local: localStorage.getItem('gc_groq_key'),
+    session: sessionStorage.getItem('gc_groq_key'),
+  }))
+  expect(stored.local).toBeNull()
+  expect(stored.session).toBeNull()
+})
+
 test('corrupt stored data is preserved and transactions blocked', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('globaliti_store_v1', '{broken'))
   await page.goto('http://127.0.0.1:4173')

@@ -1,0 +1,127 @@
+/* ===== Barcode produk: formulir, dialog cetak, dan lembar label ===== */
+
+.barcode-row {
+  display: flex;
+  gap: 8px;
+}
+
+.barcode-row .field-with-icon {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Pratinjau menumpuk di atas formulir produk */
+.barcode-preview-backdrop {
+  z-index: 90;
+}
+
+.barcode-preview-modal {
+  width: min(380px, 100%);
+}
+
+.barcode-preview {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--gc-border);
+  border-radius: var(--gc-radius-sm);
+}
+
+.barcode-bulk {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: var(--gc-muted);
+  font-size: var(--gc-fs-small);
+}
+
+.barcode-bulk span {
+  margin-left: auto;
+}
+
+.barcode-list {
+  max-height: 320px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid var(--gc-border);
+  border-radius: var(--gc-radius-sm);
+  list-style: none;
+}
+
+.barcode-list li + li {
+  border-top: 1px solid var(--gc-rule);
+}
+
+.barcode-list label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  font-size: var(--gc-fs-small);
+}
+
+.barcode-list-name {
+  overflow: hidden;
+  color: var(--gc-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barcode-list code {
+  color: var(--gc-muted);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.barcode-empty {
+  margin: 0;
+  color: var(--gc-muted);
+  font-size: var(--gc-fs-body);
+}
+
+/* Lembar cetak: ada di luar #root dan hanya tampil saat mencetak */
+#barcode-print-root {
+  display: none;
+}
+
+.barcode-label {
+  margin: 0;
+  padding: 4mm;
+  border: 1px dashed #888888;
+  break-inside: avoid;
+  text-align: center;
+}
+
+.barcode-label figcaption {
+  margin-bottom: 2mm;
+  color: #000000;
+  font-size: 11pt;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.barcode-label-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@media print {
+  body.printing-barcodes #root {
+    display: none !important;
+  }
+
+  body.printing-barcodes #barcode-print-root {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6mm;
+  }
+}
+
+.field > label {
+  color: var(--gc-text);
+  font-size: var(--gc-fs-small);
+  font-weight: 500;
+}

@@ -43,8 +43,11 @@ test('formal financial report preview displays authentic SAK EMKM statements and
   // Check Laporan Laba Rugi
   await expect(modal.locator('.formal-statement-heading h3').first()).toHaveText('I. LAPORAN LABA RUGI')
   await expect(modal).toContainText('A. PENDAPATAN USAHA')
-  await expect(modal).toContainText('B. BEBAN POKOK PENJUALAN (HPP)')
-  await expect(modal).toContainText('C. BEBAN OPERASIONAL TOKO')
+  // Laba rugi satu langkah: pendapatan, lalu seluruh beban, lalu laba bersih; tanpa Laba Bruto
+  await expect(modal).toContainText('B. BEBAN USAHA')
+  await expect(modal).toContainText('Total Beban Usaha')
+  await expect(modal).not.toContainText('LABA BRUTO')
+  await expect(modal).not.toContainText('C. BEBAN OPERASIONAL TOKO')
   await expect(modal).toContainText('LABA BERSIH TAHUN / PERIODE BERJALAN')
 
   // Check Neraca (Posisi Keuangan)
@@ -57,8 +60,9 @@ test('formal financial report preview displays authentic SAK EMKM statements and
   await expect(modal).toContainText('JUMLAH LIABILITAS & EKUITAS')
   await expect(modal.locator('.formal-balance-validation')).toContainText('SEIMBANG (BALANCED)')
 
-  // Check Catatan Ringkas (CALK)
-  await expect(modal).toContainText('III. CATATAN RINGKAS OPERASIONAL (CALK EMKM)')
+  // Catatan ringkas (CALK) dan tabel metadata dokumen tidak dicetak
+  await expect(modal).not.toContainText('CALK')
+  await expect(modal).not.toContainText('Nomor Dokumen')
 
   // Signatures should be removed completely as requested
   await expect(modal).not.toContainText('Dibuat oleh')

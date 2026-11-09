@@ -1,0 +1,93 @@
+/* ===== Dokumen cetak Penjualan Harian ===== */
+
+#daily-print-root {
+  display: none;
+}
+
+@media print {
+  body.printing-daily #root {
+    display: none !important;
+  }
+
+  body.printing-daily #daily-print-root {
+    display: block !important;
+    font-size: 12px;
+  }
+
+  .daily-doc-summary {
+    width: 100%;
+    margin: 4mm 0;
+    border-collapse: collapse;
+  }
+
+  .daily-doc-summary th,
+  .daily-doc-summary td {
+    padding: 1.5mm 2mm;
+    border: 1px solid #000000;
+    text-align: left;
+  }
+
+  .daily-doc-summary th {
+    width: 22%;
+    background: #eeeeee;
+    font-weight: 700;
+  }
+
+  .daily-doc-day {
+    margin-top: 6mm;
+    break-inside: avoid;
+  }
+
+  .daily-doc-day h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    break-after: avoid;
+  }
+
+  .daily-doc-day-sum {
+    margin: 1mm 0 2mm;
+    break-after: avoid;
+  }
+
+  .daily-doc-table {
+    width: 100%;
+    margin-bottom: 3mm;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  .daily-doc-table th,
+  .daily-doc-table td {
+    padding: 1mm 2mm;
+    border: 1px solid #555555;
+    text-align: left;
+  }
+
+  .daily-doc-table thead {
+    display: table-header-group;
+  }
+
+  .daily-doc-table th {
+    background: #eeeeee;
+  }
+
+  .daily-doc-table tr {
+    break-inside: avoid;
+  }
+
+  .daily-doc-table .num {
+    text-align: right;
+  }
+
+  .daily-doc-foot {
+    margin-top: 8mm;
+    padding-top: 2mm;
+    border-top: 1px solid #000000;
+    font-size: 10px;
+  }
+
+  .daily-doc-foot p {
+    margin: 0 0 1mm;
+  }
+}

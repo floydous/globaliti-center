@@ -47,8 +47,7 @@
   .brand-eyebrow,
   .brand-sub,
   .brand-badge,
-  .sidebar-label,
-  .sidebar-foot {
+  .sidebar-label {
     display: none !important;
   }
 
@@ -177,10 +176,6 @@
     display: none;
   }
 
-  .manager-chip {
-    padding: 0 8px;
-  }
-
   .pos-layout,
   .catalog-page,
   .finance-page,
@@ -236,6 +231,11 @@
     width: 100%;
   }
 
+  .browser-toolbar-tools {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .cart-summary {
     padding: 14px;
   }
@@ -247,6 +247,18 @@
 
   .catalog-search {
     width: 100%;
+  }
+
+  .catalog-filter {
+    margin-left: 0;
+  }
+
+  .catalog-sort {
+    width: 100%;
+  }
+
+  .segmented {
+    align-self: flex-start;
   }
 
   .catalog-boxes-grid {
@@ -278,6 +290,29 @@
 
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .product-form-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .image-field {
+    flex-flow: row wrap;
+    align-items: center;
+    gap: 8px 14px;
+  }
+
+  .image-field-preview {
+    width: 96px;
+    height: 96px;
+  }
+
+  .image-field-actions {
+    flex: 1;
+  }
+
+  .image-field > small {
+    flex-basis: 100%;
   }
 
   .field.full {

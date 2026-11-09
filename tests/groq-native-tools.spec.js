@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { storeRealKey } from './helpers/groqKey.js'
 
 test.describe('Groq Native Tools Live Suite', () => {
   test('handles sales, stock, and expenses via native tools', async ({ page }) => {
@@ -6,13 +7,9 @@ test.describe('Groq Native Tools Live Suite', () => {
     const errors = []
     page.on('pageerror', (err) => errors.push(err.message))
 
+    // Kunci asli disimpan sebagai file lokal di server.
+    await storeRealKey(page, process.env.GROQ_API_KEY)
     await page.goto('http://127.0.0.1:4173')
-
-    // Set the Groq Key in localStorage
-    await page.evaluate((key) => {
-      localStorage.setItem('gc_groq_key', key)
-    }, process.env.GROQ_API_KEY)
-    await page.reload()
 
     // Open AI Assistant
     const launcher = page.getByRole('button', { name: 'Buka asisten Globaliti', exact: true })

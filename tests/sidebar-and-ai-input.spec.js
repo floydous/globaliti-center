@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test'
+import { useLocalAssistant } from './helpers/groqKey.js'
 
 test.describe('Sidebar UI/UX (taste-skill) & AI Agent Input Isolation', () => {
   test('typing numbers in AI Agent input box never leaks into POS barcode input box', async ({ page }) => {
     const errors = []
     page.on('pageerror', (err) => errors.push(err.message))
 
+    await useLocalAssistant(page)
     await page.goto('http://127.0.0.1:4173')
 
     const barcodeInput = page.getByRole('textbox', { name: 'Input barcode produk' })
@@ -30,7 +32,7 @@ test.describe('Sidebar UI/UX (taste-skill) & AI Agent Input Isolation', () => {
     expect(errors).toEqual([])
   })
 
-  test('sidebar renders with taste-skill brand card, active indicators, and operator card', async ({ page }) => {
+  test('sidebar renders with taste-skill brand card and active indicators', async ({ page }) => {
     await page.goto('http://127.0.0.1:4173')
 
     // Check brand card
@@ -49,10 +51,7 @@ test.describe('Sidebar UI/UX (taste-skill) & AI Agent Input Isolation', () => {
     await expect(activeNav).toContainText('Kasir POS')
     await expect(activeNav.locator('.nav-indicator')).toBeVisible()
 
-    // Check operator footer mini card
-    const operatorCard = page.locator('.operator-mini-card')
-    await expect(operatorCard).toBeVisible()
-    await expect(operatorCard.locator('.operator-name')).toContainText('Pengelola 1')
-    await expect(operatorCard.locator('.status-beacon')).toBeVisible()
+    // Operator sudah dihapus, jadi sidebar tidak punya kartu operator.
+    await expect(page.locator('.operator-mini-card')).toHaveCount(0)
   })
 })

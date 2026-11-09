@@ -9,13 +9,20 @@ import {
 } from '@phosphor-icons/react'
 import type { Expense, Product, Sale } from '../types'
 import FormalFinancialReport from './FormalFinancialReport'
+import DailySales from './DailySales'
+import PrintFrame from './PrintFrame'
+import { estimateCost } from '../lib/hpp'
+import { costRatio, reportPeriod, type BusinessProfile } from '../lib/business'
+import { formatLongDate } from '../lib/dailySales'
 
 type FinanceViewProps = {
   products: Product[]
   sales: Sale[]
   expenses: Expense[]
+  profile: BusinessProfile
+  hasSampleData: boolean
+  onClearSampleData: () => void
   onAddExpense: (expense: Omit<Expense, 'id'>) => void
-  operator?: string
 }
 
 const formatRupiah = (value: number) =>
@@ -29,15 +36,17 @@ export default function FinanceView({
   products,
   sales,
   expenses,
+  profile,
+  hasSampleData,
+  onClearSampleData,
   onAddExpense,
-  operator = 'Pengelola 1',
 }: FinanceViewProps) {
   const [tab, setTab] = useState<'laba_rugi' | 'neraca' | 'penjualan' | 'beban'>('laba_rugi')
   const [showExpenseModal, setShowExpenseModal] = useState(false)
   const [showPreviewModal, setShowPreviewModal] = useState(false)
+  const [confirmClearSample, setConfirmClearSample] = useState(false)
   const [expenseForm, setExpenseForm] = useState({
     label: '',
-    category: 'Operasional',
     amount: 50000,
     date: new Date().toISOString().slice(0, 10),
   })
@@ -51,6 +60,9 @@ export default function FinanceView({
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [showPreviewModal])
+
+  const ratio = costRatio(profile)
+  const period = useMemo(() => reportPeriod(sales, expenses), [sales, expenses])
 
   // Perhitungan Pendapatan
   const iceCreamRevenue = useMemo(
@@ -66,14 +78,12 @@ export default function FinanceView({
     sales.forEach((sale) => {
       sale.items.forEach((item) => {
         const prod = products.find((p) => p.id === item.productId)
-        const cost = prod ? prod.cost : item.price * 0.5
+        const cost = estimateCost(prod ? prod.price : item.price, ratio)
         totalCogs += cost * item.quantity
       })
     })
     return totalCogs
-  }, [sales, products])
-
-  const grossProfit = totalRevenue - cogsIceCream
+  }, [sales, products, ratio])
 
   // Total Beban Operasional
   const totalExpenses = useMemo(
@@ -81,20 +91,24 @@ export default function FinanceView({
     [expenses]
   )
 
-  const netIncome = grossProfit - totalExpenses
+  // Laba rugi satu langkah: seluruh pendapatan dikurangi seluruh beban (HPP + beban operasional)
+  const netIncome = totalRevenue - cogsIceCream - totalExpenses
 
   // Neraca / Posisi Keuangan SAK EMKM
   const inventoryValue = useMemo(
-    () => products.reduce((sum, p) => sum + p.stock * p.cost, 0),
-    [products]
+    () => products.reduce((sum, p) => sum + p.stock * estimateCost(p.price, ratio), 0),
+    [products, ratio]
   )
 
-  const cashInHand = 1500000 + totalRevenue - totalExpenses // Modal kas awal 1.5jt + penerimaan kas - pengeluaran
+  // Kas = modal kas awal + penerimaan penjualan - beban operasional (HPP tidak mengeluarkan kas)
+  const cashInHand = profile.openingCash + totalRevenue - totalExpenses
 
   const totalAssets = cashInHand + inventoryValue
   const totalLiabilities = 0
-  const initialEquity = 1500000 + inventoryValue
-  const retainedEarnings = totalAssets - initialEquity - totalLiabilities
+  // Saldo laba berjalan sama dengan laba bersih pada laporan laba rugi; sisanya adalah modal awal
+  // (kas awal ditambah persediaan awal), sehingga neraca seimbang tanpa selisih yang disembunyikan.
+  const retainedEarnings = netIncome
+  const initialEquity = totalAssets - totalLiabilities - retainedEarnings
 
   const handleCreateExpense = (e: React.FormEvent) => {
     e.preventDefault()
@@ -103,7 +117,6 @@ export default function FinanceView({
     setShowExpenseModal(false)
     setExpenseForm({
       label: '',
-      category: 'Operasional',
       amount: 50000,
       date: new Date().toISOString().slice(0, 10),
     })
@@ -115,7 +128,7 @@ export default function FinanceView({
         <div>
           <h2>Laporan Keuangan SAK EMKM</h2>
           <p className="finance-sub">
-            Unit Usaha Globaliti Creative Center - Periode September 2026
+            Unit Usaha {profile.unitName} - Periode {formatLongDate(period.start)} s.d. {formatLongDate(period.end)}
           </p>
         </div>
         <div className="finance-actions">
@@ -141,6 +154,13 @@ export default function FinanceView({
           </button>
         </div>
       </div>
+
+      {hasSampleData && (
+        <div className="sample-banner" role="status">
+          <span>Laporan ini masih memuat nota dan beban contoh bawaan aplikasi.</span>
+          <button type="button" className="secondary-button" onClick={() => setConfirmClearSample(true)}>Hapus data contoh</button>
+        </div>
+      )}
 
       {/* Tabs Navigasi Bersih */}
       <div className="finance-tabs" role="tablist">
@@ -197,26 +217,20 @@ export default function FinanceView({
               <strong>{formatRupiah(totalRevenue)}</strong>
             </div>
 
-            <div className="statement-section-title">2. Beban Pokok Penjualan (HPP)</div>
+            <div className="statement-section-title">2. Beban Usaha</div>
             <div className="statement-row">
-              <span>HPP Es Krim Terjual</span>
+              <span>HPP Es Krim Terjual (estimasi)</span>
               <span>({formatRupiah(cogsIceCream)})</span>
             </div>
-            <div className="statement-row subtotal">
-              <strong>Laba Bruto</strong>
-              <strong>{formatRupiah(grossProfit)}</strong>
-            </div>
-
-            <div className="statement-section-title">3. Beban Operasional</div>
             {expenses.map((exp) => (
               <div className="statement-row" key={exp.id}>
-                <span>{exp.label} ({exp.category})</span>
+                <span>{exp.label}</span>
                 <span>({formatRupiah(exp.amount)})</span>
               </div>
             ))}
             <div className="statement-row subtotal">
-              <strong>Total Beban Operasional</strong>
-              <span>({formatRupiah(totalExpenses)})</span>
+              <strong>Total Beban Usaha</strong>
+              <span>({formatRupiah(cogsIceCream + totalExpenses)})</span>
             </div>
 
             <div className="statement-row grand-total">
@@ -292,51 +306,7 @@ export default function FinanceView({
       )}
 
       {/* TAB 3: Penjualan Harian */}
-      {tab === 'penjualan' && (
-        <div className="finance-card">
-          <div className="statement-head">
-            <h3>Daftar Transaksi Kasir</h3>
-            <span>{sales.length} transaksi tercatat hari ini</span>
-          </div>
-          <div className="finance-table-wrapper">
-            <table className="finance-simple-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Waktu</th>
-                  <th>Kasir</th>
-                  <th>Rincian Produk</th>
-                  <th>Metode</th>
-                  <th className="text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sales.map((sale) => (
-                  <tr key={sale.id}>
-                    <td><code>{sale.id}</code></td>
-                    <td>{sale.time}</td>
-                    <td>{sale.operator}</td>
-                    <td>
-                      {sale.items
-                        .map((it) => {
-                          const p = products.find((prod) => prod.id === it.productId)
-                          return `${it.quantity}x ${p?.name || 'Produk'}`
-                        })
-                        .join(', ')}
-                    </td>
-                    <td>
-                      <span className="badge-payment">{sale.payment}</span>
-                    </td>
-                    <td className="text-right font-bold">
-                      {formatRupiah(sale.total)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      {tab === 'penjualan' && <DailySales sales={sales} products={products} costRatio={ratio} profile={profile} />}
 
       {/* TAB 4: Beban Operasional */}
       {tab === 'beban' && (
@@ -351,7 +321,6 @@ export default function FinanceView({
                 <tr>
                   <th>Tanggal</th>
                   <th>Keperluan</th>
-                  <th>Kategori</th>
                   <th className="text-right">Nominal</th>
                 </tr>
               </thead>
@@ -360,7 +329,6 @@ export default function FinanceView({
                   <tr key={exp.id}>
                     <td>{exp.date}</td>
                     <td>{exp.label}</td>
-                    <td><span className="badge-payment">{exp.category}</span></td>
                     <td className="text-right font-bold">
                       {formatRupiah(exp.amount)}
                     </td>
@@ -368,6 +336,32 @@ export default function FinanceView({
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {confirmClearSample && (
+        <div className="modal-backdrop-globaliti" role="presentation" onClick={() => setConfirmClearSample(false)}>
+          <div className="form-modal" role="dialog" aria-modal="true" aria-label="Hapus data contoh" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <h2>Hapus data contoh?</h2>
+                <p className="modal-sub">Semua nota dan beban contoh dihapus dari pembukuan. Catatan yang Anda buat sendiri tidak ikut terhapus. Tindakan ini tidak bisa dibatalkan.</p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="secondary-button" onClick={() => setConfirmClearSample(false)}>Batal</button>
+              <button
+                type="button"
+                className="primary-action"
+                onClick={() => {
+                  onClearSampleData()
+                  setConfirmClearSample(false)
+                }}
+              >
+                Hapus data contoh
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -405,20 +399,6 @@ export default function FinanceView({
               />
             </label>
             <label className="field">
-              <span>Kategori</span>
-              <select
-                value={expenseForm.category}
-                onChange={(e) =>
-                  setExpenseForm({ ...expenseForm, category: e.target.value })
-                }
-              >
-                <option value="Operasional">Operasional Toko</option>
-                <option value="Bahan Habis Pakai">Kertas & Tinta</option>
-                <option value="Listrik & Utilitas">Listrik & Utilitas</option>
-                <option value="Lainnya">Lain-lain</option>
-              </select>
-            </label>
-            <label className="field">
               <span>Nominal (Rp)</span>
               <input
                 type="number"
@@ -447,24 +427,26 @@ export default function FinanceView({
       )}
       {/* Target Cetak Dokumen Formal (Aktif saat window.print() / @media print) */}
       <div className="formal-report-print-target">
-        <FormalFinancialReport
-          products={products}
-          sales={sales}
-          expenses={expenses}
-          operator={operator}
-          iceCreamRevenue={iceCreamRevenue}
-          totalRevenue={totalRevenue}
-          cogsIceCream={cogsIceCream}
-          grossProfit={grossProfit}
-          totalExpenses={totalExpenses}
-          netIncome={netIncome}
-          inventoryValue={inventoryValue}
-          cashInHand={cashInHand}
-          totalAssets={totalAssets}
-          totalLiabilities={totalLiabilities}
-          initialEquity={initialEquity}
-          retainedEarnings={retainedEarnings}
-        />
+        <PrintFrame>
+          <FormalFinancialReport
+            expenses={expenses}
+            iceCreamRevenue={iceCreamRevenue}
+            totalRevenue={totalRevenue}
+            cogsIceCream={cogsIceCream}
+            totalExpenses={totalExpenses}
+            netIncome={netIncome}
+            inventoryValue={inventoryValue}
+            cashInHand={cashInHand}
+            totalAssets={totalAssets}
+            totalLiabilities={totalLiabilities}
+            initialEquity={initialEquity}
+            retainedEarnings={retainedEarnings}
+            profile={profile}
+            periodStart={period.start}
+            periodEnd={period.end}
+            includesSampleData={hasSampleData}
+          />
+        </PrintFrame>
       </div>
 
       {/* Modal Pratinjau Dokumen Formal */}
@@ -507,15 +489,11 @@ export default function FinanceView({
             </div>
             <div className="preview-paper-container">
               <FormalFinancialReport
-                products={products}
-                sales={sales}
                       expenses={expenses}
-                operator={operator}
                 iceCreamRevenue={iceCreamRevenue}
                       totalRevenue={totalRevenue}
                 cogsIceCream={cogsIceCream}
-                grossProfit={grossProfit}
-                totalExpenses={totalExpenses}
+                      totalExpenses={totalExpenses}
                 netIncome={netIncome}
                 inventoryValue={inventoryValue}
                       cashInHand={cashInHand}
@@ -523,6 +501,10 @@ export default function FinanceView({
                 totalLiabilities={totalLiabilities}
                 initialEquity={initialEquity}
                 retainedEarnings={retainedEarnings}
+                profile={profile}
+                periodStart={period.start}
+                periodEnd={period.end}
+                includesSampleData={hasSampleData}
               />
             </div>
           </div>

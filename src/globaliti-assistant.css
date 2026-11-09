@@ -21,6 +21,12 @@
   color: var(--gc-text);
 }
 
+.assistant-launcher:disabled {
+  border-color: var(--gc-border);
+  background: var(--gc-surface-strong);
+  color: var(--gc-faint);
+}
+
 .assistant-launcher[aria-expanded='true'] {
   border-color: var(--gc-signature);
   background: var(--gc-signature-soft);
@@ -126,6 +132,13 @@
 }
 
 /* The chat body inherits the AI styles */
+.assistant-panel .ai-page {
+  /* Isi panel tinggi tetap: obrolan mengisi ruang dan input tetap di dasar,
+     bahkan saat belum ada pesan. */
+  flex: 1;
+  min-height: 0;
+}
+
 .assistant-panel .ai-messages-list {
   padding: 14px;
 }
@@ -139,8 +152,8 @@
 }
 
 .assistant-disclaimer {
-  padding: 8px 12px;
-  border-top: 1px solid var(--gc-border);
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--gc-border);
   color: var(--gc-faint);
   font-size: 12px;
   line-height: 1.45;

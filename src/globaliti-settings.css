@@ -94,82 +94,6 @@
   font-weight: 600;
 }
 
-.operator-options {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.operator-chip {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border: 1px solid var(--gc-border);
-  border-radius: var(--gc-radius-sm);
-  background: var(--gc-surface);
-  cursor: pointer;
-  transition: border-color var(--gc-transition-fast), background-color var(--gc-transition-fast);
-}
-
-.operator-chip:hover {
-  border-color: var(--gc-border-strong);
-}
-
-.operator-chip input {
-  cursor: pointer;
-}
-
-.operator-chip strong {
-  display: block;
-  color: var(--gc-text);
-  font-size: var(--gc-fs-small);
-  font-weight: 500;
-}
-
-.operator-chip span {
-  display: block;
-  color: var(--gc-faint);
-  font-size: var(--gc-fs-small);
-}
-
-.operator-chip.active {
-  border-color: var(--gc-signature);
-  background: var(--gc-signature-soft);
-}
-
-.operator-chip.active strong {
-  color: var(--gc-signature-dark);
-}
-
-.settings-info-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  overflow: hidden;
-  border: 1px solid var(--gc-border);
-  border-radius: var(--gc-radius-sm);
-  background: var(--gc-border);
-}
-
-.settings-info-grid > div {
-  padding: 10px 12px;
-  background: #ffffff;
-}
-
-.settings-info-grid span {
-  display: block;
-  margin-bottom: 1px;
-  color: var(--gc-faint);
-  font-size: 12px;
-}
-
-.settings-info-grid strong {
-  color: var(--gc-text);
-  font-size: var(--gc-fs-small);
-  font-weight: 500;
-}
-
 .settings-footer {
   display: flex;
   align-items: center;
@@ -189,9 +113,24 @@
   font-weight: 500;
 }
 
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.settings-warning {
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid #fde68a;
+  border-radius: var(--gc-radius-sm);
+  background: var(--gc-warning-soft);
+  color: var(--gc-warning);
+  font-size: var(--gc-fs-small);
+}
+
 @media (max-width: 700px) {
-  .operator-options,
-  .settings-info-grid {
+  .profile-grid {
     grid-template-columns: 1fr;
   }
 }

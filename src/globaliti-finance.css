@@ -242,3 +242,559 @@
   font-weight: 500;
   white-space: nowrap;
 }
+
+/* ===== Penjualan harian ===== */
+
+.daily-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  padding: 0 16px 12px;
+}
+
+/* ===== Pemilih rentang tanggal: seret dari satu hari ke hari lain ===== */
+
+.date-range {
+  position: relative;
+}
+
+.date-range-trigger {
+  display: inline-flex;
+  height: 32px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--gc-border-strong);
+  border-radius: var(--gc-radius-sm);
+  background: var(--gc-surface);
+  color: var(--gc-muted);
+  font-size: var(--gc-fs-small);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.date-range-trigger:hover,
+.date-range-trigger[aria-expanded='true'] {
+  border-color: var(--gc-signature);
+}
+
+.date-range-trigger.has-value {
+  color: var(--gc-text);
+}
+
+.date-range-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  width: min(308px, calc(100vw - 32px));
+  padding: 12px;
+  border: 1px solid var(--gc-border);
+  border-radius: var(--gc-radius);
+  background: var(--gc-surface);
+  box-shadow: 0 12px 32px rgba(18, 23, 28, 0.16);
+}
+
+.date-range-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.date-range-head strong {
+  color: var(--gc-text);
+  font-size: var(--gc-fs-body);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.date-range-nav {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: var(--gc-radius-xs);
+  background: transparent;
+  color: var(--gc-muted);
+}
+
+.date-range-nav:hover {
+  background: var(--gc-surface-strong);
+  color: var(--gc-text);
+}
+
+.date-range-weekdays,
+.date-range-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.date-range-weekdays span {
+  padding: 4px 0;
+  color: var(--gc-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.date-range-grid {
+  row-gap: 2px;
+  /* Seret di layar sentuh memilih rentang, bukan menggulir halaman */
+  touch-action: none;
+  user-select: none;
+}
+
+.date-range-blank {
+  height: 36px;
+}
+
+.date-range-day {
+  position: relative;
+  height: 36px;
+  border-radius: 0;
+  background: transparent;
+  color: var(--gc-text);
+  font-size: var(--gc-fs-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.date-range-day:hover:not(.in-range) {
+  background: var(--gc-surface-strong);
+  border-radius: var(--gc-radius-xs);
+}
+
+.date-range-day.today {
+  font-weight: 700;
+  color: var(--gc-signature);
+}
+
+/* Titik penuh: ada penjualan. Cincin kosong dan teks redup: tidak ada catatan. */
+.date-range-day.marked::after,
+.date-range-day.empty::after {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  content: '';
+  transform: translateX(-50%);
+}
+
+.date-range-day.marked {
+  font-weight: 500;
+}
+
+.date-range-day.marked::after {
+  background: var(--gc-signature);
+}
+
+.date-range-day.empty {
+  color: var(--gc-faint);
+}
+
+.date-range-day.empty::after {
+  border: 1px solid currentColor;
+  opacity: 0.55;
+}
+
+.date-range-day.in-range {
+  background: var(--gc-signature-soft);
+  color: var(--gc-signature-dark);
+}
+
+.date-range-day.range-start,
+.date-range-day.range-end {
+  background: var(--gc-signature);
+  color: #ffffff;
+}
+
+.date-range-day.range-start {
+  border-radius: var(--gc-radius-xs) 0 0 var(--gc-radius-xs);
+}
+
+.date-range-day.range-end {
+  border-radius: 0 var(--gc-radius-xs) var(--gc-radius-xs) 0;
+}
+
+.date-range-day.range-start.range-end {
+  border-radius: var(--gc-radius-xs);
+}
+
+.date-range-day.range-start.marked::after,
+.date-range-day.range-end.marked::after {
+  background: #ffffff;
+}
+
+.date-range-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 10px;
+  color: var(--gc-muted);
+  font-size: 12px;
+}
+
+.date-range-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.legend-dot.has {
+  background: var(--gc-signature);
+}
+
+.legend-dot.none {
+  border: 1px solid var(--gc-faint);
+  opacity: 0.7;
+}
+
+.date-range-hint {
+  margin: 8px 0 0;
+  color: var(--gc-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* One way to separate things: a 1px outline around each block, 12px of space between blocks,
+   and a single hairline inside a block. No tinted bands, wells or boxes inside boxes. */
+
+.daily-sales {
+  display: grid;
+  gap: 12px;
+}
+
+.daily-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.daily-top h3 {
+  margin: 0;
+  color: var(--gc-text);
+  font-size: var(--gc-fs-section);
+  font-weight: 500;
+}
+
+.daily-top span {
+  margin-right: auto;
+  color: var(--gc-muted);
+  font-size: var(--gc-fs-small);
+}
+
+.daily-filter {
+  padding: 0;
+}
+
+.daily-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--gc-border);
+  border-radius: var(--gc-radius);
+  background: var(--gc-surface);
+}
+
+.daily-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border-left: 1px solid var(--gc-border);
+}
+
+.daily-summary > div:first-child {
+  border-left: 0;
+}
+
+.daily-summary span {
+  color: var(--gc-muted);
+  font-size: var(--gc-fs-small);
+}
+
+.daily-summary strong {
+  color: var(--gc-signature);
+  font-size: var(--gc-fs-section);
+  font-weight: 500;
+}
+
+.daily-days {
+  display: grid;
+  gap: 12px;
+}
+
+.daily-day {
+  border: 1px solid var(--gc-border);
+  border-radius: var(--gc-radius);
+  background: var(--gc-surface);
+}
+
+.daily-day-head {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) 72px 96px 128px 128px;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: var(--gc-radius);
+  background: transparent;
+  color: var(--gc-text);
+  text-align: left;
+}
+
+.daily-day-head:hover {
+  background: var(--gc-surface-strong);
+}
+
+.daily-day-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--gc-fs-body);
+  font-weight: 500;
+}
+
+.daily-caret {
+  flex-shrink: 0;
+  color: var(--gc-faint);
+  transition: transform var(--gc-transition-fast);
+}
+
+.daily-day-head[aria-expanded='true'] .daily-caret {
+  transform: rotate(90deg);
+}
+
+.daily-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  font-variant-numeric: tabular-nums;
+}
+
+.daily-stat small {
+  color: var(--gc-muted);
+  font-size: 12px;
+}
+
+.daily-stat b {
+  color: var(--gc-text);
+  font-size: var(--gc-fs-body);
+  font-weight: 500;
+}
+
+.daily-stat b.daily-revenue {
+  color: var(--gc-signature);
+  font-weight: 600;
+}
+
+.daily-stat b.daily-profit {
+  color: var(--gc-positive);
+}
+
+.daily-day-body {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 32px;
+  align-items: start;
+  padding: 16px;
+  border-top: 1px solid var(--gc-border);
+}
+
+.daily-col-title {
+  margin: 0 0 4px;
+  color: var(--gc-text);
+  font-size: var(--gc-fs-small);
+  font-weight: 500;
+}
+
+.daily-col-title span {
+  margin-left: 6px;
+  color: var(--gc-muted);
+  font-weight: 400;
+}
+
+.daily-products,
+.daily-notes {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.daily-product,
+.daily-notes li {
+  border-top: 1px solid var(--gc-rule);
+}
+
+.daily-product:first-child,
+.daily-notes li:first-child {
+  border-top: 0;
+}
+
+.daily-product {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.daily-product-image {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: var(--gc-radius-xs);
+  background: var(--gc-surface-strong) center / contain no-repeat;
+}
+
+.daily-product-info {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.daily-product-info strong {
+  overflow: hidden;
+  color: var(--gc-text);
+  font-size: var(--gc-fs-body);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daily-product-info span {
+  color: var(--gc-muted);
+  font-size: var(--gc-fs-small);
+}
+
+.daily-stock {
+  flex-shrink: 0;
+  color: var(--gc-faint);
+  font-size: var(--gc-fs-body);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.daily-stock strong {
+  color: var(--gc-signature);
+  font-weight: 500;
+}
+
+.daily-stock.low strong {
+  color: var(--gc-warning);
+}
+
+.daily-stock-missing {
+  flex-shrink: 0;
+  color: var(--gc-muted);
+  font-size: var(--gc-fs-small);
+}
+
+.daily-notes li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  color: var(--gc-muted);
+  font-size: var(--gc-fs-small);
+}
+
+.daily-notes strong {
+  color: var(--gc-text);
+  font-weight: 500;
+}
+
+@media (max-width: 940px) {
+  .daily-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .daily-summary > div:nth-child(3) {
+    border-left: 0;
+  }
+
+  .daily-summary > div:nth-child(n + 3) {
+    border-top: 1px solid var(--gc-border);
+  }
+
+  .daily-day-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (max-width: 700px) {
+  /* Di layar sempit hanya pendapatan dan laba kotor per hari; nota dan item ada di ringkasan */
+  .daily-day-head {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 12px;
+  }
+
+  .daily-stat-minor {
+    display: none;
+  }
+
+  .daily-day-title {
+    align-items: flex-start;
+  }
+}
+
+/* ===== Color carries rank: amounts blue, results green or red, labels stay grey ===== */
+
+.statement-row strong:last-child {
+  color: var(--gc-signature);
+}
+
+.statement-row.subtotal strong:first-child {
+  color: var(--gc-text);
+}
+
+/* The result classes must win over the amount rule above */
+.statement-row strong.text-profit {
+  color: var(--gc-positive);
+}
+
+.statement-row strong.text-loss {
+  color: var(--gc-danger);
+}
+
+.finance-simple-table td.font-bold {
+  color: var(--gc-signature);
+}
+
+.daily-summary > div:nth-child(2) strong {
+  color: var(--gc-positive);
+}
+
+/* Pemberitahuan data contoh di atas laporan */
+.sample-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  padding: 10px 14px;
+  border: 1px solid #fde68a;
+  border-radius: var(--gc-radius);
+  background: var(--gc-warning-soft);
+  color: var(--gc-warning);
+  font-size: var(--gc-fs-small);
+}
+
+@media (max-width: 700px) {
+  .sample-banner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

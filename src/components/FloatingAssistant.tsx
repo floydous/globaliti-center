@@ -5,9 +5,13 @@ import '../globaliti-assistant.css'
 export default function FloatingAssistant({
   children,
   onClearChat,
+  enabled = true,
+  disabledHint = 'Atur kunci API Groq di Pengaturan untuk mengaktifkan asisten AI.',
 }: {
   children: ReactNode
   onClearChat?: () => void
+  enabled?: boolean
+  disabledHint?: string
 }) {
   const [open, setOpen] = useState(false)
   const launcher = useRef<HTMLButtonElement>(null)
@@ -17,6 +21,7 @@ export default function FloatingAssistant({
     launcher.current?.focus()
   }
   const toggle = () => {
+    if (!enabled) return
     if (open) return close()
     setOpen(true)
     requestAnimationFrame(() => panel.current?.querySelector<HTMLInputElement>('input')?.focus())
@@ -50,10 +55,20 @@ export default function FloatingAssistant({
             <button type="button" aria-label="Tutup asisten" onClick={close}><X size={18} weight="bold" /></button>
           </div>
         </header>
-        {children}
         <p className="assistant-disclaimer">Periksa usulan perubahan sebelum menyetujuinya.</p>
+        {children}
       </div>
-      <button ref={launcher} type="button" className="assistant-launcher" aria-label={open ? 'Tutup percakapan asisten' : 'Buka asisten Globaliti'} aria-expanded={open} aria-controls="assistant-panel" onClick={toggle}>
+      <button
+        ref={launcher}
+        type="button"
+        className="assistant-launcher"
+        disabled={!enabled}
+        title={enabled ? undefined : disabledHint}
+        aria-label={open ? 'Tutup percakapan asisten' : 'Buka asisten Globaliti'}
+        aria-expanded={open}
+        aria-controls="assistant-panel"
+        onClick={toggle}
+      >
         {open ? <X size={18} weight="bold" aria-hidden="true" /> : <Sparkle size={20} weight="fill" aria-hidden="true" />}
         <span>Asisten AI</span>
       </button>

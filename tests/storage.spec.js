@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test'
+import { useLocalAssistant } from './helpers/groqKey.js'
 
 test('stock correction and chat action survive reload', async ({ page }) => {
+  await useLocalAssistant(page)
   await page.goto('http://127.0.0.1:4173')
-  await page.route('https://api.groq.com/**', route => route.abort())
   await page.getByRole('button', { name: 'Buka asisten Globaliti', exact: true }).click()
   const input = page.getByRole('textbox', { name: 'Pesan untuk asisten' })
   await input.fill('Tambah stok Matcha Cup 2')

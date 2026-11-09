@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test'
+import { storeRealKey, useLocalAssistant } from './helpers/groqKey.js'
 
 test.describe('Payment Hotkeys & AI Agent Customization', () => {
   test('default hotkeys 1 and 2 switch payment, and AI agent can customize them', async ({ page }) => {
     const errors = []
     page.on('pageerror', (err) => errors.push(err.message))
 
+    await useLocalAssistant(page)
     await page.goto('http://127.0.0.1:4173')
 
     const tunaiBtn = page.locator('.payment-option', { hasText: 'Tunai' })
@@ -124,12 +126,9 @@ test.describe('Payment Hotkeys & AI Agent Customization', () => {
     const errors = []
     page.on('pageerror', (err) => errors.push(err.message))
 
+    // Kunci asli disimpan sebagai file lokal di server.
+    await storeRealKey(page, process.env.GROQ_API_KEY)
     await page.goto('http://127.0.0.1:4173')
-
-    await page.evaluate((key) => {
-      localStorage.setItem('gc_groq_key', key)
-    }, process.env.GROQ_API_KEY)
-    await page.reload()
 
     await page.getByRole('button', { name: 'Buka asisten Globaliti', exact: true }).click()
     const input = page.getByRole('textbox', { name: 'Pesan untuk asisten' })

@@ -1,9 +1,11 @@
 import { test, expect } from '@playwright/test'
+import { useLocalAssistant } from './helpers/groqKey.js'
 
 test('user conversation flow: restock recognition, conversation memory, and large catalog boxes', async ({ page }) => {
   const errors = []
   page.on('pageerror', (err) => errors.push(err.message))
 
+  await useLocalAssistant(page)
   await page.goto('http://127.0.0.1:4173')
 
   // Open AI Assistant launcher
@@ -17,15 +19,15 @@ test('user conversation flow: restock recognition, conversation memory, and larg
   await input.fill('Berapa stok strawberry cup skrng?')
   await input.press('Enter')
   await expect(log).toContainText('Sisa stok Strawberry Cup saat ini ada')
-  await expect(log).toContainText('cup di toko dengan harga jual Rp 8.000')
+  await expect(log).toContainText('di toko dengan harga jual Rp 8.000')
 
   // 2. User: "Aku baru aja restok dan sekarang nambah 50"
   await input.fill('Aku baru aja restok dan sekarang nambah 50')
   await input.press('Enter')
 
   // Must prepare restock action card +50 cup
-  await expect(log).toContainText('penambahan stok untuk Strawberry Cup sebanyak +50 cup')
-  await expect(log).toContainText('Tambah stok Strawberry Cup sebanyak 50 cup')
+  await expect(log).toContainText('penambahan stok untuk Strawberry Cup sebanyak +50')
+  await expect(log).toContainText('Tambah stok Strawberry Cup sebanyak 50')
 
   // 3. User applies action
   const applyBtn = page.getByRole('button', { name: 'Terapkan Perubahan', exact: true })
@@ -59,11 +61,10 @@ test('user conversation flow: restock recognition, conversation memory, and larg
   const strawberryBox = cards.filter({ hasText: 'Strawberry Cup' })
   await expect(strawberryBox).toBeVisible()
   await expect(strawberryBox.locator('.catalog-box-title')).toHaveText('Strawberry Cup')
-  await expect(strawberryBox.locator('.box-category-badge')).toHaveText('Es krim')
-  await expect(strawberryBox.locator('.box-price-val')).toHaveText('Rp 8.000')
+    await expect(strawberryBox.locator('.box-price-val')).toHaveText('Rp 8.000')
   // After +50 restock from 11 initial, Strawberry Cup stock should be 61
   await expect(strawberryBox.locator('.box-stock-amount strong')).toHaveText('61')
-  await expect(strawberryBox.locator('.box-stock-pill')).toContainText('Aman')
+  await expect(strawberryBox.locator('.box-stock-pill')).toHaveCount(0)
 
   // Test "Sesuaikan stok" button on the large box
   const adjustBtn = strawberryBox.getByRole('button', { name: 'Sesuaikan stok' })
@@ -72,7 +73,7 @@ test('user conversation flow: restock recognition, conversation memory, and larg
 
   const modal = page.getByRole('dialog', { name: /Penyesuaian Stok Strawberry Cup/i })
   await expect(modal).toBeVisible()
-  await expect(modal).toContainText('61 cup')
+  await expect(modal).toContainText('61')
 
   await modal.getByRole('button', { name: 'Batal' }).click()
   await expect(modal).toBeHidden()
@@ -81,6 +82,7 @@ test('user conversation flow: restock recognition, conversation memory, and larg
 })
 
 test('colloquial restock phrase "Tambahin stok vanilla cone 4 dong" triggers restock confirmation', async ({ page }) => {
+  await useLocalAssistant(page)
   await page.goto('http://127.0.0.1:4173')
   const launcher = page.getByRole('button', { name: 'Buka asisten Globaliti', exact: true })
   await launcher.click()
@@ -92,8 +94,8 @@ test('colloquial restock phrase "Tambahin stok vanilla cone 4 dong" triggers res
   await input.press('Enter')
 
   // Verify assistant produces restock confirmation action card
-  await expect(log).toContainText('penambahan stok untuk Vanilla Cone sebanyak +4 cone')
-  await expect(log).toContainText('Tambah stok Vanilla Cone sebanyak 4 cone')
+  await expect(log).toContainText('penambahan stok untuk Vanilla Cone sebanyak +4')
+  await expect(log).toContainText('Tambah stok Vanilla Cone sebanyak 4')
 
   // Apply change
   const applyBtn = page.getByRole('button', { name: 'Terapkan Perubahan', exact: true })

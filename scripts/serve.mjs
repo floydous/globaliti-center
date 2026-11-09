@@ -3,11 +3,14 @@ import fs from 'node:fs'
 import path from 'node:path'
 import zlib from 'node:zlib'
 import { fileURLToPath } from 'node:url'
+import { handleGroqApi } from './groq-key-store.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DIST_DIR = path.resolve(__dirname, '../dist')
 const PORT = Number(process.env.PORT) || 4173
-const HOST = process.env.HOST || '0.0.0.0'
+// Hanya mesin ini yang bisa membuka aplikasi, kecuali HOST diubah dengan sengaja
+// (mis. HOST=0.0.0.0 agar kasir lain di jaringan toko bisa mengakses).
+const HOST = process.env.HOST || '127.0.0.1'
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -22,6 +25,27 @@ const MIME_TYPES = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
   '.ico': 'image/x-icon',
+}
+
+// Header keamanan untuk setiap jawaban. Aplikasi hanya memuat sumbernya sendiri dan
+// berbicara hanya dengan server ini (Groq dipanggil lewat proxy lokal).
+const SECURITY_HEADERS = {
+  'Content-Security-Policy': [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self'",
+    "connect-src 'self'",
+    "object-src 'none'",
+    "base-uri 'none'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join('; '),
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'no-referrer',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
 }
 
 const fileCache = new Map()
@@ -53,35 +77,60 @@ function getCachedFile(filePath) {
     br,
     etag,
     contentType: MIME_TYPES[ext] || 'application/octet-stream',
-    isHashed: filePath.includes('/assets/'),
+    isHashed: filePath.split(path.sep).includes('assets'),
   }
 
   fileCache.set(filePath, record)
   return record
 }
 
-const server = http.createServer((req, res) => {
+// Mengubah alamat permintaan menjadi berkas di dalam dist, atau null bila mencoba keluar dari dist.
+function resolveStaticPath(urlPath) {
+  let decoded
+  try {
+    decoded = decodeURIComponent(urlPath)
+  } catch {
+    return null
+  }
+  if (decoded.includes('\0')) return null
+  const filePath = path.resolve(DIST_DIR, `.${path.posix.normalize(`/${decoded}`)}`)
+  return filePath === DIST_DIR || filePath.startsWith(DIST_DIR + path.sep) ? filePath : null
+}
+
+const send = (res, status, body, headers = {}) => {
+  res.writeHead(status, { ...SECURITY_HEADERS, 'Content-Type': 'text/plain; charset=utf-8', ...headers })
+  res.end(body)
+}
+
+async function handle(req, res) {
   const urlPath = req.url?.split('?')[0] || '/'
-  let safePath = path.normalize(urlPath).replace(/^(\.\.[/\\])+/, '')
-  let filePath = path.join(DIST_DIR, safePath)
+
+  if (await handleGroqApi(req, res, urlPath)) return
+
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    return send(res, 405, 'Method not allowed', { Allow: 'GET, HEAD' })
+  }
+
+  let filePath = resolveStaticPath(urlPath)
+  if (!filePath) return send(res, 400, 'Bad request')
 
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
     filePath = path.join(DIST_DIR, 'index.html')
   }
 
   if (!fs.existsSync(filePath)) {
-    res.writeHead(404)
-    return res.end('Not found')
+    return send(res, 404, 'Not found')
   }
 
   const file = getCachedFile(filePath)
 
   if (req.headers['if-none-match'] === file.etag) {
-    res.writeHead(304)
+    res.writeHead(304, SECURITY_HEADERS)
     return res.end()
   }
 
   const headers = {
+    ...SECURITY_HEADERS,
     'Content-Type': file.contentType,
     'ETag': file.etag,
     'Vary': 'Accept-Encoding',
@@ -91,24 +140,28 @@ const server = http.createServer((req, res) => {
   }
 
   const accept = req.headers['accept-encoding'] || ''
+  let body = file.raw
 
   if (file.br && accept.includes('br')) {
     headers['Content-Encoding'] = 'br'
-    headers['Content-Length'] = file.br.length
-    res.writeHead(200, headers)
-    res.end(file.br)
+    body = file.br
   } else if (file.gzip && accept.includes('gzip')) {
     headers['Content-Encoding'] = 'gzip'
-    headers['Content-Length'] = file.gzip.length
-    res.writeHead(200, headers)
-    res.end(file.gzip)
-  } else {
-    headers['Content-Length'] = file.raw.length
-    res.writeHead(200, headers)
-    res.end(file.raw)
+    body = file.gzip
   }
+
+  headers['Content-Length'] = body.length
+  res.writeHead(200, headers)
+  res.end(req.method === 'HEAD' ? undefined : body)
+}
+
+const server = http.createServer((req, res) => {
+  handle(req, res).catch(() => {
+    if (res.headersSent) res.end()
+    else send(res, 500, 'Internal server error')
+  })
 })
 
 server.listen(PORT, HOST, () => {
-  console.log(`Optimized high-performance production server listening at http://${HOST}:${PORT}/`)
+  console.log(`Globaliti server berjalan di http://${HOST}:${PORT}/`)
 })

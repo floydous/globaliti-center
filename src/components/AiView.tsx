@@ -18,17 +18,21 @@ import {
 import MarkdownContent from './MarkdownContent'
 import { SYSTEM_MANUAL_MD } from '../docs/systemManual'
 import type { AiAction, AiMessage, Expense, PaymentHotkeys, Product, Sale } from '../types'
+import { estimateCost } from '../lib/hpp'
+import { apiHeaders } from '../lib/apiAuth'
+import { costRatio, type BusinessProfile } from '../lib/business'
 
 type AiViewProps = {
   products: Product[]
   sales: Sale[]
   expenses: Expense[]
-  groqKey?: string
+  profile: BusinessProfile
+  groqEnabled?: boolean
   messages: AiMessage[]
   onUpdateMessages: React.Dispatch<React.SetStateAction<AiMessage[]>>
   onAdjustStock: (productId: string, delta: number, reason: string) => void
   onRecordSale?: (items: Array<{ productId: string; quantity: number; price: number }>, payment: 'Tunai' | 'QRIS') => void
-  onRecordExpense?: (category: 'Operasional' | 'Bahan' | 'Lainnya', description: string, amount: number) => void
+  onRecordExpense?: (description: string, amount: number) => void
   onUpdatePrice?: (productId: string, newPrice: number) => void
   onAddProduct?: (product: Omit<Product, 'id' | 'active'>) => void
   onClearChat?: () => void
@@ -48,7 +52,8 @@ export default function AiView({
   products,
   sales,
   expenses,
-  groqKey,
+  profile,
+  groqEnabled = false,
   messages,
   onUpdateMessages,
   onAdjustStock,
@@ -64,20 +69,20 @@ export default function AiView({
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [engineStatus, setEngineStatus] = useState<string>(
-    groqKey && groqKey.startsWith('gsk_') ? 'Groq LPU Siap' : 'Engine Lokal'
+    groqEnabled ? 'Groq LPU Siap' : 'Engine Lokal'
   )
   const [engineError, setEngineError] = useState<string | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (groqKey && groqKey.startsWith('gsk_')) {
+    if (groqEnabled) {
       setEngineStatus('Groq LPU Siap')
       setEngineError(null)
     } else {
       setEngineStatus('Engine Lokal')
       setEngineError(null)
     }
-  }, [groqKey])
+  }, [groqEnabled])
   useEffect(() => {
     const list = listRef.current
     if (list) list.scrollTop = list.scrollHeight
@@ -210,13 +215,12 @@ export default function AiView({
         .map((it) => {
           const p = products.find((prod) => prod.id === it.productId)
           const name = p ? p.name : it.productId
-          const unit = p ? p.unit : 'unit'
-          return `- **${name}**: ${it.quantity} ${unit} × ${formatRupiah(it.price)} = **${formatRupiah(it.price * it.quantity)}**`
+          return `- **${name}**: ${it.quantity} × ${formatRupiah(it.price)} = **${formatRupiah(it.price * it.quantity)}**`
         })
         .join('\n')
 
       return {
-        text: `Halo! Pelanggan terakhir yang bertransaksi tercatat pada **Nota ${last.id}** pukul **${last.time}** (kasir: ${last.operator}):\n\n${itemsDetail}\n\n- **Total Tagihan:** **${formatRupiah(last.total)}**\n- **Metode Pembayaran:** **${last.payment}**\n\nSeluruh data ini tersimpan aman di basis data kasir POS toko. Ada yang ingin Anda tindak lanjuti?`,
+        text: `Halo! Pelanggan terakhir yang bertransaksi tercatat pada **Nota ${last.id}** pukul **${last.time}**:\n\n${itemsDetail}\n\n- **Total Tagihan:** **${formatRupiah(last.total)}**\n- **Metode Pembayaran:** **${last.payment}**\n\nSeluruh data ini tersimpan aman di basis data kasir POS toko. Ada yang ingin Anda tindak lanjuti?`,
       }
     }
 
@@ -240,7 +244,7 @@ export default function AiView({
       const rankList = ranked
         .map(([pid, qty], idx) => {
           const p = products.find((prod) => prod.id === pid)
-          return `${idx + 1}. **${p ? p.name : pid}**: terjual **${qty} ${p ? p.unit : 'unit'}**`
+          return `${idx + 1}. **${p ? p.name : pid}**: terjual **${qty}**`
         })
         .join('\n')
 
@@ -296,7 +300,7 @@ export default function AiView({
     if (isSkeptic) {
       if (matchedProduct) {
         return {
-          text: `Berdasarkan catatan sistem kasir saat ini, stok tercatat **${matchedProduct.name}** adalah **${matchedProduct.stock} ${matchedProduct.unit}**.\n\nNamun jika jumlah fisik di freezer berbeda (misalnya ada barang rusak atau penjualan belum sempat diinput), beri tahu saya jumlah aslinya (contoh: *"Di freezer hanya ada 12"*). Saya akan langsung siapkan kartu penyesuaian stok opname agar sistem sinkron dengan fisik.`,
+          text: `Berdasarkan catatan sistem kasir saat ini, stok tercatat **${matchedProduct.name}** adalah **${matchedProduct.stock}**.\n\nNamun jika jumlah fisik di freezer berbeda (misalnya ada barang rusak atau penjualan belum sempat diinput), beri tahu saya jumlah aslinya (contoh: *"Di freezer hanya ada 12"*). Saya akan langsung siapkan kartu penyesuaian stok opname agar sistem sinkron dengan fisik.`,
         }
       }
       return {
@@ -311,11 +315,11 @@ export default function AiView({
         const qty = extractedQty && extractedQty > 0 ? extractedQty : 10
         const nextStock = matchedProduct.stock + qty
         return {
-          text: `Saya telah menyiapkan kartu konfirmasi penambahan stok untuk **${matchedProduct.name}** sebanyak **+${qty} ${matchedProduct.unit}** (stok akan bertambah dari ${matchedProduct.stock} menjadi ${nextStock} ${matchedProduct.unit}).\n\nSilakan klik **Terapkan Perubahan** di bawah jika sudah sesuai fisik barang.`,
+          text: `Saya telah menyiapkan kartu konfirmasi penambahan stok untuk **${matchedProduct.name}** sebanyak **+${qty}** (stok akan bertambah dari ${matchedProduct.stock} menjadi ${nextStock}).\n\nSilakan klik **Terapkan Perubahan** di bawah jika sudah sesuai fisik barang.`,
           action: {
             id: `act-${Date.now()}`,
             action: 'adjust_stock',
-            description: `Tambah stok ${matchedProduct.name} sebanyak ${qty} ${matchedProduct.unit}`,
+            description: `Tambah stok ${matchedProduct.name} sebanyak ${qty}`,
             params: {
               productId: matchedProduct.id,
               delta: qty,
@@ -326,7 +330,7 @@ export default function AiView({
         }
       } else {
         return {
-          text: `Produk mana yang ingin ditambah stoknya? Produk yang tersedia saat ini:\n${products.map((p) => `- ${p.name} (sisa ${p.stock} ${p.unit})`).join('\n')}\n\nSebutkan nama produk dan jumlahnya, contoh: *"Tambah stok Vanilla Cone 10"*`,
+          text: `Produk mana yang ingin ditambah stoknya? Produk yang tersedia saat ini:\n${products.map((p) => `- ${p.name} (sisa ${p.stock})`).join('\n')}\n\nSebutkan nama produk dan jumlahnya, contoh: *"Tambah stok Vanilla Cone 10"*`,
         }
       }
     }
@@ -341,11 +345,11 @@ export default function AiView({
       if (delta < 0) {
         const diff = Math.abs(delta)
         return {
-          text: `Baik, saya catat ada selisih fisik untuk **${matchedProduct.name}**:\n\n- **Catatan Sistem:** ${systemStock} ${matchedProduct.unit}\n- **Fisik di Freezer:** **${physicalStock} ${matchedProduct.unit}**\n- **Selisih:** **-${diff} ${matchedProduct.unit}**\n\nHal ini bisa disebabkan oleh barang rusak, mencair, atau penjualan yang belum sempat tercatat di kasir. Saya telah menyiapkan kartu penyesuaian stok opname untuk menyinkronkan stok sistem menjadi **${physicalStock} ${matchedProduct.unit}**.\n\nSilakan klik **Terapkan Perubahan** di bawah ini:`,
+          text: `Baik, saya catat ada selisih fisik untuk **${matchedProduct.name}**:\n\n- **Catatan Sistem:** ${systemStock}\n- **Fisik di Freezer:** **${physicalStock}**\n- **Selisih:** **-${diff}**\n\nHal ini bisa disebabkan oleh barang rusak, mencair, atau penjualan yang belum sempat tercatat di kasir. Saya telah menyiapkan kartu penyesuaian stok opname untuk menyinkronkan stok sistem menjadi **${physicalStock}**.\n\nSilakan klik **Terapkan Perubahan** di bawah ini:`,
           action: {
             id: `act-${Date.now()}`,
             action: 'adjust_stock',
-            description: `Sesuaikan stok opname ${matchedProduct.name} menjadi ${physicalStock} ${matchedProduct.unit} (-${diff} ${matchedProduct.unit} selisih fisik)`,
+            description: `Sesuaikan stok opname ${matchedProduct.name} menjadi ${physicalStock} (-${diff} selisih fisik)`,
             params: {
               productId: matchedProduct.id,
               delta: delta,
@@ -356,11 +360,11 @@ export default function AiView({
         }
       } else if (delta > 0) {
         return {
-          text: `Baik, fisik di freezer ternyata lebih banyak dari catatan sistem untuk **${matchedProduct.name}**:\n\n- **Catatan Sistem:** ${systemStock} ${matchedProduct.unit}\n- **Fisik di Freezer:** **${physicalStock} ${matchedProduct.unit}**\n- **Selisih:** **+${delta} ${matchedProduct.unit}**\n\nSaya telah menyiapkan kartu penyesuaian stok opname untuk menyinkronkan stok sistem menjadi **${physicalStock} ${matchedProduct.unit}**.\n\nSilakan periksa dan klik **Terapkan Perubahan** di bawah ini:`,
+          text: `Baik, fisik di freezer ternyata lebih banyak dari catatan sistem untuk **${matchedProduct.name}**:\n\n- **Catatan Sistem:** ${systemStock}\n- **Fisik di Freezer:** **${physicalStock}**\n- **Selisih:** **+${delta}**\n\nSaya telah menyiapkan kartu penyesuaian stok opname untuk menyinkronkan stok sistem menjadi **${physicalStock}**.\n\nSilakan periksa dan klik **Terapkan Perubahan** di bawah ini:`,
           action: {
             id: `act-${Date.now()}`,
             action: 'adjust_stock',
-            description: `Sesuaikan stok opname ${matchedProduct.name} menjadi ${physicalStock} ${matchedProduct.unit} (+${delta} ${matchedProduct.unit} selisih fisik)`,
+            description: `Sesuaikan stok opname ${matchedProduct.name} menjadi ${physicalStock} (+${delta} selisih fisik)`,
             params: {
               productId: matchedProduct.id,
               delta: delta,
@@ -371,7 +375,7 @@ export default function AiView({
         }
       } else {
         return {
-          text: `Jumlah fisik di freezer (**${physicalStock} ${matchedProduct.unit}**) sudah sama persis dengan catatan sistem saat ini (**${systemStock} ${matchedProduct.unit}**). Data stok sudah sinkron.`,
+          text: `Jumlah fisik di freezer (**${physicalStock}**) sudah sama persis dengan catatan sistem saat ini (**${systemStock}**). Data stok sudah sinkron.`,
         }
       }
     }
@@ -386,11 +390,11 @@ export default function AiView({
       const totalPrice = matchedProduct.price * qty
 
       return {
-        text: `Baik, saya langsung siapkan pencatatan transaksi penjualan untuk Anda:\n\n- **Produk:** ${matchedProduct.name} (${qty} ${matchedProduct.unit})\n- **Total Pendapatan:** **${formatRupiah(totalPrice)}**\n- **Metode Pembayaran:** ${paymentMethod}\n\nSetelah Anda menekan **Terapkan Transaksi**, sistem akan otomatis memotong stok fisik (-${qty} ${matchedProduct.unit}) dan memasukkan uang penjualan ke buku kas laporan keuangan hari ini.`,
+        text: `Baik, saya langsung siapkan pencatatan transaksi penjualan untuk Anda:\n\n- **Produk:** ${matchedProduct.name} (${qty})\n- **Total Pendapatan:** **${formatRupiah(totalPrice)}**\n- **Metode Pembayaran:** ${paymentMethod}\n\nSetelah Anda menekan **Terapkan Transaksi**, sistem akan otomatis memotong stok fisik (-${qty}) dan memasukkan uang penjualan ke buku kas laporan keuangan hari ini.`,
         action: {
           id: `act-${Date.now()}`,
           action: 'record_sale',
-          description: `Catat transaksi penjualan: ${matchedProduct.name} (${qty} ${matchedProduct.unit}) senilai ${formatRupiah(totalPrice)} via ${paymentMethod}`,
+          description: `Catat transaksi penjualan: ${matchedProduct.name} (${qty}) senilai ${formatRupiah(totalPrice)} via ${paymentMethod}`,
           params: {
             items: [{ productId: matchedProduct.id, quantity: qty, price: matchedProduct.price }],
             payment: paymentMethod,
@@ -405,11 +409,11 @@ export default function AiView({
       const qty = extractedQty && extractedQty > 0 ? extractedQty : 1
       const nextStock = Math.max(0, matchedProduct.stock - qty)
       return {
-        text: `Saya mengerti. Untuk produk **${matchedProduct.name}** yang rusak/mencair sebanyak **${qty} ${matchedProduct.unit}**, saya sudah siapkan kartu penyesuaian untuk mengeluarkan item tersebut dari stok fisik (dari ${matchedProduct.stock} menjadi ${nextStock} ${matchedProduct.unit}).\n\nSilakan periksa dan klik **Terapkan Perubahan** di bawah:`,
+        text: `Saya mengerti. Untuk produk **${matchedProduct.name}** yang rusak/mencair sebanyak **${qty}**, saya sudah siapkan kartu penyesuaian untuk mengeluarkan item tersebut dari stok fisik (dari ${matchedProduct.stock} menjadi ${nextStock}).\n\nSilakan periksa dan klik **Terapkan Perubahan** di bawah:`,
         action: {
           id: `act-${Date.now()}`,
           action: 'adjust_stock',
-          description: `Koreksi stok ${matchedProduct.name} (-${qty} ${matchedProduct.unit}) karena rusak/mencair`,
+          description: `Koreksi stok ${matchedProduct.name} (-${qty}) karena rusak/mencair`,
           params: {
             productId: matchedProduct.id,
             delta: -qty,
@@ -425,21 +429,19 @@ export default function AiView({
     const isExpense = hasWord(q, ['beban', 'biaya', 'pengeluaran', 'ongkos']) || q.includes('bayar listrik') || q.includes('beli kertas') || q.includes('beli tinta') || q.includes('beli sabun') || q.includes('beli kantong')
     if (isExpense && extractedQty) {
       const amount = extractedQty
-      const isBahan = hasWord(q, ['bahan', 'kertas', 'tinta', 'cup', 'stick', 'plastik'])
-      const category: 'Operasional' | 'Bahan' | 'Lainnya' = isBahan ? 'Bahan' : 'Operasional'
+      const isBahan = hasWord(q, ['bahan', 'kertas', 'tinta', 'plastik'])
       const cleanDesc = q
         .replace(/catat|beban|biaya|pengeluaran|sebesar|rp|\d+/gi, '')
         .trim() || (isBahan ? 'Pembelian Bahan/Perlengkapan' : 'Beban Operasional Toko')
       const formattedDesc = cleanDesc.charAt(0).toUpperCase() + cleanDesc.slice(1)
 
       return {
-        text: `Saya telah menyiapkan pencatatan beban pengeluaran toko untuk Anda:\n\n- **Kategori Beban:** ${category}\n- **Keterangan:** ${formattedDesc}\n- **Jumlah Nominal:** **${formatRupiah(amount)}**\n\nSetelah Anda klik **Terapkan Perubahan**, pengeluaran ini langsung dibukukan ke Laporan Keuangan Laba Rugi dan kas toko.`,
+        text: `Saya telah menyiapkan pencatatan beban pengeluaran toko untuk Anda:\n\n- **Keterangan:** ${formattedDesc}\n- **Jumlah Nominal:** **${formatRupiah(amount)}**\n\nSetelah Anda klik **Terapkan Perubahan**, pengeluaran ini langsung dibukukan ke Laporan Keuangan Laba Rugi dan kas toko.`,
         action: {
           id: `act-${Date.now()}`,
           action: 'record_expense',
-          description: `Catat beban ${formattedDesc} (${category}) senilai ${formatRupiah(amount)}`,
+          description: `Catat beban ${formattedDesc} senilai ${formatRupiah(amount)}`,
           params: {
-            category,
             description: formattedDesc,
             amount,
           },
@@ -474,13 +476,12 @@ export default function AiView({
         .map((it) => {
           const p = products.find((prod) => prod.id === it.productId)
           const name = p ? p.name : it.productId
-          const unit = p ? p.unit : 'unit'
-          return `- **${name}**: ${it.quantity} ${unit} × ${formatRupiah(it.price)} = **${formatRupiah(it.price * it.quantity)}**`
+          return `- **${name}**: ${it.quantity} × ${formatRupiah(it.price)} = **${formatRupiah(it.price * it.quantity)}**`
         })
         .join('\n')
 
       return {
-        text: `Halo! Pelanggan terakhir yang bertransaksi tercatat pada **Nota ${last.id}** pukul **${last.time}** (kasir: ${last.operator}):\n\n${itemsDetail}\n\n- **Total Tagihan:** **${formatRupiah(last.total)}**\n- **Metode Pembayaran:** **${last.payment}**\n\nSeluruh data ini tersimpan aman di basis data kasir POS toko. Ada yang ingin Anda tindak lanjuti?`,
+        text: `Halo! Pelanggan terakhir yang bertransaksi tercatat pada **Nota ${last.id}** pukul **${last.time}**:\n\n${itemsDetail}\n\n- **Total Tagihan:** **${formatRupiah(last.total)}**\n- **Metode Pembayaran:** **${last.payment}**\n\nSeluruh data ini tersimpan aman di basis data kasir POS toko. Ada yang ingin Anda tindak lanjuti?`,
       }
     }
 
@@ -504,7 +505,7 @@ export default function AiView({
       const rankList = ranked
         .map(([pid, qty], idx) => {
           const p = products.find((prod) => prod.id === pid)
-          return `${idx + 1}. **${p ? p.name : pid}**: terjual **${qty} ${p ? p.unit : 'unit'}**`
+          return `${idx + 1}. **${p ? p.name : pid}**: terjual **${qty}**`
         })
         .join('\n')
 
@@ -574,17 +575,17 @@ export default function AiView({
 
       if (wantsTechnical) {
         return {
-          text: `Data detail produk **${matchedProduct.name}**:\n- **Barcode:** \`${matchedProduct.barcode}\`\n- **Stok Fisik:** ${matchedProduct.stock} ${matchedProduct.unit}\n- **Harga Jual:** ${formatRupiah(matchedProduct.price)}\n- **Harga Modal (HPP):** ${formatRupiah(matchedProduct.cost)}\n- **Batas Minimum:** ${matchedProduct.reorderPoint} ${matchedProduct.unit}\n- **Status:** ${matchedProduct.active ? 'Aktif' : 'Nonaktif'}`,
+          text: `Data detail produk **${matchedProduct.name}**:\n- **Barcode:** \`${matchedProduct.barcode}\`\n- **Stok Fisik:** ${matchedProduct.stock}\n- **Harga Jual:** ${formatRupiah(matchedProduct.price)}\n- **Batas Minimum:** ${matchedProduct.reorderPoint}\n- **Status:** ${matchedProduct.active ? 'Aktif' : 'Nonaktif'}`,
         }
       }
 
       const isLow = matchedProduct.stock <= matchedProduct.reorderPoint
       const stockNote = isLow
-        ? `**Perhatian:** Stok sudah menipis (di bawah batas aman ${matchedProduct.reorderPoint} ${matchedProduct.unit}). Sebaiknya segera pesan kembali.`
-        : `Stok saat ini masih aman di atas batas minimum (${matchedProduct.reorderPoint} ${matchedProduct.unit}).`
+        ? `**Perhatian:** Stok sudah menipis (di bawah batas aman ${matchedProduct.reorderPoint}). Sebaiknya segera pesan kembali.`
+        : `Stok saat ini masih aman di atas batas minimum (${matchedProduct.reorderPoint}).`
 
       return {
-        text: `Sisa stok **${matchedProduct.name}** saat ini ada **${matchedProduct.stock} ${matchedProduct.unit}** di toko dengan harga jual **${formatRupiah(matchedProduct.price)}**.\n\n${stockNote}`,
+        text: `Sisa stok **${matchedProduct.name}** saat ini ada **${matchedProduct.stock}** di toko dengan harga jual **${formatRupiah(matchedProduct.price)}**.\n\n${stockNote}`,
       }
     }
 
@@ -597,7 +598,7 @@ export default function AiView({
         }
       }
       const list = lowStock
-        .map((p) => `- **${p.name}:** tersisa **${p.stock} ${p.unit}** (batas aman: ${p.reorderPoint} ${p.unit})`)
+        .map((p) => `- **${p.name}:** tersisa **${p.stock}** (batas aman: ${p.reorderPoint})`)
         .join('\n')
       return {
         text: `Ada ${lowStock.length} produk yang stoknya mulai menipis:\n\n${list}\n\nDisarankan untuk segera menghubungi penyedia es krim untuk menambah persediaan.`,
@@ -613,7 +614,7 @@ export default function AiView({
       sales.forEach((s) => {
         s.items.forEach((it) => {
           const p = products.find((prod) => prod.id === it.productId)
-          cogs += (p ? p.cost : it.price * 0.5) * it.quantity
+          cogs += estimateCost(p ? p.price : it.price, costRatio(profile)) * it.quantity
         })
       })
       const grossProfit = totalRev - cogs
@@ -643,7 +644,7 @@ export default function AiView({
         }
       }
       return {
-        text: 'Panduan Sistem Globaliti Creative Center:\n- **Kasir POS:** Pindai barcode dan proses pembayaran belanja es krim.\n- **Katalog & Stok:** Pendaftaran produk baru dan penyesuaian unit fisik.\n- **Laporan Keuangan:** Neraca dan Laba Rugi otomatis standar SAK EMKM.\n- **Asisten AI:** Bantuan tanya jawab stok dan usulan perubahan data aman.\n\nSilakan tanyakan fitur yang ingin Anda ketahui!',
+        text: 'Panduan Sistem Globaliti Creative Center:\n- **Kasir POS:** Pindai barcode dan proses pembayaran belanja es krim.\n- **Katalog & Stok:** Pendaftaran produk baru dan penyesuaian stok fisik.\n- **Laporan Keuangan:** Neraca dan Laba Rugi otomatis standar SAK EMKM.\n- **Asisten AI:** Bantuan tanya jawab stok dan usulan perubahan data aman.\n\nSilakan tanyakan fitur yang ingin Anda ketahui!',
       }
     }
 
@@ -716,11 +717,10 @@ export default function AiView({
         parameters: {
           type: 'object',
           properties: {
-            category: { type: 'string', enum: ['Operasional', 'Bahan', 'Lainnya'], description: 'Kategori beban' },
             description: { type: 'string', description: 'Keterangan pengeluaran' },
             amount: { type: 'number', description: 'Nominal pengeluaran dalam Rupiah' },
           },
-          required: ['category', 'description', 'amount'],
+          required: ['description', 'amount'],
         },
       },
     },
@@ -761,10 +761,9 @@ export default function AiView({
     history: AiMessage[],
     onStreamChunk?: (chunk: string) => void
   ): Promise<{ text: string; action?: AiAction; actions?: AiAction[] }> => {
-    const rawKey = groqKey || localStorage.getItem('gc_groq_key') || ''
-    const key = rawKey.trim()
-
-    if (!key || !key.startsWith('gsk_')) {
+    // Kunci Groq tidak pernah menyentuh browser. Browser hanya memanggil
+    // proxy lokal yang menambahkan kunci dari file mesin ini.
+    if (!groqEnabled) {
       setEngineStatus('Engine Lokal')
       const localResult = processQuery(userText, history)
       if (onStreamChunk && localResult.text) {
@@ -790,7 +789,7 @@ export default function AiView({
       .sort((a, b) => b[1] - a[1])
       .map(([pid, qty]) => {
         const p = products.find((prod) => prod.id === pid)
-        return `${p ? p.name : pid} (${qty} ${p ? p.unit : 'unit'} terjual)`
+        return `${p ? p.name : pid} (${qty} terjual)`
       })
       .join(', ')
 
@@ -798,28 +797,28 @@ export default function AiView({
     const recentSalesDetail = sortedSales.slice(0, 10).map((s) => {
       const itemsStr = s.items.map((it) => {
         const p = products.find((prod) => prod.id === it.productId)
-        return `${p ? p.name : it.productId} (${it.quantity} ${p ? p.unit : 'unit'} @${formatRupiah(it.price)})`
+        return `${p ? p.name : it.productId} (${it.quantity} @${formatRupiah(it.price)})`
       }).join(', ')
-      return `  * [Nota: ${s.id}] Jam: ${s.time} | Kasir: ${s.operator} | Item: ${itemsStr} | Total: ${formatRupiah(s.total)} (${s.payment})`
+      return `  * [Nota: ${s.id}] Jam: ${s.time} | Item: ${itemsStr} | Total: ${formatRupiah(s.total)} (${s.payment})`
     }).join('\n')
 
 
     const recentExpenseDetail = sortedExpenses.slice(0, 6).map((e) => {
-      return `  * [Beban: ${e.id}] Kategori: ${e.category} | Ket: ${e.label || (e as any).description} | Nominal: ${formatRupiah(e.amount)}`
+      return `  * [Beban: ${e.id}] Ket: ${e.label || (e as any).description} | Nominal: ${formatRupiah(e.amount)}`
     }).join('\n')
 
-    const systemPrompt = `Kamu adalah Asisten Kasir & Toko Pintar "Globaliti Creative Center" di SMKS TI Bali Global Denpasar.
-STATUS OTORITAS: Kamu memiliki AKSES LANGSUNG dan KONTROL PENUH ke seluruh basis data operasional toko: riwayat nota kasir POS (termasuk isi nota belanja pelanggan terakhir), katalog dan stok produk di kulkas, antrean cetak Word, dan pembukuan beban.
+    const systemPrompt = `Kamu adalah Asisten Kasir & Toko Pintar "${profile.unitName}" di ${profile.schoolName}.
+STATUS OTORITAS: Kamu memiliki AKSES LANGSUNG dan KONTROL PENUH ke seluruh basis data operasional toko: riwayat nota kasir POS (termasuk isi nota belanja pelanggan terakhir), katalog dan stok produk di kulkas, dan pembukuan beban.
 
 DILARANG KERAS:
 - Jangan pernah mengatakan "saya tidak memiliki akses langsung ke detail nota terakhir", "saya tidak tahu pelanggan terakhir beli apa", atau menyuruh kasir mencari sendiri! Kamu SUDAH memiliki data lengkap seluruh nota dan order di bawah ini. Jawab secara langsung, spesifik, ramah, dan solutif.
 
 Data Operasional Toko Real-Time:
 - TRANSAKSI PENJUALAN TERAKHIR (PALING BARU):
-  ${lastSale ? `Nota ${lastSale.id} pada jam ${lastSale.time} WITA oleh ${lastSale.operator}:
+  ${lastSale ? `Nota ${lastSale.id} pada jam ${lastSale.time} WITA:
   Barang yang dibeli: [${lastSale.items.map((it) => {
     const p = products.find((prod) => prod.id === it.productId)
-    return `${p ? p.name : it.productId} sebanyak ${it.quantity} ${p ? p.unit : 'unit'} (Total: ${formatRupiah(it.price * it.quantity)})`
+    return `${p ? p.name : it.productId} sebanyak ${it.quantity} (Total: ${formatRupiah(it.price * it.quantity)})`
   }).join(', ')}]
   Total Tagihan: ${formatRupiah(lastSale.total)} via ${lastSale.payment}` : 'Belum ada transaksi kasir hari ini.'}
 
@@ -829,13 +828,13 @@ ${recentSalesDetail || '  (Belum ada transaksi)'}
 - PRODUK TERLARIS HARI INI: ${topSellingSummary || 'Belum ada produk yang terjual hari ini'}
 
 
-  ${lastExpense ? `Beban ${lastExpense.id} (${lastExpense.label || (lastExpense as any).description}): ${formatRupiah(lastExpense.amount)} (${lastExpense.category})` : 'Belum ada pengeluaran'}
+  ${lastExpense ? `Beban ${lastExpense.id} (${lastExpense.label || (lastExpense as any).description}): ${formatRupiah(lastExpense.amount)}` : 'Belum ada pengeluaran'}
 
 - RIWAYAT BEBAN PENGELUARAN TOKO:
 ${recentExpenseDetail || '  (Belum ada pengeluaran)'}
 
 - KATALOG PRODUK & STOK FISIK SAAT INI:
-${products.map((p) => `  * ${p.name} (ID: ${p.id}, Barcode: ${p.barcode}) | Stok: ${p.stock} ${p.unit} | Harga Jual: ${formatRupiah(p.price)} | Modal: ${formatRupiah(p.cost)} | Batas Min: ${p.reorderPoint} ${p.unit}`).join('\n')}
+${products.map((p) => `  * ${p.name} (ID: ${p.id}, Barcode: ${p.barcode}) | Stok: ${p.stock} | Harga Jual: ${formatRupiah(p.price)} | Batas Min: ${p.reorderPoint}`).join('\n')}
 
 - PINTASAN KEYBOARD (HOTKEY) PEMBAYARAN KASIR SAAT INI:
   * Tunai: [${paymentHotkeys?.tunai || '1'}]
@@ -894,7 +893,6 @@ Format tindakan beban:
 \`\`\`action
 {
   "type": "record_expense",
-  "category": "Operasional" atau "Bahan",
   "amount": 50000,
   "description": "Beli kertas HVS"
 }
@@ -927,12 +925,9 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
           temperature: 0.15,
         }
 
-        let response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        let response = await fetch('/api/groq/chat', {
           method: 'POST',
-          headers: {
-            Authorization: `Bearer ${key}`,
-            'Content-Type': 'application/json',
-          },
+          headers: apiHeaders({ 'Content-Type': 'application/json' }),
           body: JSON.stringify(requestPayload),
         })
 
@@ -945,12 +940,9 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
           if (isToolUnsupported) {
             delete requestPayload.tools
             delete requestPayload.tool_choice
-            response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            response = await fetch('/api/groq/chat', {
               method: 'POST',
-              headers: {
-                Authorization: `Bearer ${key}`,
-                'Content-Type': 'application/json',
-              },
+              headers: apiHeaders({ 'Content-Type': 'application/json' }),
               body: JSON.stringify(requestPayload),
             })
           }
@@ -959,7 +951,6 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
             const finalErrBody = await response.json().catch(() => null)
             const msg = finalErrBody?.error?.message || `HTTP ${response.status}`
             lastError = `${modelName}: ${msg}`
-            console.warn(`Model Groq ${modelName} gagal:`, msg)
             continue
           }
         }
@@ -1092,7 +1083,7 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
                   actionBlocks.push({
                     id: tc.id || `act-${Date.now()}-${actionBlocks.length}`,
                     action: 'adjust_stock',
-                    description: parsed.reason || `${parsed.delta > 0 ? 'Tambah' : 'Kurangi'} stok ${prod.name} sebanyak ${Math.abs(parsed.delta)} ${prod.unit}`,
+                    description: parsed.reason || `${parsed.delta > 0 ? 'Tambah' : 'Kurangi'} stok ${prod.name} sebanyak ${Math.abs(parsed.delta)}`,
                     params: {
                       productId: prod.id,
                       delta: parsed.delta,
@@ -1103,14 +1094,12 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
                 }
               } else if (tc.name === 'record_expense' && parsed.amount) {
                 const amount = Number(parsed.amount)
-                const category = parsed.category === 'Bahan' ? 'Bahan' : 'Operasional'
                 const desc = parsed.description || 'Beban Operasional Toko'
                 actionBlocks.push({
                   id: tc.id || `act-${Date.now()}-${actionBlocks.length}`,
                   action: 'record_expense',
-                  description: `Catat beban ${desc} (${category}) senilai ${formatRupiah(amount)}`,
+                  description: `Catat beban ${desc} senilai ${formatRupiah(amount)}`,
                   params: {
-                    category,
                     description: desc,
                     amount,
                   },
@@ -1142,8 +1131,8 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
                   status: 'pending',
                 })
               }
-            } catch (err) {
-              console.warn('Gagal mem-parsing argumen native tool call:', err)
+            } catch {
+              // argumen tool call yang rusak diabaikan; model berikutnya atau engine lokal menjawab
             }
           }
         }
@@ -1161,7 +1150,7 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
                   actionBlocks.push({
                     id: `act-${Date.now()}-${actionBlocks.length}`,
                     action: 'adjust_stock',
-                    description: parsed.description || `${parsed.delta > 0 ? 'Tambah' : 'Kurangi'} stok ${prod.name} sebanyak ${Math.abs(parsed.delta)} ${prod.unit}`,
+                    description: parsed.description || `${parsed.delta > 0 ? 'Tambah' : 'Kurangi'} stok ${prod.name} sebanyak ${Math.abs(parsed.delta)}`,
                     params: {
                       productId: prod.id,
                       delta: parsed.delta,
@@ -1201,7 +1190,7 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
                     actionBlocks.push({
                       id: `act-${Date.now()}-${actionBlocks.length}`,
                       action: 'record_sale',
-                      description: parsed.description || `Catat transaksi penjualan: ${prod.name} (${qty} ${prod.unit}) senilai ${formatRupiah(totalPrice)} via ${payment}`,
+                      description: parsed.description || `Catat transaksi penjualan: ${prod.name} (${qty}) senilai ${formatRupiah(totalPrice)} via ${payment}`,
                       params: {
                         items: [{ productId: prod.id, quantity: qty, price: prod.price }],
                         payment,
@@ -1212,14 +1201,12 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
                 }
               } else if (parsed.type === 'record_expense' && parsed.amount) {
                 const amount = Number(parsed.amount)
-                const category = parsed.category === 'Bahan' ? 'Bahan' : 'Operasional'
                 const desc = parsed.description || 'Beban Operasional Toko'
                 actionBlocks.push({
                   id: `act-${Date.now()}-${actionBlocks.length}`,
                   action: 'record_expense',
-                  description: `Catat beban ${desc} (${category}) senilai ${formatRupiah(amount)}`,
+                  description: `Catat beban ${desc} senilai ${formatRupiah(amount)}`,
                   params: {
-                    category,
                     description: desc,
                     amount,
                   },
@@ -1283,7 +1270,7 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
             actionBlocks.push({
               id: `act-${Date.now()}-0`,
               action: 'adjust_stock',
-              description: `Tambah stok ${targetProduct.name} sebanyak ${qty} ${targetProduct.unit}`,
+              description: `Tambah stok ${targetProduct.name} sebanyak ${qty}`,
               params: {
                 productId: targetProduct.id,
                 delta: qty,
@@ -1298,7 +1285,7 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
               actionBlocks.push({
                 id: `act-${Date.now()}-0`,
                 action: 'adjust_stock',
-                description: `Sesuaikan stok opname ${targetProduct.name} menjadi ${physicalQty} ${targetProduct.unit} (${delta > 0 ? '+' : ''}${delta} ${targetProduct.unit} selisih fisik)`,
+                description: `Sesuaikan stok opname ${targetProduct.name} menjadi ${physicalQty} (${delta > 0 ? '+' : ''}${delta} selisih fisik)`,
                 params: {
                   productId: targetProduct.id,
                   delta,
@@ -1336,13 +1323,11 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
         }
       } catch (err) {
         lastError = err instanceof Error ? err.message : 'Kesalahan jaringan'
-        console.warn(`Kesalahan jaringan pada model ${modelName}:`, err)
         continue
       }
     }
 
     // Jika seluruh model pada fallback chain gagal, fallback ke engine lokal dan berikan peringatan
-    console.error('Semua model Groq gagal:', lastError)
     setEngineStatus('Engine Lokal (Fallback)')
     setEngineError(`Groq tidak merespons (${lastError}). Menggunakan engine lokal.`)
     return processQuery(userText, history)
@@ -1407,7 +1392,7 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
     } else if (action.action === 'record_sale' && onRecordSale && action.params.items) {
       onRecordSale(action.params.items, action.params.payment || 'Tunai')
     } else if (action.action === 'record_expense' && onRecordExpense) {
-      onRecordExpense(action.params.category || 'Operasional', action.params.description, action.params.amount)
+      onRecordExpense(action.params.description, action.params.amount)
     } else if (action.action === 'update_price' && onUpdatePrice) {
       onUpdatePrice(action.params.productId, action.params.newPrice)
     } else if (action.action === 'add_product' && onAddProduct && action.params.product) {
@@ -1471,8 +1456,8 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
                 <Warning size={13} /> Groq Offline (Lokal)
               </span>
             ) : (
-              <span className={`status-pill ${groqKey && groqKey.startsWith('gsk_') ? 'live' : 'paused'}`}>
-                {groqKey && groqKey.startsWith('gsk_')
+              <span className={`status-pill ${groqEnabled ? 'live' : 'paused'}`}>
+                {groqEnabled
                   ? <><Lightning size={13} /> {engineStatus}</>
                   : <><Desktop size={13} /> Engine Lokal</>}
               </span>
@@ -1582,7 +1567,7 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
                                     const p = products.find((prod) => prod.id === it.productId)
                                     return (
                                       <span key={itemIdx} className="proposal-tag">
-                                        {p ? p.name : it.productId} · <strong>{it.quantity} {p ? p.unit : 'unit'}</strong> ({formatRupiah(it.price * it.quantity)})
+                                        {p ? p.name : it.productId} · <strong>{it.quantity}</strong> ({formatRupiah(it.price * it.quantity)})
                                       </span>
                                     )
                                   })}
@@ -1601,7 +1586,6 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
                               )}
                               {action.action === 'record_expense' && (
                                 <div className="proposal-meta-row">
-                                  <span className="proposal-tag">Kategori: <strong>{action.params.category}</strong></span>
                                   <span className="proposal-tag">Nominal: <strong>{formatRupiah(action.params.amount)}</strong></span>
                                 </div>
                               )}
