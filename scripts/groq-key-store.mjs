@@ -134,7 +134,7 @@ export function authorize(req) {
     return { status: 503, message: 'GLOBALITI_API_TOKEN belum diatur di server, asisten AI dinonaktifkan' }
   }
   const extra = (process.env.GLOBALITI_ALLOWED_HOSTS || '').split(',').map((host) => host.trim().toLowerCase()).filter(Boolean)
-  if (![...LOCAL_HOSTS, ...extra].includes(hostnameOf(req.headers.host))) {
+  if (!extra.includes('*') && ![...LOCAL_HOSTS, ...extra].includes(hostnameOf(req.headers.host))) {
     return { status: 403, message: 'Alamat akses tidak diizinkan. Tambahkan ke GLOBALITI_ALLOWED_HOSTS atau atur GLOBALITI_API_TOKEN' }
   }
   const origin = req.headers.origin
