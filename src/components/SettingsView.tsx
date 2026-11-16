@@ -159,7 +159,7 @@ export default function SettingsView({
           Data pembukuan dan kasir disimpan di <strong>database SQLite lokal (<code>.globaliti/store.db</code>)</strong> pada komputer ini dengan sinkronisasi otomatis. Anda dapat mengunduh cadangan sewaktu-waktu.
         </p>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '12px' }}>
-          <button type="button" className="secondary-button" onClick={onExportBackup}>Unduh Cadangan JSON</button>
+          <button type="button" className="secondary-button" onClick={onExportBackup}>Unduh Cadangan</button>
           <a
             href="/api/db/backup.sqlite"
             download
