@@ -62,6 +62,18 @@ Aplikasi dirancang untuk bekerja secara lokal (offline-first) dengan keandalan d
 ### 5. Zona Berbahaya & Manajemen Data
 - **Nolkan Semua Stok**: Menyetel seluruh stok produk menjadi 0 untuk persiapan stok opname fisik menyeluruh.
 - **Reset Data Keuangan**: Menghapus seluruh nota penjualan dan beban untuk persiapan pembukuan tahun ajaran baru (dengan dialog konfirmasi ganda).
+- **Cadangan Harian Bergulir (Rotasi 7 Hari)**:
+  - Database dicadangkan secara otomatis setiap hari menggunakan snapshot aman `VACUUM INTO` ke `.globaliti/backups/`.
+  - Penamaan berkas terstandar per hari:
+    - `globaliti-backup-day-1-monday.sqlite`
+    - `globaliti-backup-day-2-tuesday.sqlite`
+    - `globaliti-backup-day-3-wednesday.sqlite`
+    - `globaliti-backup-day-4-thursday.sqlite`
+    - `globaliti-backup-day-5-friday.sqlite`
+    - `globaliti-backup-day-6-saturday.sqlite`
+    - `globaliti-backup-day-7-sunday.sqlite`
+  - **Siklus 7 Hari**: Setelah 7 hari penuh (pada hari ke-8 / Senin berikutnya), sistem secara sirkular menimpa berkas cadangan Hari ke-1 dengan data baru.
+  - Status ke-7 slot cadangan dapat dipantau dan diunduh langsung dari menu **Pengaturan**.
 - **Cadangan Ganda**: Ekspor dan impor data sewaktu-waktu dalam format JSON, atau unduh snapshot database biner SQLite (`.sqlite`).
 
 ---

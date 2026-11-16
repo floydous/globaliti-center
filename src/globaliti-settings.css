@@ -203,6 +203,95 @@
   opacity: 0.9;
 }
 
+/* Rotasi Cadangan 7 Hari */
+.backup-rotation-box {
+  padding: 14px;
+  background: var(--gc-surface-muted, #f8fafc);
+  border: 1px solid var(--gc-border-subtle, #e2e8f0);
+  border-radius: var(--gc-radius-sm);
+}
+
+.backup-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.backup-slot-card {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  background: #ffffff;
+  border: 1px solid var(--gc-border-subtle, #e2e8f0);
+  border-radius: var(--gc-radius-xs);
+  font-size: var(--gc-fs-small);
+}
+
+.backup-slot-card.today {
+  border-color: var(--gc-accent, #003366);
+  box-shadow: 0 0 0 1px var(--gc-accent, #003366);
+}
+
+.backup-slot-card .slot-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.backup-slot-card .slot-name {
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.backup-slot-card .slot-today-tag {
+  font-size: 10px;
+  padding: 2px 5px;
+  background: var(--gc-accent, #003366);
+  color: #ffffff;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.backup-slot-card .slot-file {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--text-muted);
+  word-break: break-all;
+  margin-bottom: 6px;
+}
+
+.backup-slot-card .slot-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: auto;
+}
+
+.backup-slot-card .slot-empty {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.backup-slot-card .slot-download-btn {
+  margin-top: 8px;
+  padding: 4px 6px;
+  text-align: center;
+  background: var(--gc-surface-muted, #f1f5f9);
+  border: 1px solid var(--gc-border-subtle, #cbd5e1);
+  border-radius: 3px;
+  color: var(--text-strong);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.backup-slot-card .slot-download-btn:hover {
+  background: #e2e8f0;
+}
+
 @media (max-width: 700px) {
   .profile-grid {
     grid-template-columns: 1fr;

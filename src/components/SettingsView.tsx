@@ -8,6 +8,7 @@ import {
 import { fetchGroqKeyStatus, saveGroqKey, testGroqKey } from '../lib/groqKey'
 import { getApiToken, setApiToken } from '../lib/apiAuth'
 import { normalizeProfile, type BusinessProfile } from '../lib/business'
+import { fetchBackupList, runDailyBackup, type BackupListResult } from '../lib/store'
 
 type SettingsViewProps = {
   onExportBackup: () => void
@@ -50,13 +51,34 @@ export default function SettingsView({
   const [savedNotice, setSavedNotice] = useState(false)
   const [testingKey, setTestingKey] = useState(false)
   const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null)
+  const [backupData, setBackupData] = useState<BackupListResult | null>(null)
+  const [runningBackup, setRunningBackup] = useState(false)
+  const [backupNotice, setBackupNotice] = useState('')
 
   useEffect(() => {
     fetchGroqKeyStatus().then((status) => {
       setMaskedKey(status.masked)
       setServerNotice(status.error ?? '')
     })
+    fetchBackupList().then((data) => {
+      if (data) setBackupData(data)
+    })
   }, [])
+
+  const handleManualBackup = async () => {
+    setRunningBackup(true)
+    setBackupNotice('')
+    const res = await runDailyBackup()
+    if (res.ok) {
+      setBackupNotice('Cadangan hari ini berhasil dibuat!')
+      const fresh = await fetchBackupList()
+      if (fresh) setBackupData(fresh)
+    } else {
+      setBackupNotice('Gagal membuat cadangan harian.')
+    }
+    setRunningBackup(false)
+    setTimeout(() => setBackupNotice(''), 3000)
+  }
 
   const handleTestGroq = async () => {
     const key = apiKey.trim()
@@ -137,16 +159,71 @@ export default function SettingsView({
           Data pembukuan dan kasir disimpan di <strong>database SQLite lokal (<code>.globaliti/store.db</code>)</strong> pada komputer ini dengan sinkronisasi otomatis. Anda dapat mengunduh cadangan sewaktu-waktu.
         </p>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '12px' }}>
-          <button type="button" className="secondary-button" onClick={onExportBackup}>Unduh Cadangan</button>
+          <button type="button" className="secondary-button" onClick={onExportBackup}>Unduh Cadangan JSON</button>
           <a
             href="/api/db/backup.sqlite"
             download
             className="secondary-button"
             style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}
           >
-            Unduh Database SQLite (.sqlite)
+            Unduh Database SQLite Aktif (.sqlite)
           </a>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={handleManualBackup}
+            disabled={runningBackup}
+          >
+            {runningBackup ? 'Mencadangkan...' : 'Cadangkan Hari Ini Sekarang'}
+          </button>
         </div>
+        {backupNotice && <p className="save-toast" style={{ marginTop: '8px' }}>{backupNotice}</p>}
+
+        {backupData && backupData.slots && (
+          <div className="backup-rotation-box" style={{ marginTop: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+              <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: 'var(--text-strong)' }}>
+                Rotasi Cadangan 7 Hari (Rolling Daily Backup)
+              </h4>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                Slot Hari Ini: Hari {backupData.todaySlot} ({backupData.todayDayName})
+              </span>
+            </div>
+            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '10px' }}>
+              Database dicadangkan otomatis setiap hari. Pada hari ke-8, berkas cadangan hari ke-1 akan diperbarui secara otomatis.
+            </p>
+            <div className="backup-slots-grid">
+              {backupData.slots.map((s) => (
+                <div key={s.slot} className={`backup-slot-card ${s.isToday ? 'today' : ''} ${s.exists ? 'active' : 'empty'}`}>
+                  <div className="slot-head">
+                    <span className="slot-name">Hari {s.slot}</span>
+                    {s.isToday && <span className="slot-today-tag">Hari Ini</span>}
+                  </div>
+                  <div className="slot-file">{s.filename}</div>
+                  <div className="slot-meta">
+                    {s.exists ? (
+                      <>
+                        <span className="slot-date">{s.date || 'Tersimpan'}</span>
+                        <span className="slot-size">{(s.size / 1024).toFixed(1)} KB</span>
+                      </>
+                    ) : (
+                      <span className="slot-empty">Belum ada</span>
+                    )}
+                  </div>
+                  {s.exists && (
+                    <a
+                      href={`/api/db/backups/${s.slot}`}
+                      download={s.filename}
+                      className="slot-download-btn"
+                    >
+                      Unduh .sqlite
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       <form className="settings-form" onSubmit={handleSave}>

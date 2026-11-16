@@ -119,3 +119,49 @@ export async function migrateLocalStoreToServer(data: StoreData): Promise<boolea
     return false
   }
 }
+
+export interface BackupSlotItem {
+  slot: number
+  dayName: string
+  label: string
+  filename: string
+  exists: boolean
+  isToday: boolean
+  size: number
+  date: string | null
+  timestamp: string | null
+}
+
+export interface BackupListResult {
+  ok: boolean
+  todaySlot: number
+  todayDayName: string
+  totalBackupsRun: number
+  lastRunDate: string | null
+  slots: BackupSlotItem[]
+}
+
+export async function fetchBackupList(): Promise<BackupListResult | null> {
+  try {
+    const res = await fetch('/api/db/backups', { headers: apiHeaders() })
+    if (!res.ok) return null
+    const json = await res.json()
+    return json.ok ? json : null
+  } catch {
+    return null
+  }
+}
+
+export async function runDailyBackup(): Promise<{ ok: boolean; message?: string }> {
+  try {
+    const res = await fetch('/api/db/backups/run', {
+      method: 'POST',
+      headers: apiHeaders(),
+    })
+    if (!res.ok) return { ok: false }
+    const json = await res.json()
+    return json
+  } catch {
+    return { ok: false }
+  }
+}

@@ -4,7 +4,7 @@ import path from 'node:path'
 import zlib from 'node:zlib'
 import { fileURLToPath } from 'node:url'
 import { handleGroqApi } from './groq-key-store.mjs'
-import { handleSqliteApi } from './sqlite-store.mjs'
+import { handleSqliteApi, performDailyBackup } from './sqlite-store.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DIST_DIR = path.resolve(__dirname, '../dist')
@@ -168,10 +168,20 @@ export function startServer(port = PORT, host = HOST) {
   return new Promise((resolve, reject) => {
     server.on('error', reject)
     server.listen(port, host, () => {
+      try {
+        performDailyBackup()
+      } catch {}
       resolve(server)
     })
   })
 }
+
+// Pemeriksaan berkala cadangan harian setiap jam (untuk server yang berjalan terus-menerus)
+setInterval(() => {
+  try {
+    performDailyBackup()
+  } catch {}
+}, 60 * 60 * 1000).unref()
 
 const isDirectRun = process.argv[1] && (
   process.argv[1].endsWith('serve.mjs') ||

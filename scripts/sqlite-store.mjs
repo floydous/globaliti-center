@@ -11,6 +11,18 @@ export const DB_FILE = process.env.GLOBALITI_DB_FILE
     ? path.resolve('/tmp', 'store.db')
     : path.resolve(__dirname, '../.globaliti/store.db')
 
+export const BACKUP_DIR = path.resolve(path.dirname(DB_FILE), 'backups')
+
+export const DAY_NAMES = [
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+  'sunday',
+]
+
 export const DEFAULT_PRODUCTS = [
   { id: 'p1', barcode: '8990000000010', name: 'Matcha Cup', price: 8000, stock: 24, reorderPoint: 8, active: true, image: '/products/histeria-matcha.webp' },
   { id: 'p2', barcode: '8990000000027', name: 'Vanilla Cone', price: 6000, stock: 18, reorderPoint: 8, active: true, image: '/products/vanilla.webp' },
@@ -365,7 +377,153 @@ function saveStoreDataInternal(db, data) {
 
 export function saveStoreData(data) {
   const db = getDb()
-  return saveStoreDataInternal(db, data)
+  const result = saveStoreDataInternal(db, data)
+  try {
+    performDailyBackup()
+  } catch {}
+  return result
+}
+
+export function getBackupSlotInfo(date = new Date()) {
+  const d = typeof date === 'string' ? new Date(date) : date
+  const jsDay = d.getDay() // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const slot = jsDay === 0 ? 7 : jsDay // 1 = Monday (Day 1) ... 7 = Sunday (Day 7)
+  const dayName = DAY_NAMES[slot - 1]
+  const filename = `globaliti-backup-day-${slot}-${dayName}.sqlite`
+  const dateStr = d.toISOString().slice(0, 10)
+  return {
+    slot,
+    dayName,
+    filename,
+    dateStr,
+  }
+}
+
+export function performDailyBackup({ force = false, date = new Date() } = {}) {
+  const slotInfo = getBackupSlotInfo(date)
+  const backupDir = BACKUP_DIR
+  if (!fs.existsSync(backupDir)) {
+    fs.mkdirSync(backupDir, { recursive: true })
+  }
+
+  const manifestPath = path.join(backupDir, 'backup-manifest.json')
+  let manifest = {
+    totalBackupsRun: 0,
+    lastRunDate: null,
+    slots: {},
+  }
+
+  if (fs.existsSync(manifestPath)) {
+    try {
+      manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
+    } catch {}
+  }
+
+  const existingSlot = manifest.slots?.[slotInfo.slot]
+  const targetPath = path.join(backupDir, slotInfo.filename)
+
+  if (!force && existingSlot?.date === slotInfo.dateStr && fs.existsSync(targetPath)) {
+    return {
+      ok: true,
+      skipped: true,
+      message: `Cadangan hari ke-${slotInfo.slot} (${slotInfo.dayName}) untuk tanggal ${slotInfo.dateStr} sudah ada.`,
+      slot: slotInfo.slot,
+      dayName: slotInfo.dayName,
+      filename: slotInfo.filename,
+      path: targetPath,
+    }
+  }
+
+  const db = getDb()
+  try {
+    db.exec('PRAGMA wal_checkpoint(TRUNCATE);')
+  } catch {}
+
+  if (fs.existsSync(targetPath)) {
+    try {
+      fs.unlinkSync(targetPath)
+    } catch {}
+  }
+
+  const escapedPath = targetPath.replace(/'/g, "''")
+  db.exec(`VACUUM INTO '${escapedPath}';`)
+
+  const stat = fs.statSync(targetPath)
+  manifest.totalBackupsRun = (manifest.totalBackupsRun || 0) + 1
+  manifest.lastRunDate = slotInfo.dateStr
+  manifest.updatedAt = new Date().toISOString()
+  manifest.slots = manifest.slots || {}
+  manifest.slots[slotInfo.slot] = {
+    slot: slotInfo.slot,
+    dayName: slotInfo.dayName,
+    filename: slotInfo.filename,
+    date: slotInfo.dateStr,
+    timestamp: manifest.updatedAt,
+    size: stat.size,
+  }
+
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf8')
+
+  return {
+    ok: true,
+    skipped: false,
+    slot: slotInfo.slot,
+    dayName: slotInfo.dayName,
+    filename: slotInfo.filename,
+    path: targetPath,
+    size: stat.size,
+    date: slotInfo.dateStr,
+    overwritten: manifest.totalBackupsRun > 7,
+  }
+}
+
+export function getBackupList() {
+  const backupDir = BACKUP_DIR
+  const manifestPath = path.join(backupDir, 'backup-manifest.json')
+  let manifest = { totalBackupsRun: 0, lastRunDate: null, slots: {} }
+
+  if (fs.existsSync(manifestPath)) {
+    try {
+      manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
+    } catch {}
+  }
+
+  const todayInfo = getBackupSlotInfo()
+  const slots = []
+  for (let i = 1; i <= 7; i++) {
+    const dayName = DAY_NAMES[i - 1]
+    const filename = `globaliti-backup-day-${i}-${dayName}.sqlite`
+    const filePath = path.join(backupDir, filename)
+    const exists = fs.existsSync(filePath)
+    const info = manifest.slots?.[i] || null
+    let size = 0
+    if (exists) {
+      try {
+        size = fs.statSync(filePath).size
+      } catch {}
+    }
+
+    slots.push({
+      slot: i,
+      dayName,
+      label: `Hari ${i} (${dayName.charAt(0).toUpperCase() + dayName.slice(1)})`,
+      filename,
+      exists,
+      isToday: i === todayInfo.slot,
+      size,
+      date: info?.date || null,
+      timestamp: info?.timestamp || null,
+    })
+  }
+
+  return {
+    ok: true,
+    todaySlot: todayInfo.slot,
+    todayDayName: todayInfo.dayName,
+    totalBackupsRun: manifest.totalBackupsRun || 0,
+    lastRunDate: manifest.lastRunDate || null,
+    slots,
+  }
 }
 
 async function readJsonBody(req) {
@@ -479,6 +637,53 @@ export async function handleSqliteApi(req, res, pathname) {
         res.writeHead(200)
         res.end(JSON.stringify({ ok: true, migrated: false, message: 'Database sudah berisi data' }))
       }
+      return true
+    }
+
+    if (pathname === '/api/db/backups') {
+      if (req.method === 'GET') {
+        const list = getBackupList()
+        res.writeHead(200)
+        res.end(JSON.stringify(list))
+        return true
+      }
+      if (req.method === 'POST') {
+        const result = performDailyBackup({ force: true })
+        res.writeHead(200)
+        res.end(JSON.stringify(result))
+        return true
+      }
+    }
+
+    if (pathname === '/api/db/backups/run' && req.method === 'POST') {
+      const result = performDailyBackup({ force: true })
+      res.writeHead(200)
+      res.end(JSON.stringify(result))
+      return true
+    }
+
+    const backupSlotMatch = pathname.match(/^\/api\/db\/backups\/([1-7]|day-[1-7])$/)
+    if (backupSlotMatch && req.method === 'GET') {
+      const rawSlot = backupSlotMatch[1]
+      const slotNum = parseInt(rawSlot.replace('day-', ''), 10)
+      const dayName = DAY_NAMES[slotNum - 1]
+      const filename = `globaliti-backup-day-${slotNum}-${dayName}.sqlite`
+      const targetPath = path.join(BACKUP_DIR, filename)
+
+      if (!fs.existsSync(targetPath)) {
+        res.writeHead(404)
+        res.end(JSON.stringify({ ok: false, error: `Berkas cadangan hari ke-${slotNum} (${filename}) belum tersedia` }))
+        return true
+      }
+
+      const stat = fs.statSync(targetPath)
+      res.writeHead(200, {
+        'Content-Type': 'application/x-sqlite3',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Length': stat.size,
+        'Cache-Control': 'no-store',
+      })
+      fs.createReadStream(targetPath).pipe(res)
       return true
     }
 
