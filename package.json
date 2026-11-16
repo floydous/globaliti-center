@@ -16,10 +16,9 @@
     "test": "playwright test",
     "app": "npm run build && electron .",
     "app:dev": "electron .",
-    "dist": "npm run build && electron-builder",
-    "dist:win": "npm run build && electron-builder --win",
-    "register:start-menu": "node scripts/register-start-menu.mjs",
-    "unregister:start-menu": "node scripts/register-start-menu.mjs --remove"
+    "desktop": "npm run build && electron-builder --win && node scripts/register-start-menu.mjs",
+    "desktop:register": "node scripts/register-start-menu.mjs",
+    "desktop:unregister": "node scripts/register-start-menu.mjs --remove"
   },
   "build": {
     "appId": "com.globaliti.center",

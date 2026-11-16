@@ -216,11 +216,11 @@ start-app.vbs
 # Atau klik:
 start-desktop.bat
 
-# Daftarkan langsung ke Windows Start Menu & Taskbar Search:
-npm run register:start-menu
+# Membangun aplikasi desktop (.exe) sekaligus mendaftarkannya ke Windows Start Menu & Taskbar Search:
+npm run desktop
 
-# Membangun file instalasi executable (.exe Windows Setup):
-npm run dist:win
+# Opsional - Hapus pintasan dari Windows Start Menu jika diperlukan:
+npm run desktop:unregister
 ```
 - **Tampilan Bersih & Hening (Zero-Terminal)**:
   - Berjalan sepenuhnya di latar belakang tanpa mengekspos jendela terminal atau command prompt.
