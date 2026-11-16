@@ -27,6 +27,16 @@ type ProfileDraft = Record<keyof BusinessProfile, string>
 const toDraft = (profile: BusinessProfile): ProfileDraft =>
   Object.fromEntries(Object.entries(profile).map(([key, value]) => [key, String(value)])) as ProfileDraft
 
+const INDO_DAYS: Record<string, string> = {
+  monday: 'Senin',
+  tuesday: 'Selasa',
+  wednesday: 'Rabu',
+  thursday: 'Kamis',
+  friday: 'Jumat',
+  saturday: 'Sabtu',
+  sunday: 'Minggu',
+}
+
 const PROFILE_FIELDS: { key: keyof BusinessProfile; label: string; type?: 'number' }[] = [
   { key: 'unitName', label: 'Nama unit usaha' },
   { key: 'openingCash', label: 'Modal kas awal (Rp)', type: 'number' },
@@ -180,47 +190,53 @@ export default function SettingsView({
         {backupNotice && <p className="save-toast" style={{ marginTop: '8px' }}>{backupNotice}</p>}
 
         {backupData && backupData.slots && (
-          <div className="backup-rotation-box" style={{ marginTop: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-              <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: 'var(--text-strong)' }}>
-                Rotasi Cadangan 7 Hari (Rolling Daily Backup)
-              </h4>
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                Slot Hari Ini: Hari {backupData.todaySlot} ({backupData.todayDayName})
+          <div className="backup-rotation-box">
+            <div className="backup-rotation-head">
+              <div>
+                <h4>Cadangan Bergulir 7 Hari</h4>
+                <p>Database dicadangkan otomatis setiap hari (hari ke-8 menimpa hari ke-1).</p>
+              </div>
+              <span className="backup-today-pill">
+                Hari ini: {INDO_DAYS[backupData.todayDayName] || backupData.todayDayName} (Slot {backupData.todaySlot})
               </span>
             </div>
-            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '10px' }}>
-              Database dicadangkan otomatis setiap hari. Pada hari ke-8, berkas cadangan hari ke-1 akan diperbarui secara otomatis.
-            </p>
             <div className="backup-slots-grid">
-              {backupData.slots.map((s) => (
-                <div key={s.slot} className={`backup-slot-card ${s.isToday ? 'today' : ''} ${s.exists ? 'active' : 'empty'}`}>
-                  <div className="slot-head">
-                    <span className="slot-name">Hari {s.slot}</span>
-                    {s.isToday && <span className="slot-today-tag">Hari Ini</span>}
-                  </div>
-                  <div className="slot-file">{s.filename}</div>
-                  <div className="slot-meta">
+              {backupData.slots.map((s) => {
+                const dayLabel = INDO_DAYS[s.dayName] || s.dayName
+                const dateDisplay = s.date
+                  ? new Date(s.date + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
+                  : ''
+                const sizeDisplay = s.exists ? `${Math.round(s.size / 1024)} KB` : ''
+
+                return (
+                  <div
+                    key={s.slot}
+                    className={`backup-slot-card ${s.isToday ? 'today' : ''} ${s.exists ? 'active' : 'empty'}`}
+                    title={s.filename}
+                  >
+                    {s.isToday && <span className="slot-badge-today">Hari Ini</span>}
+                    <div className="slot-day">{dayLabel}</div>
+                    <div className="slot-num">Hari {s.slot}</div>
+
                     {s.exists ? (
-                      <>
-                        <span className="slot-date">{s.date || 'Tersimpan'}</span>
-                        <span className="slot-size">{(s.size / 1024).toFixed(1)} KB</span>
-                      </>
+                      <div className="slot-meta">
+                        <div className="slot-date">{dateDisplay}</div>
+                        <div className="slot-size">{sizeDisplay}</div>
+                        <a
+                          href={`/api/db/backups/${s.slot}`}
+                          download={s.filename}
+                          className="slot-download-btn"
+                          title={`Unduh ${s.filename}`}
+                        >
+                          Unduh
+                        </a>
+                      </div>
                     ) : (
-                      <span className="slot-empty">Belum ada</span>
+                      <div className="slot-empty">—</div>
                     )}
                   </div>
-                  {s.exists && (
-                    <a
-                      href={`/api/db/backups/${s.slot}`}
-                      download={s.filename}
-                      className="slot-download-btn"
-                    >
-                      Unduh .sqlite
-                    </a>
-                  )}
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}
