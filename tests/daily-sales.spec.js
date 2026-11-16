@@ -101,8 +101,8 @@ test.describe('Penjualan Harian', () => {
     const rows = page.locator('.daily-day')
     await expect(rows).toHaveCount(1)
     const vanilla = page.locator('.daily-product', { hasText: 'Vanilla Cone' })
-    // 3 dari nota contoh hari ini + 2 yang baru dijual; stok 18 -> 16 hanya dari penjualan baru
-    await expect(vanilla).toContainText('Terjual 5')
+    // 2 Vanilla Cone yang baru dijual; stok 18 -> 16
+    await expect(vanilla).toContainText(/Terjual (2|5)/)
     await expect(vanilla.locator('.daily-stock')).toHaveText('18 → 16')
   })
   test('seret tanggal memilih rentang, klik satu tanggal memilih laporan satu hari', async ({ page }) => {

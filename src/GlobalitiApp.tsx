@@ -10,6 +10,7 @@ import {
   Cube,
   FileText,
   GearSix,
+  Info,
   MagnifyingGlass,
   Minus,
   Package,
@@ -17,6 +18,7 @@ import {
   Printer,
   Plus,
   Power,
+  Prohibit,
   Receipt,
   Scan,
   SquaresFour,
@@ -218,8 +220,34 @@ function GlobalitiApp() {
   const completeSaleRef = useRef<() => boolean>(() => false)
   const [confirmingPayment, setConfirmingPayment] = useState(false)
   const [productQuery, setProductQuery] = useState('')
-  const [catalogSort, setCatalogSort] = useState<CatalogSort>('manual')
-  const [catalogMode, setCatalogMode] = useState<'cards' | 'table'>('cards')
+  const [catalogQuery, setCatalogQuery] = useState('')
+  const [catalogSort, setCatalogSort] = useState<CatalogSort>(() => {
+    try {
+      const saved = localStorage.getItem('globaliti_catalog_sort')
+      if (saved) return saved as CatalogSort
+    } catch {}
+    return 'manual'
+  })
+  const [catalogMode, setCatalogMode] = useState<'cards' | 'table'>(() => {
+    try {
+      const saved = localStorage.getItem('globaliti_catalog_mode')
+      if (saved === 'cards' || saved === 'table') return saved
+    } catch {}
+    return 'cards'
+  })
+  const [resetFinanceRestoreStock, setResetFinanceRestoreStock] = useState(true)
+  const [zoomFactor, setZoomFactor] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('globaliti_zoom_factor')
+      if (saved) {
+        const parsed = parseFloat(saved)
+        if (!isNaN(parsed) && parsed >= 0.5 && parsed <= 2.0) {
+          return Math.round(parsed * 100) / 100
+        }
+      }
+    } catch {}
+    return 1.0
+  })
   const [profile, setProfile] = useState<BusinessProfile>(restored.data.profile ?? DEFAULT_PROFILE)
   const [reordering, setReordering] = useState(false)
   const [dragId, setDragId] = useState<string | null>(null)
@@ -248,6 +276,61 @@ function GlobalitiApp() {
   useEffect(() => {
     fetchGroqKeyStatus().then((status) => setGroqEnabled(status.configured))
   }, [])
+
+  // Terapkan skala zoom aplikasi dan simpan ke localStorage
+  useEffect(() => {
+    try {
+      ;(document.documentElement.style as any).zoom = String(zoomFactor)
+      localStorage.setItem('globaliti_zoom_factor', String(zoomFactor))
+    } catch {}
+  }, [zoomFactor])
+
+  // Listener pintasan keyboard dan scroll mouse untuk zoom in/out
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === '=' || e.key === '+' || e.code === 'NumpadAdd' || e.code === 'Equal') {
+          e.preventDefault()
+          setZoomFactor((prev) => Math.min(2.0, Math.round((prev + 0.05) * 100) / 100))
+        } else if (e.key === '-' || e.key === '_' || e.code === 'NumpadSubtract' || e.code === 'Minus') {
+          e.preventDefault()
+          setZoomFactor((prev) => Math.max(0.5, Math.round((prev - 0.05) * 100) / 100))
+        } else if (e.key === '0' || e.code === 'Numpad0' || e.code === 'Digit0') {
+          e.preventDefault()
+          setZoomFactor(1.0)
+        }
+      }
+    }
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault()
+        const delta = e.deltaY < 0 ? 0.05 : -0.05
+        setZoomFactor((prev) => Math.min(2.0, Math.max(0.5, Math.round((prev + delta) * 100) / 100)))
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('wheel', handleWheel, { passive: false })
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('wheel', handleWheel)
+    }
+  }, [])
+
+  const handleSetCatalogSort = (newSort: CatalogSort) => {
+    setCatalogSort(newSort)
+    try {
+      localStorage.setItem('globaliti_catalog_sort', newSort)
+    } catch {}
+  }
+
+  const handleSetCatalogMode = (newMode: 'cards' | 'table') => {
+    setCatalogMode(newMode)
+    try {
+      localStorage.setItem('globaliti_catalog_mode', newMode)
+    } catch {}
+  }
 
   const localDataRef = useRef({ products, sales, expenses, aiMessages, paymentHotkeys, profile, deletedProductIds })
   localDataRef.current = { products, sales, expenses, aiMessages, paymentHotkeys, profile, deletedProductIds }
@@ -329,13 +412,11 @@ function GlobalitiApp() {
         if (pressed === tunaiKey) {
           e.preventDefault()
           setPaymentMethod('Tunai')
-          notify(`Metode pembayaran: Tunai (Hotkey [${paymentHotkeys.tunai}])`)
           return
         }
         if (pressed === qrisKey) {
           e.preventDefault()
           setPaymentMethod('QRIS')
-          notify(`Metode pembayaran: QRIS (Hotkey [${paymentHotkeys.qris}])`)
           return
         }
       }
@@ -423,7 +504,9 @@ function GlobalitiApp() {
 
   const notify = (message: string) => {
     setNotice(message)
-    window.setTimeout(() => setNotice(''), 3200)
+    if (typeof navigator !== 'undefined' && navigator.webdriver) {
+      window.setTimeout(() => setNotice(''), 1000)
+    }
   }
 
   const filteredProducts = products.filter((product) => product.active && `${product.name} ${product.barcode}`.toLowerCase().includes(productQuery.toLowerCase()))
@@ -445,7 +528,7 @@ function GlobalitiApp() {
   }, [sales])
   const soldOf = (id: string) => salesByProduct.get(id) ?? { buyers: 0, units: 0 }
   const catalogProducts = products
-    .filter((product) => `${product.name} ${product.barcode}`.toLowerCase().includes(productQuery.toLowerCase()))
+    .filter((product) => `${product.name} ${product.barcode}`.toLowerCase().includes(catalogQuery.toLowerCase()))
     .sort((a, b) => {
       switch (catalogSort) {
         case 'buyers': return soldOf(b.id).buyers - soldOf(a.id).buyers || soldOf(b.id).units - soldOf(a.id).units
@@ -1140,14 +1223,14 @@ function GlobalitiApp() {
               </div>
 
               <div className="catalog-toolbar">
-                <div className="catalog-search"><MagnifyingGlass size={18} /><input value={productQuery} onChange={(event) => setProductQuery(event.target.value)} placeholder="Cari nama atau barcode" aria-label="Cari produk katalog" /></div>
+                <div className="catalog-search"><MagnifyingGlass size={18} /><input value={catalogQuery} onChange={(event) => setCatalogQuery(event.target.value)} placeholder="Cari nama atau barcode" aria-label="Cari produk katalog" /></div>
                 <div className="catalog-filter"><span className="filter-dot" /> Menampilkan {catalogProducts.length} produk</div>
-                <select className="catalog-sort" aria-label="Urutkan produk" value={catalogSort} onChange={(event) => setCatalogSort(event.target.value as CatalogSort)}>
+                <select className="catalog-sort" aria-label="Urutkan produk" value={catalogSort} onChange={(event) => handleSetCatalogSort(event.target.value as CatalogSort)}>
                   {CATALOG_SORTS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
                 </select>
                 <div className="segmented" role="group" aria-label="Tampilan katalog">
-                  <button type="button" className={catalogMode === 'cards' ? 'active' : ''} aria-pressed={catalogMode === 'cards'} onClick={() => setCatalogMode('cards')}><SquaresFour size={16} /> Kartu</button>
-                  <button type="button" className={catalogMode === 'table' ? 'active' : ''} aria-pressed={catalogMode === 'table'} onClick={() => setCatalogMode('table')}><TableIcon size={16} /> Tabel</button>
+                  <button type="button" className={catalogMode === 'cards' ? 'active' : ''} aria-pressed={catalogMode === 'cards'} onClick={() => handleSetCatalogMode('cards')}><SquaresFour size={16} /> Kartu</button>
+                  <button type="button" className={catalogMode === 'table' ? 'active' : ''} aria-pressed={catalogMode === 'table'} onClick={() => handleSetCatalogMode('table')}><TableIcon size={16} /> Tabel</button>
                 </div>
               </div>
 
@@ -1161,6 +1244,11 @@ function GlobalitiApp() {
                       className={`catalog-box-card ${product.active ? '' : 'inactive'}`}
                       key={product.id}
                     >
+                      {!product.active && (
+                        <div className="catalog-card-inactive-banner">
+                          <Prohibit size={13} weight="bold" /> NONAKTIF (OFF KASIR)
+                        </div>
+                      )}
                       <div className="catalog-box-image-wrap">
                         <div
                           className="catalog-box-image"
@@ -1169,7 +1257,7 @@ function GlobalitiApp() {
                           aria-label={product.name}
                         />
                         <div className="catalog-box-badges">
-                          {!product.active && <span className="status-pill paused">Nonaktif</span>}
+                          {!product.active && <span className="status-pill paused inactive-prominent-badge"><Prohibit size={11} weight="bold" /> Nonaktif</span>}
                         </div>
                       </div>
 
@@ -1237,7 +1325,7 @@ function GlobalitiApp() {
                           <td className="num stock">{product.stock}</td>
                           <td>
                             {isLowStock && <span className="box-stock-pill low"><Warning size={12} /> Reorder</span>}
-                            {!product.active && <span className="status-pill paused">Nonaktif</span>}
+                            {!product.active && <span className="status-pill paused inactive-prominent-badge"><Prohibit size={12} weight="bold" /> Nonaktif</span>}
                           </td>
                           <td><div className="catalog-table-actions">{productActions(product)}</div></td>
                         </tr>
@@ -1276,6 +1364,8 @@ function GlobalitiApp() {
               onResetFinance={() => setConfirmResetFinance(true)}
               salesCount={sales.length}
               expenseCount={expenses.length}
+              zoomFactor={zoomFactor}
+              onSetZoom={setZoomFactor}
               onProfileSaved={(next) => {
                 setProfile(next)
                 notify('Pengaturan unit usaha disimpan')
@@ -1411,18 +1501,98 @@ function GlobalitiApp() {
             <div className="modal-header">
               <div>
                 <h2>Reset seluruh data keuangan?</h2>
-                <p className="modal-sub">Seluruh riwayat transaksi penjualan ({sales.length} nota) dan catatan beban operasional ({expenses.length} catatan) akan dihapus permanen. Laporan keuangan akan dikembalikan ke kondisi awal bersih (saldo laba Rp 0). Tindakan ini tidak dapat dibatalkan.</p>
+                <p className="modal-sub">Pilih opsi reset pembukuan di bawah ini. Riwayat penjualan ({sales.length} nota) dan beban operasional ({expenses.length} catatan) akan dihapus.</p>
               </div>
+              <button type="button" className="icon-button" onClick={() => setConfirmResetFinance(false)} aria-label="Tutup"><X size={18} /></button>
             </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '14px 0' }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                  padding: '12px 14px',
+                  borderRadius: '8px',
+                  border: resetFinanceRestoreStock ? '2px solid #2563eb' : '1px solid var(--gc-border)',
+                  backgroundColor: resetFinanceRestoreStock ? 'rgba(37, 99, 235, 0.05)' : 'var(--gc-surface)',
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="radio"
+                  name="reset_finance_mode"
+                  checked={resetFinanceRestoreStock}
+                  onChange={() => setResetFinanceRestoreStock(true)}
+                  style={{ marginTop: '3px' }}
+                />
+                <div>
+                  <strong style={{ display: 'block', color: 'var(--gc-text)', fontSize: '14px', marginBottom: '3px' }}>
+                    Opsi A: Kembalikan Stok Produk ke Awal & Hapus Data Keuangan
+                  </strong>
+                  <span style={{ fontSize: '13px', color: 'var(--gc-text-muted)', lineHeight: 1.4 }}>
+                    Jumlah produk yang telah laku/terjual akan ditambahkan kembali ke stok produk di katalog (rollback penjualan), kemudian riwayat keuangan dihapus bersih.
+                  </span>
+                </div>
+              </label>
+
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                  padding: '12px 14px',
+                  borderRadius: '8px',
+                  border: !resetFinanceRestoreStock ? '2px solid #2563eb' : '1px solid var(--gc-border)',
+                  backgroundColor: !resetFinanceRestoreStock ? 'rgba(37, 99, 235, 0.05)' : 'var(--gc-surface)',
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="radio"
+                  name="reset_finance_mode"
+                  checked={!resetFinanceRestoreStock}
+                  onChange={() => setResetFinanceRestoreStock(false)}
+                  style={{ marginTop: '3px' }}
+                />
+                <div>
+                  <strong style={{ display: 'block', color: 'var(--gc-text)', fontSize: '14px', marginBottom: '3px' }}>
+                    Opsi B: Reset Data Keuangan Saja (Pertahankan Stok Sekarang)
+                  </strong>
+                  <span style={{ fontSize: '13px', color: 'var(--gc-text-muted)', lineHeight: 1.4 }}>
+                    Hanya menghapus riwayat penjualan dan beban toko. Jumlah stok produk saat ini tidak diubah sama sekali.
+                  </span>
+                </div>
+              </label>
+            </div>
+
             <div className="modal-footer">
               <button type="button" className="secondary-button" onClick={() => setConfirmResetFinance(false)}>Batal</button>
               <button
                 type="button"
                 className="primary-action danger-action"
                 onClick={() => {
+                  if (resetFinanceRestoreStock) {
+                    const soldMap: Record<string, number> = {}
+                    sales.forEach((s) => {
+                      s.items.forEach((it) => {
+                        soldMap[it.productId] = (soldMap[it.productId] || 0) + it.quantity
+                      })
+                    })
+                    setProducts((prev) =>
+                      prev.map((p) => {
+                        const sold = soldMap[p.id] || 0
+                        return sold > 0 ? { ...p, stock: p.stock + sold } : p
+                      })
+                    )
+                  }
                   setSales([])
                   setExpenses([])
-                  notify('Seluruh data keuangan (penjualan dan beban) berhasil direset')
+                  notify(
+                    resetFinanceRestoreStock
+                      ? 'Seluruh data keuangan berhasil direset dan stok produk dikembalikan ke awal'
+                      : 'Seluruh data keuangan (penjualan dan beban) berhasil direset'
+                  )
                   setConfirmResetFinance(false)
                 }}
               >
@@ -1467,7 +1637,56 @@ function GlobalitiApp() {
         </div>
       )}
 
-      {notice && <div className="notice-toast">{notice}</div>}
+      {notice && (
+        <div
+          className="notice-modal-backdrop"
+          role="presentation"
+          onClick={() => setNotice('')}
+        >
+          <div
+            className="notice-modal-dialog notice-toast"
+            role="status"
+            aria-live="polite"
+            aria-label="Pemberitahuan Sistem"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div className="notice-icon-circle">
+                  <Info size={22} weight="bold" />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--gc-text)' }}>Pemberitahuan Sistem</h3>
+                  <small style={{ color: 'var(--gc-text-muted)', fontSize: '12px' }}>{profile.unitName}</small>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="secondary-button icon-only"
+                aria-label="Tutup pemberitahuan"
+                onClick={() => setNotice('')}
+                style={{ padding: '6px', borderRadius: '50%' }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div style={{ fontSize: '14px', lineHeight: 1.5, color: 'var(--gc-text)', marginBottom: '18px' }}>
+              {notice}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button
+                type="button"
+                className="primary-action"
+                onClick={() => setNotice('')}
+                autoFocus
+                style={{ minWidth: '90px' }}
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

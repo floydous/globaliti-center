@@ -656,13 +656,10 @@ export default function AiView({
 
   // Urutan rantai model resmi Groq: dari yang paling pintar hingga paling dasar
   const GROQ_FALLBACK_CHAIN = [
-    'qwen/qwen3.8-27b',             // Paling cerdas, fasih bahasa Indonesia, native parallel tool calling
-    'openai/gpt-oss-120b',          // Model reasoning 120B parameter
-    'openai/gpt-oss-20b',           // Model 20B seimbang & cepat
-    'groq/compound',                // Model agentic compound
-    'groq/compound-mini',           // Model agentic compound mini
-    'allam-2-7b',                   // Model 7B multilingual
-    'openai/gpt-oss-safeguard-20b', // Model safeguard dasar
+    'llama-3.3-70b-versatile',      // Model 70B terbaik Groq: penalaran tinggi, fasih bahasa Indonesia, native tool calling
+    'llama-3.1-8b-instant',         // Model 8B Groq sangat cepat, ringan, native tool calling
+    'mixtral-8x7b-32768',           // Model MoE 32k konteks
+    'gemma2-9b-it',                 // Model Google Gemma 2 di infrastruktur Groq
   ]
 
   // Definisi Custom Tools Schema Resmi OpenAI/Groq
@@ -931,7 +928,7 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
           body: JSON.stringify(requestPayload),
         })
 
-        // Jika model tidak mendukung custom tool-calling (seperti groq/compound), coba ulang tanpa tools parameter
+        // Jika model tidak mendukung custom tool-calling, coba ulang tanpa tools parameter
         if (!response.ok) {
           const errBody = await response.json().catch(() => null)
           const isToolUnsupported =
@@ -945,11 +942,14 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
               headers: apiHeaders({ 'Content-Type': 'application/json' }),
               body: JSON.stringify(requestPayload),
             })
-          }
-
-          if (!response.ok) {
-            const finalErrBody = await response.json().catch(() => null)
-            const msg = finalErrBody?.error?.message || `HTTP ${response.status}`
+            if (!response.ok) {
+              const retryErrBody = await response.json().catch(() => null)
+              const msg = retryErrBody?.error?.message || `HTTP ${response.status}`
+              lastError = `${modelName}: ${msg}`
+              continue
+            }
+          } else {
+            const msg = errBody?.error?.message || `HTTP ${response.status}`
             lastError = `${modelName}: ${msg}`
             continue
           }

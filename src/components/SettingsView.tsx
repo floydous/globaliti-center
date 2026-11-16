@@ -20,6 +20,8 @@ type SettingsViewProps = {
   onResetFinance?: () => void
   salesCount?: number
   expenseCount?: number
+  zoomFactor?: number
+  onSetZoom?: (zoom: number) => void
 }
 
 type ProfileDraft = Record<keyof BusinessProfile, string>
@@ -52,6 +54,8 @@ export default function SettingsView({
   onResetFinance,
   salesCount,
   expenseCount,
+  zoomFactor,
+  onSetZoom,
 }: SettingsViewProps) {
   const [apiKey, setApiKey] = useState('')
   const [maskedKey, setMaskedKey] = useState('')
@@ -347,6 +351,56 @@ export default function SettingsView({
           </button>
         </div>
       </form>
+
+      {/* Skala Tampilan (Zoom) */}
+      {onSetZoom && (
+        <section className="settings-card" aria-label="Skala Tampilan">
+          <div className="settings-card-head">
+            <div>
+              <h3>Skala Tampilan (Zoom)</h3>
+              <p>
+                Sesuaikan ukuran tampilan aplikasi agar pas dengan layar kasir Anda. Preferensi zoom ini otomatis tersimpan untuk penggunaan berikutnya.
+              </p>
+            </div>
+          </div>
+          <div className="settings-card-body" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px', paddingTop: '10px' }}>
+            <p style={{ margin: 0, fontSize: '13px', color: 'var(--gc-text-muted)' }}>
+              Pintasan cepat: <code>Ctrl + Scroll Mouse</code> atau <code>Ctrl +</code> / <code>Ctrl -</code> (tekan <code>Ctrl + 0</code> untuk reset 100%).
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => onSetZoom(Math.max(0.5, Math.round(((zoomFactor ?? 1.0) - 0.05) * 100) / 100))}
+                aria-label="Perkecil zoom"
+                style={{ padding: '6px 14px', fontWeight: 'bold', fontSize: '16px' }}
+              >
+                -
+              </button>
+              <span style={{ fontWeight: 600, minWidth: '55px', textAlign: 'center', fontVariantNumeric: 'tabular-nums', fontSize: '15px' }}>
+                {Math.round((zoomFactor ?? 1.0) * 100)}%
+              </span>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => onSetZoom(Math.min(2.0, Math.round(((zoomFactor ?? 1.0) + 0.05) * 100) / 100))}
+                aria-label="Perbesar zoom"
+                style={{ padding: '6px 14px', fontWeight: 'bold', fontSize: '16px' }}
+              >
+                +
+              </button>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => onSetZoom(1.0)}
+                style={{ fontSize: '13px', padding: '6px 12px' }}
+              >
+                Reset 100%
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Zona Berbahaya / Dangerous Section */}
       {(onResetAllStock || onResetFinance) && (

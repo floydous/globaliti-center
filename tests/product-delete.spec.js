@@ -28,6 +28,16 @@ test.describe('Hapus produk dari katalog', () => {
 
   test('riwayat penjualan tetap ada dan menandai produk yang sudah dihapus', async ({ page }) => {
     await page.goto('http://127.0.0.1:4173')
+    const tile = page.locator('.product-tile').filter({ hasText: 'Vanilla Cone' })
+    if (await tile.count() > 0) {
+      await tile.click()
+      await tile.click()
+      await tile.click()
+      await page.getByRole('button', { name: /Bayar Rp/ }).click()
+      await page.getByRole('dialog', { name: 'Konfirmasi pembayaran' }).getByRole('button', { name: /Bayar Rp/ }).click()
+      await page.getByRole('button', { name: /^Transaksi baru/ }).click()
+    }
+
     await page.getByRole('button', { name: 'Katalog & Stok', exact: true }).click()
     await page.getByRole('button', { name: 'Hapus produk Vanilla Cone dari katalog' }).click()
     await page.getByRole('dialog').getByRole('button', { name: 'Hapus produk', exact: true }).click()

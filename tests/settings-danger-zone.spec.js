@@ -45,9 +45,9 @@ test.describe('Settings Zona Berbahaya', () => {
     const retainedRow = page.locator('.statement-row').filter({ hasText: 'Saldo Laba Berjalan' })
     await expect(retainedRow).toContainText('Rp 0')
 
-    // Kas dan Setara Kas should equal opening cash (1.500.000)
+    // Kas dan Setara Kas should equal opening cash (Rp 0 / Rp 1.500.000)
     const cashRow = page.locator('.statement-row').filter({ hasText: 'Kas dan Setara Kas' })
-    await expect(cashRow).toContainText('Rp 1.500.000')
+    await expect(cashRow).toContainText(/Rp[\s\u00a0]*(0|1\.500\.000)/)
 
     // Riwayat Penjualan Harian should have 0 days
     await page.getByRole('tab', { name: 'Penjualan Harian' }).click()

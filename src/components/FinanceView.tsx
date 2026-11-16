@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   Check,
+  DownloadSimple,
   Eye,
   FileText,
   Plus,
@@ -146,8 +147,8 @@ export default function FinanceView({
           </button>
           <button
             className="primary-action"
-            onClick={() => window.print()}
-            title="Cetak Laporan Keuangan Resmi (PDF / Printer)"
+            onClick={() => setShowPreviewModal(true)}
+            title="Buka pratinjau dan opsi cetak laporan keuangan (PDF / Printer)"
           >
             <Printer size={16} /> Cetak Laporan
           </button>
@@ -479,10 +480,19 @@ export default function FinanceView({
                 </button>
                 <button
                   type="button"
+                  className="secondary-button"
+                  onClick={() => window.print()}
+                  title="Unduh atau simpan dokumen sebagai file PDF melalui dialog cetak sistem"
+                >
+                  <DownloadSimple size={16} weight="bold" /> Unduh (PDF)
+                </button>
+                <button
+                  type="button"
                   className="primary-action"
                   onClick={() => window.print()}
+                  title="Cetak langsung dokumen ke mesin printer fisik"
                 >
-                  <Printer size={16} /> Cetak Sekarang (PDF)
+                  <Printer size={16} /> Cetak Dokumen
                 </button>
               </div>
             </div>

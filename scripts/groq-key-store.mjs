@@ -28,14 +28,10 @@ const LOCAL_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 
 // Rantai model resmi Groq, dari yang paling pintar ke paling dasar.
 const TEST_MODELS = [
-  'qwen/qwen3.8-27b',
-  'groq/compound-mini',
-  'groq/compound',
-  'openai/gpt-oss-120b',
-  'openai/gpt-oss-20b',
-  'allam-2-7b',
   'llama-3.3-70b-versatile',
   'llama-3.1-8b-instant',
+  'mixtral-8x7b-32768',
+  'gemma2-9b-it',
 ]
 
 export function readKey() {
@@ -279,8 +275,9 @@ export async function handleGroqApi(req, res, pathname) {
     }
     return await handleRequest(req, res, pathname)
   } catch (error) {
+    console.error('[Groq API Error]', error)
     const status = error instanceof HttpError ? error.status : 500
-    const message = error instanceof HttpError ? error.message : 'Terjadi kesalahan pada server'
+    const message = (error instanceof HttpError ? error.message : null) || error?.message || 'Terjadi kesalahan pada server'
     if (res.headersSent) {
       res.end()
     } else {
