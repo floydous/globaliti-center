@@ -1,0 +1,25 @@
+{
+  "name": "Globaliti Creative Center",
+  "short_name": "Globaliti POS",
+  "description": "Sistem Kasir POS & Laporan Keuangan SAK EMKM Globaliti Creative Center, SMKS TI Bali Global Denpasar",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eef1f4",
+  "theme_color": "#eef1f4",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    {
+      "src": "/globaliti-creative-center-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

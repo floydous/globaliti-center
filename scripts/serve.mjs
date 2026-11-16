@@ -157,13 +157,32 @@ async function handle(req, res) {
   res.end(req.method === 'HEAD' ? undefined : body)
 }
 
-const server = http.createServer((req, res) => {
-  handle(req, res).catch(() => {
-    if (res.headersSent) res.end()
-    else send(res, 500, 'Internal server error')
+export function startServer(port = PORT, host = HOST) {
+  const server = http.createServer((req, res) => {
+    handle(req, res).catch(() => {
+      if (res.headersSent) res.end()
+      else send(res, 500, 'Internal server error')
+    })
   })
-})
 
-server.listen(PORT, HOST, () => {
-  console.log(`Globaliti server berjalan di http://${HOST}:${PORT}/`)
-})
+  return new Promise((resolve, reject) => {
+    server.on('error', reject)
+    server.listen(port, host, () => {
+      resolve(server)
+    })
+  })
+}
+
+const isDirectRun = process.argv[1] && (
+  process.argv[1].endsWith('serve.mjs') ||
+  fileURLToPath(import.meta.url) === path.resolve(process.argv[1])
+)
+
+if (isDirectRun) {
+  startServer(PORT, HOST).then(() => {
+    console.log(`Globaliti server berjalan di http://${HOST}:${PORT}/`)
+  }).catch((err) => {
+    console.error('Gagal menjalankan server:', err)
+    process.exit(1)
+  })
+}

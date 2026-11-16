@@ -189,13 +189,30 @@ HOST=127.0.0.1
 
 ---
 
-## Pengemasan Aplikasi Desktop (Electron)
+## Aplikasi Desktop & Standalone
 
-Aplikasi dibangun menggunakan standar Web API modern (`window.print()`, `node:sqlite`, SVG, Drag and Drop, File System) sehingga siap dibungkus menggunakan **Electron**:
+Aplikasi dapat dijalankan secara mandiri sebagai aplikasi desktop (*standalone*) tanpa membuka browser terpisah secara manual:
 
-> [!TIP]
-> - **Muat Melalui Server Lokal**: Pastikan Electron menjalankan `scripts/serve.mjs` di latar belakang pada port tetap (misal `http://127.0.0.1:4173`), lalu Electron memuatnya dengan `mainWindow.loadURL('http://127.0.0.1:4173')`. Hindari protokol `file://` karena endpoint `/api/db/*` dan aset gambar `/products/*` membutuhkan server lokal.
-> - **Port Konsisten**: Penyimpanan browser (`localStorage` fallback) terikat pada origin dan port. Gunakan port tetap agar riwayat sesi tidak terpisah.
+### 1. Aplikasi Desktop (Electron)
+Aplikasi desktop menggabungkan server Node.js SQLite lokal dan jendela Chromium kasir menjadi satu kesatuan:
+```bash
+# Menjalankan aplikasi desktop langsung:
+npm run app
+
+# Di Windows, bisa klik dua kali berkas:
+start-desktop.bat
+```
+- **Fitur Desktop**:
+  - Peluncuran otomatis server SQLite internal pada `http://127.0.0.1:4173/`.
+  - Mode Layar Penuh Kiosk Kasir (`F11`).
+  - Pintasan cetak nota langsung (`Ctrl+P`).
+  - Pencegahan multi-instance ganda (*single instance lock*).
+  - Isolasi konteks aman (`contextIsolation: true`, `sandbox: true`, tanpa eksposur nodeIntegration ke halaman web).
+
+### 2. Standalone Web App (PWA)
+Saat diakses melalui Google Chrome atau Microsoft Edge (baik di komputer kasir maupun tablet lain di jaringan toko), peramban akan menampilkan opsi **"Install Globaliti POS"** di bilah alamat:
+- Berjalan di jendela aplikasi independen tanpa tab atau address bar.
+- Membawa ikon toko resmi sekolah dan tema warna antarmuka.
 
 ---
 
