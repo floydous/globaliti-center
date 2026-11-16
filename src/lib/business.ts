@@ -25,7 +25,7 @@ export const DEFAULT_PROFILE: BusinessProfile = {
   phone: '(0361) 249434',
   email: 'gcc@smktibaliglobal.sch.id',
   website: 'smktibaliglobal.sch.id',
-  openingCash: 1_500_000,
+  openingCash: 0,
   costRatioPercent: 57,
 }
 

@@ -41,7 +41,7 @@ test.describe('Profil unit usaha dan laporan', () => {
     await page.locator('input[name="openingCash"]').fill('9999999999999')
     await page.getByRole('button', { name: 'Simpan Pengaturan' }).click()
     await expect(page.locator('input[name="unitName"]')).toHaveValue('Globaliti Creative Center')
-    await expect(page.locator('input[name="openingCash"]')).toHaveValue('1500000')
+    await expect(page.locator('input[name="openingCash"]')).toHaveValue('0')
   })
 
   test('saldo laba berjalan di neraca sama dengan laba bersih', async ({ page }) => {
