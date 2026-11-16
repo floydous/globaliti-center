@@ -20,6 +20,7 @@ dogfood-output/
 .pi/
 graphify-out/
 .taste-skill/
+.claude/
 
 # Kunci API Groq (disimpan sebagai file lokal, jangan pernah masuk repo)
 .globaliti/

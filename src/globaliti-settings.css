@@ -129,6 +129,80 @@
   font-size: var(--gc-fs-small);
 }
 
+/* Zona Berbahaya / Dangerous container */
+.settings-danger-card {
+  padding: 18px 20px;
+  border: 1px solid #f87171;
+  border-radius: var(--gc-radius);
+  background: var(--gc-danger-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.settings-danger-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--gc-danger);
+}
+
+.settings-danger-head h3 {
+  margin: 0 0 2px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gc-danger);
+}
+
+.settings-danger-head p {
+  margin: 0;
+  font-size: var(--gc-fs-small);
+  color: #7f1d1d;
+}
+
+.settings-danger-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(196, 36, 42, 0.15);
+  flex-wrap: wrap;
+}
+
+.settings-danger-body strong {
+  display: block;
+  font-size: var(--gc-fs-body);
+  color: var(--gc-danger);
+  margin-bottom: 2px;
+}
+
+.settings-danger-body p {
+  margin: 0;
+  font-size: var(--gc-fs-small);
+  color: #7f1d1d;
+}
+
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid var(--gc-danger);
+  border-radius: var(--gc-radius-sm);
+  background: var(--gc-danger);
+  color: #ffffff;
+  font-size: var(--gc-fs-body);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity var(--gc-transition-fast);
+}
+
+.danger-button:hover {
+  opacity: 0.9;
+}
+
 @media (max-width: 700px) {
   .profile-grid {
     grid-template-columns: 1fr;

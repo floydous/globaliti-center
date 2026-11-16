@@ -1,8 +1,8 @@
 # Globaliti Creative Center
 
 Aplikasi kasir (POS), katalog stok, dan laporan keuangan SAK EMKM untuk unit usaha sekolah
-Globaliti Creative Center, SMKS TI Bali Global Denpasar. Seluruh data tersimpan di browser
-perangkat kasir (penyimpanan lokal), tanpa database server.
+Globaliti Creative Center, SMKS TI Bali Global Denpasar. Data tersimpan di database SQLite lokal
+(`.globaliti/store.db`) dengan sinkronisasi ke penyimpanan lokal browser.
 
 ## Fitur
 
@@ -33,11 +33,14 @@ Pengujian memakai browser Playwright; pasang sekali dengan `npx playwright insta
 
 ## Data dan cadangan
 
-- Data (produk, nota, beban, pengaturan) ada di penyimpanan lokal browser pada perangkat itu.
-  Menghapus data browser menghapus pembukuan, jadi unduh cadangan dari **Pengaturan** secara rutin.
+- Data (produk, nota, beban, pengaturan) disimpan secara permanen di database SQLite lokal
+  (`.globaliti/store.db`) pada mesin server dan disinkronkan dengan penyimpanan browser.
+- Cadangan dapat diunduh kapan saja melalui **Pengaturan** dalam bentuk file JSON maupun database `.sqlite`.
 - Berkas cadangan tidak memuat kunci API.
 - Saat pertama dibuka, aplikasi memuat nota dan beban **contoh**. Hapus lewat tombol
   **Hapus data contoh** di Laporan Keuangan sebelum dipakai untuk pembukuan sebenarnya.
+  Untuk persiapan pembukuan awal atau stok opname, tersedia opsi **Nolkan Semua Stok** dan
+  **Reset Data Keuangan** di **Pengaturan > Zona Berbahaya**.
 - Nama unit dan modal kas awal diatur di **Pengaturan > Informasi Unit Usaha**. Kop laporan,
   penyusun, kode dokumen, dan persentase HPP memakai nilai bawaan di `src/lib/business.ts`.
 

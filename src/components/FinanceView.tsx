@@ -72,18 +72,17 @@ export default function FinanceView({
 
   const totalRevenue = iceCreamRevenue
 
-  // Perhitungan Beban Pokok Penjualan (HPP Es Krim)
+  // Perhitungan Beban Pokok Penjualan (HPP Es Krim) berdasarkan harga riil pada saat nota terjadi
   const cogsIceCream = useMemo(() => {
     let totalCogs = 0
     sales.forEach((sale) => {
       sale.items.forEach((item) => {
-        const prod = products.find((p) => p.id === item.productId)
-        const cost = estimateCost(prod ? prod.price : item.price, ratio)
+        const cost = estimateCost(item.price, ratio)
         totalCogs += cost * item.quantity
       })
     })
     return totalCogs
-  }, [sales, products, ratio])
+  }, [sales, ratio])
 
   // Total Beban Operasional
   const totalExpenses = useMemo(

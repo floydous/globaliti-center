@@ -43,7 +43,7 @@ import FinanceView from './components/FinanceView'
 import AiView from './components/AiView'
 import FloatingAssistant from './components/FloatingAssistant'
 import SettingsView from './components/SettingsView'
-import { loadStore, saveStore, type StoreData } from './lib/store'
+import { fetchServerStore, loadStore, migrateLocalStoreToServer, saveStore, type StoreData } from './lib/store'
 import { estimateCost } from './lib/hpp'
 import { fetchGroqKeyStatus } from './lib/groqKey'
 import { fileToProductImage, safeProductImage } from './lib/productImage'
@@ -54,7 +54,7 @@ import { generateEan13, isValidEan13 } from './lib/barcode'
 import { DEFAULT_PROFILE, costRatio, type BusinessProfile } from './lib/business'
 import type { AiMessage, Expense, PaymentHotkeys } from './types'
 
-type CatalogSort = 'manual' | 'buyers' | 'units' | 'stock-high' | 'stock-low' | 'name' | 'price-high' | 'price-low'
+type CatalogSort = 'manual' | 'buyers' | 'units' | 'stock-high' | 'stock-low' | 'name' | 'price-high' | 'price-low' | 'active-first' | 'inactive-first'
 
 const CATALOG_SORTS: { id: CatalogSort; label: string }[] = [
   { id: 'manual', label: 'Urutan kasir' },
@@ -65,6 +65,8 @@ const CATALOG_SORTS: { id: CatalogSort; label: string }[] = [
   { id: 'name', label: 'Nama A-Z' },
   { id: 'price-high', label: 'Harga tertinggi' },
   { id: 'price-low', label: 'Harga terendah' },
+  { id: 'active-first', label: 'Produk aktif di atas' },
+  { id: 'inactive-first', label: 'Produk nonaktif di atas' },
 ]
 
 type View = 'pos' | 'products' | 'finance' | 'settings'
@@ -213,6 +215,8 @@ function GlobalitiApp() {
   })
   const [deletedProductIds, setDeletedProductIds] = useState<string[]>(restored.data.deletedProductIds ?? [])
   const [productToDelete, setProductToDelete] = useState<Product | null>(null)
+  const [confirmResetAllStock, setConfirmResetAllStock] = useState(false)
+  const [confirmResetFinance, setConfirmResetFinance] = useState(false)
   const [showBarcodePrint, setShowBarcodePrint] = useState(false)
   const [showBarcodePreview, setShowBarcodePreview] = useState(false)
   const [sales, setSales] = useState<Sale[]>(restored.data.sales ?? initialSales)
@@ -254,6 +258,40 @@ function GlobalitiApp() {
   useEffect(() => {
     fetchGroqKeyStatus().then((status) => setGroqEnabled(status.configured))
   }, [])
+
+  const localDataRef = useRef({ products, sales, expenses, aiMessages, paymentHotkeys, profile, deletedProductIds })
+  localDataRef.current = { products, sales, expenses, aiMessages, paymentHotkeys, profile, deletedProductIds }
+
+  useEffect(() => {
+    if (storageBlocked) return
+    if (typeof navigator !== 'undefined' && navigator.webdriver) return
+
+    fetchServerStore()
+      .then((res) => {
+        if (!res.ok) return
+        const hasRealLocalData = Boolean(
+          (restored.data.sales && restored.data.sales.some((s) => !s.sample)) ||
+          (restored.data.expenses && restored.data.expenses.some((e) => !e.sample)) ||
+          (restored.data.deletedProductIds && restored.data.deletedProductIds.length > 0)
+        )
+        if (res.empty || (res.isDefaultSeed && hasRealLocalData)) {
+          migrateLocalStoreToServer(localDataRef.current).catch(() => {})
+          return
+        }
+        if (res.data) {
+          // Pulihkan seluruh data dari database SQLite server sebagai sumber kebenaran utama
+          if (res.data.products && res.data.products.length > 0) setProducts(res.data.products)
+          if (res.data.sales) setSales(res.data.sales)
+          if (res.data.expenses) setExpenses(res.data.expenses)
+          if (res.data.profile) setProfile(res.data.profile)
+          if (res.data.paymentHotkeys) setPaymentHotkeys(res.data.paymentHotkeys)
+          if (res.data.deletedProductIds) setDeletedProductIds(res.data.deletedProductIds)
+          if (res.data.aiMessages && res.data.aiMessages.length > 0) setAiMessages(res.data.aiMessages)
+        }
+      })
+      .catch(() => {})
+  }, [storageBlocked, restored.data])
+
   useEffect(() => {
     if (storageBlocked) return
     try {
@@ -427,6 +465,8 @@ function GlobalitiApp() {
         case 'name': return a.name.localeCompare(b.name, 'id')
         case 'price-high': return b.price - a.price
         case 'price-low': return a.price - b.price
+        case 'active-first': return Number(b.active) - Number(a.active)
+        case 'inactive-first': return Number(a.active) - Number(b.active)
         default: return 0
       }
     })
@@ -1241,6 +1281,11 @@ function GlobalitiApp() {
             <SettingsView
               onExportBackup={exportBackup}
               profile={profile}
+              productCount={products.length}
+              onResetAllStock={() => setConfirmResetAllStock(true)}
+              onResetFinance={() => setConfirmResetFinance(true)}
+              salesCount={sales.length}
+              expenseCount={expenses.length}
               onProfileSaved={(next) => {
                 setProfile(next)
                 notify('Pengaturan unit usaha disimpan')
@@ -1340,6 +1385,61 @@ function GlobalitiApp() {
             <div className="stock-next">Stok setelah disimpan: <strong>{stockProduct.stock + stockDelta}</strong></div>
             <div className="modal-footer"><button type="button" className="secondary-button" onClick={() => setStockProduct(null)}>Batal</button><button className="modal-primary" type="submit"><Check size={17} weight="bold" /> Simpan stok</button></div>
           </form>
+        </div>
+      )}
+
+      {confirmResetAllStock && (
+        <div className="modal-backdrop-globaliti" role="presentation" onClick={() => setConfirmResetAllStock(false)}>
+          <div className="form-modal" role="dialog" aria-modal="true" aria-label="Nolkan semua stok produk" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <h2>Nolkan semua stok produk?</h2>
+                <p className="modal-sub">Seluruh stok produk ({products.length} item) akan diatur menjadi 0 untuk persiapan stok opname atau pencatatan fisik dari awal. Tindakan ini tidak dapat dibatalkan.</p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="secondary-button" onClick={() => setConfirmResetAllStock(false)}>Batal</button>
+              <button
+                type="button"
+                className="primary-action danger-action"
+                onClick={() => {
+                  setProducts((current) => current.map((p) => ({ ...p, stock: 0 })))
+                  notify('Semua stok produk berhasil diatur menjadi 0')
+                  setConfirmResetAllStock(false)
+                }}
+              >
+                Nolkan semua stok
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmResetFinance && (
+        <div className="modal-backdrop-globaliti" role="presentation" onClick={() => setConfirmResetFinance(false)}>
+          <div className="form-modal" role="dialog" aria-modal="true" aria-label="Reset seluruh data keuangan" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <h2>Reset seluruh data keuangan?</h2>
+                <p className="modal-sub">Seluruh riwayat transaksi penjualan ({sales.length} nota) dan catatan beban operasional ({expenses.length} catatan) akan dihapus permanen. Laporan keuangan akan dikembalikan ke kondisi awal bersih (saldo laba Rp 0). Tindakan ini tidak dapat dibatalkan.</p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="secondary-button" onClick={() => setConfirmResetFinance(false)}>Batal</button>
+              <button
+                type="button"
+                className="primary-action danger-action"
+                onClick={() => {
+                  setSales([])
+                  setExpenses([])
+                  notify('Seluruh data keuangan (penjualan dan beban) berhasil direset')
+                  setConfirmResetFinance(false)
+                }}
+              >
+                Reset Data Keuangan
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

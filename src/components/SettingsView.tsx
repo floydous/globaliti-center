@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   Check,
   CheckCircle,
+  Warning,
   WarningCircle,
 } from '@phosphor-icons/react'
 import { fetchGroqKeyStatus, saveGroqKey, testGroqKey } from '../lib/groqKey'
@@ -13,6 +14,11 @@ type SettingsViewProps = {
   onGroqKeySaved: (configured: boolean) => void
   profile: BusinessProfile
   onProfileSaved: (profile: BusinessProfile) => void
+  onResetAllStock?: () => void
+  productCount?: number
+  onResetFinance?: () => void
+  salesCount?: number
+  expenseCount?: number
 }
 
 type ProfileDraft = Record<keyof BusinessProfile, string>
@@ -25,7 +31,17 @@ const PROFILE_FIELDS: { key: keyof BusinessProfile; label: string; type?: 'numbe
   { key: 'openingCash', label: 'Modal kas awal (Rp)', type: 'number' },
 ]
 
-export default function SettingsView({ onExportBackup, onGroqKeySaved, profile, onProfileSaved }: SettingsViewProps) {
+export default function SettingsView({
+  onExportBackup,
+  onGroqKeySaved,
+  profile,
+  onProfileSaved,
+  onResetAllStock,
+  productCount,
+  onResetFinance,
+  salesCount,
+  expenseCount,
+}: SettingsViewProps) {
   const [apiKey, setApiKey] = useState('')
   const [maskedKey, setMaskedKey] = useState('')
   const [serverNotice, setServerNotice] = useState('')
@@ -115,7 +131,23 @@ export default function SettingsView({ onExportBackup, onGroqKeySaved, profile, 
         </div>
       </div>
 
-      <section className="settings-card"><h3>Cadangan data</h3><p>Data disimpan pada browser dan perangkat ini saja. Unduh cadangan setiap selesai bertugas. Berkas tidak memuat kunci API. Pemulihan saat ini membutuhkan bantuan pengelola teknis.</p><button className="secondary-button" onClick={onExportBackup}>Unduh Cadangan</button></section>
+      <section className="settings-card">
+        <h3>Penyimpanan dan Cadangan Data</h3>
+        <p>
+          Data pembukuan dan kasir disimpan di <strong>database SQLite lokal (<code>.globaliti/store.db</code>)</strong> pada komputer ini dengan sinkronisasi otomatis. Anda dapat mengunduh cadangan sewaktu-waktu.
+        </p>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '12px' }}>
+          <button type="button" className="secondary-button" onClick={onExportBackup}>Unduh Cadangan</button>
+          <a
+            href="/api/db/backup.sqlite"
+            download
+            className="secondary-button"
+            style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}
+          >
+            Unduh Database SQLite (.sqlite)
+          </a>
+        </div>
+      </section>
 
       <form className="settings-form" onSubmit={handleSave}>
         {/* Integrasi AI Groq */}
@@ -222,6 +254,55 @@ export default function SettingsView({ onExportBackup, onGroqKeySaved, profile, 
           </button>
         </div>
       </form>
+
+      {/* Zona Berbahaya / Dangerous Section */}
+      {(onResetAllStock || onResetFinance) && (
+        <section className="settings-danger-card" aria-label="Zona Berbahaya">
+          <div className="settings-danger-head">
+            <Warning size={22} weight="bold" />
+            <div>
+              <h3>Zona Berbahaya</h3>
+              <p>
+                Tindakan pada bagian ini bersifat destruktif dan berdampak langsung pada data operasional toko.
+              </p>
+            </div>
+          </div>
+          {onResetAllStock && (
+            <div className="settings-danger-body">
+              <div>
+                <strong>Nolkan Semua Stok Produk</strong>
+                <p>
+                  Mengubah jumlah stok seluruh produk ({productCount ?? 0} item) menjadi 0 untuk persiapan stok opname atau pembukuan fisik dari awal.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="danger-button"
+                onClick={onResetAllStock}
+              >
+                Nolkan Semua Stok
+              </button>
+            </div>
+          )}
+          {onResetFinance && (
+            <div className="settings-danger-body">
+              <div>
+                <strong>Reset Data Keuangan</strong>
+                <p>
+                  Menghapus seluruh riwayat penjualan ({salesCount ?? 0} nota) dan beban operasional ({expenseCount ?? 0} catatan) untuk memulai pembukuan baru.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="danger-button"
+                onClick={onResetFinance}
+              >
+                Reset Data Keuangan
+              </button>
+            </div>
+          )}
+        </section>
+      )}
     </section>
   )
 }

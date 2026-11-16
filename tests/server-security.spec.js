@@ -69,6 +69,11 @@ test.describe('Server produksi lokal', () => {
       const ok = await raw(port, { path: '/api/groq-key', headers: { 'x-globaliti-token': 'token-uji-123' } })
       expect(ok.status).toBe(200)
       expect(JSON.parse(ok.text).configured).toBe(false)
+
+      expect((await raw(port, { path: '/api/db/store' })).status).toBe(401)
+      expect((await raw(port, { path: '/api/db/store', headers: { 'x-globaliti-token': 'salah' } })).status).toBe(401)
+      const dbOk = await raw(port, { path: '/api/db/store', headers: { 'x-globaliti-token': 'token-uji-123' } })
+      expect(dbOk.status).toBe(200)
     } finally {
       server.kill()
     }

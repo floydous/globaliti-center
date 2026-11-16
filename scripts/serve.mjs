@@ -4,6 +4,7 @@ import path from 'node:path'
 import zlib from 'node:zlib'
 import { fileURLToPath } from 'node:url'
 import { handleGroqApi } from './groq-key-store.mjs'
+import { handleSqliteApi } from './sqlite-store.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DIST_DIR = path.resolve(__dirname, '../dist')
@@ -105,6 +106,7 @@ const send = (res, status, body, headers = {}) => {
 async function handle(req, res) {
   const urlPath = req.url?.split('?')[0] || '/'
 
+  if (await handleSqliteApi(req, res, urlPath)) return
   if (await handleGroqApi(req, res, urlPath)) return
 
   if (req.method !== 'GET' && req.method !== 'HEAD') {

@@ -41,3 +41,25 @@ test('katalog bisa diurutkan menurut pembeli, terjual, stok, nama, dan harga', a
   await expect(page.locator('.catalog-table tbody tr').first()).toContainText('Aice Durian Cup')
   await expect(sort).toHaveValue('price-high')
 })
+
+test('katalog bisa diurutkan dari produk aktif dan nonaktif', async ({ page }) => {
+  await page.goto('http://127.0.0.1:4173')
+  await page.getByRole('button', { name: 'Katalog & Stok', exact: true }).click()
+
+  const sort = page.getByRole('combobox', { name: 'Urutkan produk' })
+  const firstTitle = () => page.locator('.catalog-box-title').first().innerText()
+  const lastTitle = () => page.locator('.catalog-box-title').last().innerText()
+
+  // Nonaktifkan produk pertama
+  const initialFirst = await firstTitle()
+  await page.locator('.catalog-box-card').first().locator('.box-btn-toggle').click()
+
+  // Urutkan produk nonaktif di atas
+  await sort.selectOption({ label: 'Produk nonaktif di atas' })
+  expect(await firstTitle()).toBe(initialFirst)
+
+  // Urutkan produk aktif di atas
+  await sort.selectOption({ label: 'Produk aktif di atas' })
+  expect(await firstTitle()).not.toBe(initialFirst)
+  expect(await lastTitle()).toBe(initialFirst)
+})
