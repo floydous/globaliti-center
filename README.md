@@ -201,7 +201,17 @@ npm run app
 
 # Di Windows, bisa klik dua kali berkas:
 start-desktop.bat
+
+# Daftarkan langsung ke Windows Start Menu & Taskbar Search:
+npm run register:start-menu
+
+# Membangun file instalasi executable (.exe Windows Setup):
+npm run dist:win
 ```
+- **Integrasi Windows Search & Taskbar**:
+  - Didaftarkan dengan `AppUserModelId` (`com.globaliti.center`) dan nama produk resmi `Globaliti Creative Center`.
+  - Menggunakan logo resmi perusahaan (`public/globaliti-creative-center-icon.png` yang dikemas ke format multi-resolusi `build/icon.ico`: 16x16 hingga 256x256).
+  - Terindeks langsung oleh Windows Search Manager: tekan tombol `Windows` dan ketik **"Globaliti"** di bilah pencarian taskbar untuk langsung membuka aplikasi.
 - **Fitur Desktop**:
   - Peluncuran otomatis server SQLite internal pada `http://127.0.0.1:4173/`.
   - Mode Layar Penuh Kiosk Kasir (`F11`).

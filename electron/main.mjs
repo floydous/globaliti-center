@@ -1,6 +1,7 @@
 import { app, BrowserWindow, Menu, shell } from 'electron'
 import path from 'node:path'
 import http from 'node:http'
+import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { startServer } from '../scripts/serve.mjs'
 
@@ -8,6 +9,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 4173
 const HOST = '127.0.0.1'
 const APP_URL = `http://${HOST}:${PORT}/`
+const APP_ID = 'com.globaliti.center'
+
+// Daftarkan AppUserModelId agar Windows Taskbar Search dan Start Menu mengenalinya
+app.setAppUserModelId(APP_ID)
 
 let mainWindow = null
 let localServer = null
@@ -139,7 +144,9 @@ function createMenu() {
 async function createWindow() {
   await ensureServerRunning()
 
-  const iconPath = path.resolve(__dirname, '../public/globaliti-creative-center-icon.png')
+  const iconPath = process.platform === 'win32' && fs.existsSync(path.resolve(__dirname, '../build/icon.ico'))
+    ? path.resolve(__dirname, '../build/icon.ico')
+    : path.resolve(__dirname, '../public/globaliti-creative-center-icon.png')
 
   mainWindow = new BrowserWindow({
     width: 1280,
