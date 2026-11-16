@@ -8,9 +8,9 @@ test('chatbot full autonomy: handles unrecorded sales, expenses, and price chang
   await useLocalAssistant(page)
   await page.goto('http://127.0.0.1:4173')
 
-  // Initial sales count: 3 nota, Rp 39.000
-  await expect(page.locator('.pos-summary-bar')).toContainText('3 nota')
-  await expect(page.locator('.pos-summary-bar')).toContainText('Rp 39.000')
+  // Initial sales count: 0 nota, Rp 0
+  await expect(page.locator('.pos-summary-bar')).toContainText('0 nota')
+  await expect(page.locator('.pos-summary-bar')).toContainText('Rp 0')
 
   // Open assistant floating launcher
   const launcher = page.getByRole('button', { name: 'Buka asisten Globaliti', exact: true })
@@ -40,11 +40,11 @@ test('chatbot full autonomy: handles unrecorded sales, expenses, and price chang
   await applySaleBtn.click()
   await expect(log).toContainText('Telah Diterapkan')
 
-  // Close assistant and check POS view: sales now 4 nota, Rp 47.000, Matcha Cup stock 23!
+  // Close assistant and check POS view: sales now 1 nota, Rp 8.000, Matcha Cup stock 23!
   await page.getByRole('button', { name: 'Tutup asisten', exact: true }).click()
   await expect(page.getByRole('button', { name: '23 Matcha Cup Rp 8.000', exact: true })).toBeVisible()
-  await expect(page.locator('.pos-summary-bar')).toContainText('4 nota')
-  await expect(page.locator('.pos-summary-bar')).toContainText('Rp 47.000')
+  await expect(page.locator('.pos-summary-bar')).toContainText('1 nota')
+  await expect(page.locator('.pos-summary-bar')).toContainText('Rp 8.000')
 
   // 3. Record expense via AI: "Catat beban beli kertas 25000"
   await launcher.click()

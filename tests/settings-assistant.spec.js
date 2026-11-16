@@ -3,6 +3,20 @@ import { mockGroqStatus, useLocalAssistant } from './helpers/groqKey.js'
 
 test.describe('Pengaturan dan activations asistentes', () => {
   test('konsep operator kasir dihapus seluruhnya dari aplikasi', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('globaliti_store_v1', JSON.stringify({
+        version: 1,
+        savedAt: new Date().toISOString(),
+        data: {
+          products: [],
+          sales: [
+            { id: 'TRX-0001', date: new Date().toISOString().slice(0, 10), time: '08:14', items: [{ productId: 'p1', quantity: 1, price: 8000 }], total: 8000, payment: 'Tunai' },
+          ],
+          expenses: [],
+          aiMessages: [],
+        },
+      }))
+    })
     await page.goto('http://127.0.0.1:4173')
 
     // Tidak ada lagi kartu operator di Pengaturan.
@@ -120,6 +134,20 @@ test.describe('Panel asisten', () => {
 
 test.describe('Transaksi terakhir', () => {
   test('menampilkan barang yang terjual, bukan hanya nomor nota', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('globaliti_store_v1', JSON.stringify({
+        version: 1,
+        savedAt: new Date().toISOString(),
+        data: {
+          products: [],
+          sales: [
+            { id: 'TRX-0001', date: new Date().toISOString().slice(0, 10), time: '08:14', items: [{ productId: 'p1', quantity: 2, price: 8000 }], total: 16000, payment: 'Tunai' },
+          ],
+          expenses: [],
+          aiMessages: [],
+        },
+      }))
+    })
     await page.goto('http://127.0.0.1:4173')
 
     const row = page.locator('.recent-row').first()

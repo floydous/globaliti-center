@@ -47,7 +47,7 @@ import { fetchServerStore, loadStore, migrateLocalStoreToServer, saveStore, type
 import { estimateCost } from './lib/hpp'
 import { fetchGroqKeyStatus } from './lib/groqKey'
 import { fileToProductImage, safeProductImage } from './lib/productImage'
-import { localDateKey, shiftDays } from './lib/dailySales'
+import { localDateKey } from './lib/dailySales'
 import BarcodeImage from './components/BarcodeImage'
 import BarcodePrintDialog from './components/BarcodePrintDialog'
 import { generateEan13, isValidEan13 } from './lib/barcode'
@@ -111,18 +111,8 @@ const initialProducts: Product[] = [
   { id: 'p36', barcode: '8990000000362', name: 'Aice Choco Crispy Stick', price: 5000, stock: 25, reorderPoint: 8, active: true, image: '/products/choco-crispy.webp' },
 ]
 
-const today = localDateKey()
-
-const initialSales: Sale[] = [
-  { id: 'TRX-0001', sample: true, date: today, time: '08:14', items: [{ productId: 'p1', quantity: 2, price: 8000 }], total: 16000, payment: 'Tunai' },
-  { id: 'TRX-0002', sample: true, date: today, time: '09:02', items: [{ productId: 'p3', quantity: 1, price: 5000 }], total: 5000, payment: 'QRIS' },
-  { id: 'TRX-0003', sample: true, date: today, time: '10:26', items: [{ productId: 'p2', quantity: 3, price: 6000 }], total: 18000, payment: 'Tunai' },
-]
-
-const initialExpenses: Expense[] = [
-  { id: 'exp-1', sample: true, label: 'Pembelian Kertas HVS A4 2 Rim', amount: 96000, date: today },
-  { id: 'exp-2', sample: true, label: 'Cup dan Sedotan Es Krim', amount: 150000, date: shiftDays(today, -1) },
-]
+const initialSales: Sale[] = []
+const initialExpenses: Expense[] = []
 
 const productImages: Record<string, string> = {
   p1: '/products/histeria-matcha.webp',

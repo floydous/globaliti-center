@@ -12,7 +12,7 @@ test('checkout updates stock, receipt, and finance revenue', async ({ page }) =>
   await page.getByRole('button', { name: /^Transaksi baru/ }).click()
   await expect(page.locator('.product-tile').filter({ hasText: 'Vanilla Cone' }).locator('.stock-chip')).toHaveText('16')
   await page.getByRole('button', { name: 'Laporan Keuangan', exact: true }).click()
-  await expect(page.locator('.finance-page')).toContainText('Rp 51.000')
+  await expect(page.locator('.finance-page')).toContainText('Rp 12.000')
   await page.reload()
   await page.getByRole('button', { name: 'Kasir POS', exact: true }).click()
   await expect(page.locator('.product-tile').filter({ hasText: 'Vanilla Cone' }).locator('.stock-chip')).toHaveText('16')

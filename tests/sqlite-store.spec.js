@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import fs from 'node:fs'
-import { getDb, getStoreData, saveStoreData, isDbEmpty, DB_FILE, DEFAULT_PRODUCTS, DEFAULT_SALES, DEFAULT_EXPENSES } from '../scripts/sqlite-store.mjs'
+import { getDb, getStoreData, saveStoreData, isDbEmpty, DB_FILE, DEFAULT_PRODUCTS } from '../scripts/sqlite-store.mjs'
 
 test.describe('SQLite Local Store Backend', () => {
   test('initializes database and creates required tables', () => {
@@ -23,8 +23,12 @@ test.describe('SQLite Local Store Backend', () => {
   test('saves and retrieves products, sales, and expenses', () => {
     const testData = {
       products: DEFAULT_PRODUCTS,
-      sales: DEFAULT_SALES,
-      expenses: DEFAULT_EXPENSES,
+      sales: [
+        { id: 'TRX-TEST-1', date: '2026-11-16', time: '10:00', total: 10000, payment: 'Tunai', items: [{ productId: 'p1', quantity: 1, price: 10000 }] },
+      ],
+      expenses: [
+        { id: 'EXP-TEST-1', label: 'Beban Uji', amount: 5000, date: '2026-11-16' },
+      ],
       profile: {
         unitName: 'Globaliti Test Unit',
         openingCash: 500000,
@@ -42,8 +46,8 @@ test.describe('SQLite Local Store Backend', () => {
     expect(retrieved.products[0].name).toBe('Matcha Cup')
     expect(retrieved.products[0].price).toBe(8000)
 
-    expect(retrieved.sales.length).toBe(3)
-    expect(retrieved.expenses.length).toBe(2)
+    expect(retrieved.sales.length).toBe(1)
+    expect(retrieved.expenses.length).toBe(1)
     expect(retrieved.profile.unitName).toBe('Globaliti Test Unit')
     expect(retrieved.paymentHotkeys.qris).toBe('2')
     expect(retrieved.deletedProductIds).toContain('del-1')

@@ -8,6 +8,20 @@ test.describe('Assistant Full System Control & Transaction Visibility', () => {
 
     // Kunci terkonfigurasi tapi Groq tidak terjangkau, jadi mesin bawaan yang menjawab.
     await useLocalAssistant(page)
+    await page.addInitScript(() => {
+      localStorage.setItem('globaliti_store_v1', JSON.stringify({
+        version: 1,
+        savedAt: new Date().toISOString(),
+        data: {
+          products: [],
+          sales: [
+            { id: 'TRX-0003', date: new Date().toISOString().slice(0, 10), time: '10:26', items: [{ productId: 'p2', quantity: 3, price: 6000 }], total: 18000, payment: 'Tunai' },
+          ],
+          expenses: [],
+          aiMessages: [],
+        },
+      }))
+    })
     await page.goto('http://127.0.0.1:4173')
 
     // Open assistant

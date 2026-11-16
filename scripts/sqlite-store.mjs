@@ -62,16 +62,9 @@ export const DEFAULT_PRODUCTS = [
   { id: 'p36', barcode: '8990000000362', name: 'Aice Choco Crispy Stick', price: 5000, stock: 25, reorderPoint: 8, active: true, image: '/products/choco-crispy.webp' },
 ]
 
-export const DEFAULT_SALES = [
-  { id: 'TRX-0001', sample: true, date: new Date().toISOString().slice(0, 10), time: '08:14', items: [{ productId: 'p1', quantity: 2, price: 8000 }], total: 16000, payment: 'Tunai' },
-  { id: 'TRX-0002', sample: true, date: new Date().toISOString().slice(0, 10), time: '09:02', items: [{ productId: 'p3', quantity: 1, price: 5000 }], total: 5000, payment: 'QRIS' },
-  { id: 'TRX-0003', sample: true, date: new Date().toISOString().slice(0, 10), time: '10:26', items: [{ productId: 'p2', quantity: 3, price: 6000 }], total: 18000, payment: 'Tunai' },
-]
+export const DEFAULT_SALES = []
 
-export const DEFAULT_EXPENSES = [
-  { id: 'exp-1', sample: true, label: 'Pembelian Kertas HVS A4 2 Rim', amount: 96000, date: new Date().toISOString().slice(0, 10) },
-  { id: 'exp-2', sample: true, label: 'Cup dan Sedotan Es Krim', amount: 150000, date: new Date(Date.now() - 86400000).toISOString().slice(0, 10) },
-]
+export const DEFAULT_EXPENSES = []
 
 const MAX_PAYLOAD_BYTES = 10 * 1024 * 1024 // 10MB maximum JSON payload
 
