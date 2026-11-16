@@ -32,11 +32,22 @@ if (isRemove) {
   process.exit(0)
 }
 
-// Cari target executable: rilis paket bila ada, atau start-desktop.bat
+// Cari target executable: rilis paket .exe bila ada, atau start-app.vbs via wscript.exe
 const releaseExe = path.join(rootDir, 'release', 'win-unpacked', 'globaliti-center.exe')
-const batTarget = path.join(rootDir, 'start-desktop.bat')
+const vbsTarget = path.join(rootDir, 'start-app.vbs')
 
-const targetPath = fs.existsSync(releaseExe) ? releaseExe : batTarget
+let targetPath = ''
+let targetArgs = ''
+
+if (fs.existsSync(releaseExe)) {
+  targetPath = releaseExe
+  targetArgs = ''
+} else {
+  // Gunakan wscript.exe untuk menjalankan aplikasi tanpa memunculkan jendela terminal
+  targetPath = 'wscript.exe'
+  targetArgs = `"${vbsTarget}"`
+}
+
 const iconPath = path.join(rootDir, 'build', 'icon.ico')
 const workingDir = rootDir
 const description = 'Sistem Kasir POS & Laporan Keuangan SAK EMKM Globaliti Creative Center'
@@ -45,8 +56,10 @@ const psScript = `
 $wsh = New-Object -ComObject WScript.Shell
 $sc = $wsh.CreateShortcut('${shortcutPath.replace(/'/g, "''")}')
 $sc.TargetPath = '${targetPath.replace(/'/g, "''")}'
+$sc.Arguments = '${targetArgs.replace(/'/g, "''")}'
 $sc.WorkingDirectory = '${workingDir.replace(/'/g, "''")}'
 $sc.Description = '${description.replace(/'/g, "''")}'
+$sc.WindowStyle = 7
 if (Test-Path '${iconPath.replace(/'/g, "''")}') {
     $sc.IconLocation = '${iconPath.replace(/'/g, "''")},0'
 }

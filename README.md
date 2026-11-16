@@ -211,7 +211,9 @@ Aplikasi desktop menggabungkan server Node.js SQLite lokal dan jendela Chromium 
 # Menjalankan aplikasi desktop langsung:
 npm run app
 
-# Di Windows, bisa klik dua kali berkas:
+# Di Windows, bisa klik dua kali berkas (berjalan hening tanpa jendela terminal):
+start-app.vbs
+# Atau klik:
 start-desktop.bat
 
 # Daftarkan langsung ke Windows Start Menu & Taskbar Search:
@@ -220,6 +222,10 @@ npm run register:start-menu
 # Membangun file instalasi executable (.exe Windows Setup):
 npm run dist:win
 ```
+- **Tampilan Bersih & Hening (Zero-Terminal)**:
+  - Berjalan sepenuhnya di latar belakang tanpa mengekspos jendela terminal atau command prompt.
+  - Menu bar sistem bawaan dinonaktifkan (`autoHideMenuBar`) agar antarmuka kasir bersih dan tidak terdistraksi.
+  - Pintasan kasir tetap aktif: `F11` (layar penuh kiosk), `Ctrl+P` (cetak nota), `F5`/`Ctrl+R` (muat ulang), `F12` (dev tools).
 - **Integrasi Windows Search & Taskbar**:
   - Didaftarkan dengan `AppUserModelId` (`com.globaliti.center`) dan nama produk resmi `Globaliti Creative Center`.
   - Menggunakan logo resmi perusahaan (`public/globaliti-creative-center-icon.png` yang dikemas ke format multi-resolusi `build/icon.ico`: 16x16 hingga 256x256).

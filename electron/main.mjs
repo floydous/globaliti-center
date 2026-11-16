@@ -76,73 +76,52 @@ async function ensureServerRunning() {
   }
 }
 
-function createMenu() {
-  const isMac = process.platform === 'darwin'
-  const template = [
-    ...(isMac
-      ? [{
-          label: app.name,
-          submenu: [
-            { role: 'about', label: 'Tentang Globaliti' },
-            { type: 'separator' },
-            { role: 'quit', label: 'Keluar' },
-          ],
-        }]
-      : []),
-    {
-      label: 'Sistem',
-      submenu: [
-        {
-          label: 'Cetak Nota (Print)',
-          accelerator: 'CmdOrCtrl+P',
-          click: () => {
-            mainWindow?.webContents.print()
-          },
-        },
-        {
-          label: 'Muat Ulang Halaman',
-          accelerator: 'CmdOrCtrl+R',
-          click: () => {
-            mainWindow?.reload()
-          },
-        },
-        {
-          label: 'Layar Penuh (Kiosk/POS)',
-          accelerator: 'F11',
-          click: () => {
-            if (mainWindow) {
-              mainWindow.setFullScreen(!mainWindow.isFullScreen())
-            }
-          },
-        },
-        { type: 'separator' },
-        {
-          label: 'Keluar',
-          accelerator: isMac ? 'Cmd+Q' : 'Alt+F4',
-          click: () => {
-            app.quit()
-          },
-        },
-      ],
-    },
-    {
-      label: 'Tampilan',
-      submenu: [
-        { role: 'resetZoom', label: 'Ukuran Normal' },
-        { role: 'zoomIn', label: 'Perbesar (+)' },
-        { role: 'zoomOut', label: 'Perkecil (-)' },
-        { type: 'separator' },
-        { role: 'toggleDevTools', label: 'Buka Developer Tools (F12)', accelerator: 'F12' },
-      ],
-    },
-  ]
+function setupShortcuts(win) {
+  win.webContents.on('before-input-event', (event, input) => {
+    if (input.type !== 'keyDown') return
 
-  const menu = Menu.buildFromTemplate(template)
-  Menu.setApplicationMenu(menu)
+    // F11: Layar Penuh (Kiosk/POS)
+    if (input.key === 'F11') {
+      win.setFullScreen(!win.isFullScreen())
+      event.preventDefault()
+      return
+    }
+
+    // Ctrl+P / Cmd+P: Cetak Nota
+    if ((input.control || input.meta) && (input.key === 'p' || input.key === 'P')) {
+      win.webContents.print()
+      event.preventDefault()
+      return
+    }
+
+    // F5 / Ctrl+R: Muat Ulang Halaman
+    if (input.key === 'F5' || ((input.control || input.meta) && (input.key === 'r' || input.key === 'R'))) {
+      win.reload()
+      event.preventDefault()
+      return
+    }
+
+    // F12 / Ctrl+Shift+I: Developer Tools
+    if (input.key === 'F12' || ((input.control || input.meta) && input.shift && (input.key === 'i' || input.key === 'I'))) {
+      win.webContents.toggleDevTools()
+      event.preventDefault()
+      return
+    }
+
+    // Alt+F4 / Ctrl+Q: Keluar
+    if (((input.control || input.meta) && (input.key === 'q' || input.key === 'Q')) || (input.alt && input.key === 'F4')) {
+      app.quit()
+      event.preventDefault()
+      return
+    }
+  })
 }
 
 async function createWindow() {
   await ensureServerRunning()
+
+  // Hapus menu bar bawaan ("Sistem", "Tampilan") agar tampilan aplikasi bersih dan profesional
+  Menu.setApplicationMenu(null)
 
   const iconPath = process.platform === 'win32' && fs.existsSync(path.resolve(__dirname, '../build/icon.ico'))
     ? path.resolve(__dirname, '../build/icon.ico')
@@ -156,6 +135,7 @@ async function createWindow() {
     title: 'Globaliti Creative Center - SMKS TI Bali Global Denpasar',
     icon: iconPath,
     backgroundColor: '#eef1f4',
+    autoHideMenuBar: true,
     show: false,
     webPreferences: {
       contextIsolation: true,
@@ -165,7 +145,7 @@ async function createWindow() {
     },
   })
 
-  createMenu()
+  setupShortcuts(mainWindow)
 
   // Buka tautan luar di browser sistem bawaan OS
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
