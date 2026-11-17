@@ -5,7 +5,15 @@ const BAR_HEIGHT = 56
 const TEXT_Y = BAR_HEIGHT + 10
 
 // Gambar EAN-13 sebagai SVG vektor: tetap tajam saat dicetak dan tidak memerlukan berkas gambar.
-export default function BarcodeImage({ code, className }: { code: string; className?: string }) {
+export default function BarcodeImage({
+  code,
+  className,
+  showText = true,
+}: {
+  code: string
+  className?: string
+  showText?: boolean
+}) {
   const modules = ean13Modules(code)
   const bars: string[] = []
   for (let x = 0; x < modules.length; ) {
@@ -23,18 +31,20 @@ export default function BarcodeImage({ code, className }: { code: string; classN
   return (
     <svg
       className={className}
-      viewBox={`0 0 ${modules.length + QUIET * 2} ${BAR_HEIGHT + 14}`}
+      viewBox={`0 0 ${modules.length + QUIET * 2} ${showText ? BAR_HEIGHT + 14 : BAR_HEIGHT}`}
       role="img"
       aria-label={`Barcode ${code}`}
       preserveAspectRatio="xMidYMid meet"
     >
       <rect width="100%" height="100%" fill="#ffffff" />
       <path d={bars.join('')} fill="#000000" />
-      <g fontFamily="'IBM Plex Mono', monospace" fontSize="9" fill="#000000" textAnchor="middle">
-        <text x={QUIET / 2} y={TEXT_Y}>{code[0]}</text>
-        {[...code.slice(1, 7)].map((digit, index) => <text key={`l${index}`} x={leftStart + index * 7 + 3.5} y={TEXT_Y}>{digit}</text>)}
-        {[...code.slice(7)].map((digit, index) => <text key={`r${index}`} x={rightStart + index * 7 + 3.5} y={TEXT_Y}>{digit}</text>)}
-      </g>
+      {showText && (
+        <g fontFamily="'IBM Plex Mono', monospace" fontSize="9" fill="#000000" textAnchor="middle">
+          <text x={QUIET / 2} y={TEXT_Y}>{code[0]}</text>
+          {[...code.slice(1, 7)].map((digit, index) => <text key={`l${index}`} x={leftStart + index * 7 + 3.5} y={TEXT_Y}>{digit}</text>)}
+          {[...code.slice(7)].map((digit, index) => <text key={`r${index}`} x={rightStart + index * 7 + 3.5} y={TEXT_Y}>{digit}</text>)}
+        </g>
+      )}
     </svg>
   )
 }

@@ -108,10 +108,26 @@ test.describe('Barcode untuk produk tanpa barcode pabrik', () => {
     await expect(print.getByRole('button', { name: /Unduh Gambar \(PNG\)/ })).toBeEnabled()
     await expect(print.getByRole('button', { name: /PDF/ })).toHaveCount(0)
     await expect(print.getByRole('button', { name: /^Cetak \(/ })).toHaveCount(0)
+    // Pratinjau lembar hanya menampilkan barcode murni tanpa teks/nama/angka
+    await print.getByRole('tab', { name: /Pratinjau Lembar/ }).click()
+    const previewSheet = print.locator('.barcode-preview-sheet')
+    await expect(previewSheet).toBeVisible()
+    await expect(previewSheet).not.toContainText('Es Lilin Tanpa Barcode')
+    await expect(previewSheet).not.toContainText('LEMBAR BARCODE')
+    await expect(previewSheet.locator('svg text')).toHaveCount(0)
+
+    // Unduh berkas PNG bernama barcode-<nama produk>.png
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      print.getByRole('button', { name: /Unduh Gambar \(PNG\)/ }).click(),
+    ])
+    expect(download.suggestedFilename()).toBe('barcode-Es Lilin Tanpa Barcode.png')
+
     const sheet = page.locator('#barcode-print-root .barcode-label')
     await expect(sheet).toHaveCount(1)
-    await expect(sheet).toContainText('Es Lilin Tanpa Barcode')
+    await expect(sheet).not.toContainText('Es Lilin Tanpa Barcode')
     await expect(sheet.locator(`svg[aria-label="Barcode ${code}"]`)).toBeAttached()
+    await expect(sheet.locator('svg text')).toHaveCount(0)
 
     // Di luar mode cetak lembar disembunyikan; saat mencetak hanya lembar yang tampil
     await expect(page.locator('#barcode-print-root')).toBeHidden()

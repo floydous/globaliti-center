@@ -35,63 +35,85 @@ export default function BarcodePrintDialog({ products, onClose }: { products: Pr
   const downloadPng = () => {
     if (chosen.length === 0) return
 
-    const cols = 3
+    const cleanName = chosen[0].name.trim().replace(/[\\/:*?"<>|]/g, '-')
+    const filename = chosen.length === 1
+      ? `barcode-${cleanName}.png`
+      : `barcode-${cleanName}-dkk.png`
+
+    if (chosen.length === 1) {
+      // Barcode tunggal: ukuran pas, hanya barcode murni tanpa teks sama sekali
+      const product = chosen[0]
+      const modules = ean13Modules(product.barcode)
+      const quiet = 9
+      const totalModules = modules.length + quiet * 2
+      const moduleWidth = 4
+      const barHeight = 160
+      const padding = 20
+
+      const canvas = document.createElement('canvas')
+      canvas.width = totalModules * moduleWidth + padding * 2
+      canvas.height = barHeight + padding * 2
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+
+      // Latar belakang putih bersih
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+      // Garis barcode hitam murni (tanpa teks nama produk, tanpa angka, tanpa garis putus-putus)
+      ctx.fillStyle = '#000000'
+      const startX = padding + quiet * moduleWidth
+      const startY = padding
+
+      for (let i = 0; i < modules.length; i++) {
+        if (modules[i] === '1') {
+          ctx.fillRect(startX + i * moduleWidth, startY, moduleWidth, barHeight)
+        }
+      }
+
+      canvas.toBlob((blob) => {
+        if (!blob) return
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        a.click()
+        URL.revokeObjectURL(url)
+      }, 'image/png')
+      return
+    }
+
+    // Banyak barcode: grid barcode murni tanpa teks judul, nama produk, maupun angka
+    const cols = Math.min(chosen.length, 3)
     const rows = Math.ceil(chosen.length / cols)
     const cardWidth = 320
-    const cardHeight = 150
+    const cardHeight = 130
     const gap = 16
-    const padding = 24
-    const titleHeight = 50
+    const padding = 20
 
     const canvas = document.createElement('canvas')
     canvas.width = padding * 2 + cols * cardWidth + (cols - 1) * gap
-    canvas.height = padding * 2 + titleHeight + rows * cardHeight + (rows - 1) * gap
+    canvas.height = padding * 2 + rows * cardHeight + (rows - 1) * gap
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Background
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    // Header Title
-    ctx.fillStyle = '#0f5f96'
-    ctx.font = 'bold 18px system-ui, -apple-system, sans-serif'
-    ctx.textAlign = 'left'
-    ctx.fillText('LEMBAR BARCODE KASIR — GLOBALITI CREATIVE CENTER', padding, padding + 22)
-    ctx.fillStyle = '#64748b'
-    ctx.font = '12px system-ui, -apple-system, sans-serif'
-    ctx.fillText(`${chosen.length} label barcode siap pakai untuk meja kasir`, padding, padding + 40)
-
-    // Render each label card
     chosen.forEach((product, idx) => {
       const col = idx % cols
       const row = Math.floor(idx / cols)
       const x = padding + col * (cardWidth + gap)
-      const y = padding + titleHeight + row * (cardHeight + gap)
+      const y = padding + row * (cardHeight + gap)
 
-      // Card border (dashed cutting line)
-      ctx.save()
-      ctx.strokeStyle = '#cbd5e1'
-      ctx.lineWidth = 1.5
-      ctx.setLineDash([4, 4])
-      ctx.strokeRect(x, y, cardWidth, cardHeight)
-      ctx.restore()
-
-      // Product Name
-      ctx.fillStyle = '#0f172a'
-      ctx.font = 'bold 13px system-ui, -apple-system, sans-serif'
-      ctx.textAlign = 'center'
-      ctx.fillText(product.name, x + cardWidth / 2, y + 26, cardWidth - 20)
-
-      // Barcode bars (EAN-13)
       const modules = ean13Modules(product.barcode)
       const quiet = 9
       const totalModules = modules.length + quiet * 2
-      const barAreaWidth = cardWidth - 40
+      const barAreaWidth = cardWidth - 32
       const barWidth = barAreaWidth / totalModules
-      const barHeight = 60
-      const barStartX = x + 20 + quiet * barWidth
-      const barY = y + 38
+      const barHeight = cardHeight - 24
+      const barStartX = x + 16 + quiet * barWidth
+      const barY = y + 12
 
       ctx.fillStyle = '#000000'
       for (let i = 0; i < modules.length; i++) {
@@ -99,11 +121,6 @@ export default function BarcodePrintDialog({ products, onClose }: { products: Pr
           ctx.fillRect(barStartX + i * barWidth, barY, Math.ceil(barWidth), barHeight)
         }
       }
-
-      // Barcode digits
-      ctx.font = '12px "IBM Plex Mono", ui-monospace, monospace'
-      ctx.textAlign = 'center'
-      ctx.fillText(product.barcode, x + cardWidth / 2, barY + barHeight + 18)
     })
 
     canvas.toBlob((blob) => {
@@ -111,7 +128,7 @@ export default function BarcodePrintDialog({ products, onClose }: { products: Pr
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `barcode-kasir-${Date.now()}.png`
+      a.download = filename
       a.click()
       URL.revokeObjectURL(url)
     }, 'image/png')
@@ -177,15 +194,10 @@ export default function BarcodePrintDialog({ products, onClose }: { products: Pr
                 </div>
               ) : (
                 <div className="barcode-preview-sheet">
-                  <div className="barcode-preview-sheet-header">
-                    <strong>LEMBAR BARCODE KASIR</strong>
-                    <span>SMKS TI Bali Global Denpasar — Globaliti Creative Center</span>
-                  </div>
                   <div className="barcode-preview-grid">
                     {chosen.map((product) => (
                       <figure className="barcode-label" key={product.id}>
-                        <figcaption>{product.name}</figcaption>
-                        <BarcodeImage code={product.barcode} className="barcode-label-image" />
+                        <BarcodeImage code={product.barcode} showText={false} className="barcode-label-image" />
                       </figure>
                     ))}
                   </div>
@@ -236,8 +248,7 @@ export default function BarcodePrintDialog({ products, onClose }: { products: Pr
         <div id="barcode-print-root" aria-hidden="true">
           {chosen.map((product) => (
             <figure className="barcode-label" key={product.id}>
-              <figcaption>{product.name}</figcaption>
-              <BarcodeImage code={product.barcode} className="barcode-label-image" />
+              <BarcodeImage code={product.barcode} showText={false} className="barcode-label-image" />
             </figure>
           ))}
         </div>,
