@@ -27,6 +27,7 @@ type FinanceViewProps = {
   onClearSampleData: () => void
   onAddExpense: (expense: Omit<Expense, 'id'>) => void
   onCancelSaleItem?: (saleId: string, productId: string, cancelQty: number) => void
+  onNotify?: (message: string) => void
   tab?: FinanceTab
   onTabChange?: (tab: FinanceTab) => void
 }
@@ -47,11 +48,13 @@ export default function FinanceView({
   onClearSampleData,
   onAddExpense,
   onCancelSaleItem,
+  onNotify,
   tab = 'laba_rugi',
 }: FinanceViewProps) {
   const [showExpenseModal, setShowExpenseModal] = useState(false)
   const [showPreviewModal, setShowPreviewModal] = useState(false)
   const [confirmClearSample, setConfirmClearSample] = useState(false)
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
   const [expenseForm, setExpenseForm] = useState({
     label: '',
     amount: 50000,
@@ -126,6 +129,28 @@ export default function FinanceView({
       amount: 50000,
       date: new Date().toISOString().slice(0, 10),
     })
+  }
+
+  const handleDownloadPdf = async () => {
+    if (window.electronAPI?.downloadPdf) {
+      setIsDownloadingPdf(true)
+      try {
+        const defaultFilename = `Laporan-Keuangan-SAK-EMKM-${period.start}-${period.end}.pdf`
+        const res = await window.electronAPI.downloadPdf({ filename: defaultFilename })
+        if (res.success && res.filename) {
+          onNotify?.(`Laporan keuangan berhasil disimpan: ${res.filename}`)
+        } else if (res.error) {
+          onNotify?.(`Gagal menyimpan PDF: ${res.error}`)
+        }
+      } catch (err) {
+        onNotify?.(err instanceof Error ? err.message : 'Gagal mengekspor dokumen PDF')
+      } finally {
+        setIsDownloadingPdf(false)
+      }
+    } else {
+      // Di peramban web (tanpa lingkungan desktop Electron), gunakan dialog cetak browser
+      window.print()
+    }
   }
 
   return (
@@ -459,10 +484,11 @@ export default function FinanceView({
                 <button
                   type="button"
                   className="secondary-button"
-                  onClick={() => window.print()}
-                  title="Unduh atau simpan dokumen sebagai file PDF melalui dialog cetak sistem"
+                  onClick={handleDownloadPdf}
+                  disabled={isDownloadingPdf}
+                  title="Unduh laporan keuangan langsung sebagai berkas PDF resmi"
                 >
-                  <DownloadSimple size={16} weight="bold" /> Unduh (PDF)
+                  <DownloadSimple size={16} weight="bold" /> {isDownloadingPdf ? 'Menyimpan PDF...' : 'Unduh (PDF)'}
                 </button>
                 <button
                   type="button"

@@ -70,3 +70,18 @@ export type AiMessage = {
   actions?: AiAction[]
   streaming?: boolean
 }
+
+declare global {
+  interface Window {
+    electronAPI?: {
+      isElectron?: boolean
+      downloadPdf?: (options?: { filename?: string }) => Promise<{
+        success: boolean
+        canceled?: boolean
+        filePath?: string
+        filename?: string
+        error?: string
+      }>
+    }
+  }
+}

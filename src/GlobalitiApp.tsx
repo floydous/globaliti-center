@@ -1476,6 +1476,7 @@ function GlobalitiApp() {
               onClearSampleData={clearSampleData}
               onAddExpense={handleAddExpense}
               onCancelSaleItem={handleCancelSaleItem}
+              onNotify={notify}
               tab={financeTab}
               onTabChange={setFinanceTab}
             />

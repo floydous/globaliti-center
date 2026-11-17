@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, shell } from 'electron'
+import { app, BrowserWindow, Menu, shell, ipcMain, dialog } from 'electron'
 import path from 'node:path'
 import http from 'node:http'
 import fs from 'node:fs'
@@ -138,9 +138,10 @@ async function createWindow() {
     autoHideMenuBar: true,
     show: false,
     webPreferences: {
+      preload: path.resolve(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true,
+      sandbox: false,
       webSecurity: true,
     },
   })
@@ -165,6 +166,46 @@ async function createWindow() {
 
   await mainWindow.loadURL(APP_URL)
 }
+
+ipcMain.handle('download-pdf', async (event, options = {}) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (!win) return { success: false, error: 'Window not found' }
+
+  try {
+    const defaultFilename = options.filename || `Laporan-Keuangan-${new Date().toISOString().slice(0, 10)}.pdf`
+    let defaultPath = defaultFilename
+    try {
+      defaultPath = path.join(app.getPath('downloads'), defaultFilename)
+    } catch {
+      defaultPath = defaultFilename
+    }
+
+    const { canceled, filePath } = await dialog.showSaveDialog(win, {
+      title: 'Simpan Laporan Keuangan (PDF)',
+      defaultPath,
+      filters: [
+        { name: 'Dokumen PDF (*.pdf)', extensions: ['pdf'] },
+        { name: 'Semua Berkas (*.*)', extensions: ['*'] },
+      ],
+    })
+
+    if (canceled || !filePath) {
+      return { success: false, canceled: true }
+    }
+
+    const pdfBuffer = await win.webContents.printToPDF({
+      pageSize: 'A4',
+      printBackground: true,
+      preferCSSPageSize: true,
+    })
+
+    await fs.promises.writeFile(filePath, pdfBuffer)
+    return { success: true, filePath, filename: path.basename(filePath) }
+  } catch (err) {
+    console.error('Gagal mengekspor PDF:', err)
+    return { success: false, error: err.message }
+  }
+})
 
 app.whenReady().then(async () => {
   await createWindow()
