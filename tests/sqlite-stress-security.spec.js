@@ -2,6 +2,18 @@ import { test, expect } from '@playwright/test'
 import { getDb, getStoreData, saveStoreData, DEFAULT_PRODUCTS, DEFAULT_SALES, DEFAULT_EXPENSES } from '../scripts/sqlite-store.mjs'
 
 test.describe('SQLite Security Hardening & Edge Cases', () => {
+  let baselineStore = null
+
+  test.beforeAll(() => {
+    baselineStore = getStoreData()
+  })
+
+  test.afterAll(() => {
+    if (baselineStore) {
+      saveStoreData(baselineStore)
+    }
+  })
+
   test('rejects cross-site requests via Sec-Fetch-Site: cross-site', async ({ request }) => {
     const res = await request.get('http://127.0.0.1:4173/api/db/store', {
       headers: {

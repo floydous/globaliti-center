@@ -8,10 +8,22 @@ import {
   getBackupSlotInfo,
   performDailyBackup,
   getBackupList,
+  getStoreData,
   saveStoreData,
 } from '../scripts/sqlite-store.mjs'
 
 test.describe('SQLite 7-Day Rolling Backup Rotation', () => {
+  let baselineStore = null
+
+  test.beforeAll(() => {
+    baselineStore = getStoreData()
+  })
+
+  test.afterAll(() => {
+    if (baselineStore) {
+      saveStoreData(baselineStore)
+    }
+  })
   test('calculates correct slot and proper filename for each day of week', () => {
     // 2026-11-16 is Monday -> Day 1
     const mon = getBackupSlotInfo(new Date('2026-11-16T10:00:00Z'))
@@ -60,13 +72,14 @@ test.describe('SQLite 7-Day Rolling Backup Rotation', () => {
     expect(fs.existsSync(day1File)).toBe(true)
 
     // Simulate saving new store data before Day 8
+    const currentData = getStoreData()
     saveStoreData({
+      ...currentData,
       products: [
+        ...currentData.products.filter((p) => p.id !== 'backup-test-p1'),
         { id: 'backup-test-p1', barcode: '8999999999999', name: 'Test Ice Cream Day 8', price: 9999, stock: 99, active: true },
       ],
-      sales: [],
-      expenses: [],
-      profile: { unitName: 'Unit Day 8 Overwrite' },
+      profile: { ...currentData.profile, unitName: 'Unit Day 8 Overwrite' },
     })
 
     // Day 8: Next Monday, Nov 23, 2026 (7 days after Nov 16)

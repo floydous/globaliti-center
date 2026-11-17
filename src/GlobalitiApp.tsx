@@ -1244,11 +1244,6 @@ function GlobalitiApp() {
                       className={`catalog-box-card ${product.active ? '' : 'inactive'}`}
                       key={product.id}
                     >
-                      {!product.active && (
-                        <div className="catalog-card-inactive-banner">
-                          <Prohibit size={13} weight="bold" /> NONAKTIF (OFF KASIR)
-                        </div>
-                      )}
                       <div className="catalog-box-image-wrap">
                         <div
                           className="catalog-box-image"
@@ -1262,6 +1257,11 @@ function GlobalitiApp() {
                       </div>
 
                       <div className="catalog-box-body">
+                        {!product.active && (
+                          <div className="catalog-card-inactive-banner">
+                            <Prohibit size={13} weight="bold" /> NONAKTIF (OFF KASIR)
+                          </div>
+                        )}
                         <div className="catalog-box-title-row">
                           <h3 className="catalog-box-title">{product.name}</h3>
                           <strong className="box-price-val">{formatRupiah(product.price)}</strong>
@@ -1650,36 +1650,31 @@ function GlobalitiApp() {
             aria-label="Pemberitahuan Sistem"
             onClick={(event) => event.stopPropagation()}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="notice-modal-header">
+              <div className="notice-modal-header-left">
                 <div className="notice-icon-circle">
-                  <Info size={22} weight="bold" />
+                  <Info size={20} weight="bold" />
                 </div>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--gc-text)' }}>Pemberitahuan Sistem</h3>
-                  <small style={{ color: 'var(--gc-text-muted)', fontSize: '12px' }}>{profile.unitName}</small>
-                </div>
+                <h3 className="notice-modal-title">Pemberitahuan</h3>
               </div>
               <button
                 type="button"
-                className="secondary-button icon-only"
+                className="notice-modal-close-icon"
                 aria-label="Tutup pemberitahuan"
                 onClick={() => setNotice('')}
-                style={{ padding: '6px', borderRadius: '50%' }}
               >
-                <X size={16} />
+                <X size={16} weight="bold" />
               </button>
             </div>
-            <div style={{ fontSize: '14px', lineHeight: 1.5, color: 'var(--gc-text)', marginBottom: '18px' }}>
+            <div className="notice-modal-content">
               {notice}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+            <div className="notice-modal-footer">
               <button
                 type="button"
-                className="primary-action"
+                className="primary-action notice-modal-btn"
                 onClick={() => setNotice('')}
                 autoFocus
-                style={{ minWidth: '90px' }}
               >
                 Tutup
               </button>

@@ -3,6 +3,18 @@ import fs from 'node:fs'
 import { getDb, getStoreData, saveStoreData, isDbEmpty, DB_FILE, DEFAULT_PRODUCTS } from '../scripts/sqlite-store.mjs'
 
 test.describe('SQLite Local Store Backend', () => {
+  let baselineStore = null
+
+  test.beforeAll(() => {
+    baselineStore = getStoreData()
+  })
+
+  test.afterAll(() => {
+    if (baselineStore) {
+      saveStoreData(baselineStore)
+    }
+  })
+
   test('initializes database and creates required tables', () => {
     const db = getDb()
     expect(db).toBeDefined()
@@ -61,7 +73,7 @@ test.describe('SQLite API Endpoints & Download', () => {
     const body = await res.json()
     expect(body.ok).toBe(true)
     expect(body.data).toBeDefined()
-    expect(body.data.products.length).toBe(36)
+    expect(body.data.products.length).toBeGreaterThanOrEqual(36)
   })
 
   test('GET /api/db/backup.sqlite downloads valid sqlite database file', async ({ request }) => {

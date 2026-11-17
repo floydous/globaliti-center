@@ -348,20 +348,20 @@
 }
 
 .catalog-card-inactive-banner {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 5px;
-  padding: 4px 8px;
+  padding: 3px 8px;
   border-radius: var(--gc-radius-xs);
   background: #e11d48;
   color: #ffffff;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.4px;
   text-transform: uppercase;
-  margin-bottom: 8px;
-  width: 100%;
+  width: fit-content;
+  margin-bottom: 2px;
 }
 
 .inactive-prominent-badge {
