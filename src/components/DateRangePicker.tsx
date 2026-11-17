@@ -43,9 +43,9 @@ export default function DateRangePicker({ from, to, markedDays, onChange }: Prop
   const gridRef = useRef<HTMLDivElement | null>(null)
 
   const openPicker = () => {
-    // Buka di bulan pilihan; tanpa pilihan, di bulan penjualan terbaru agar langsung ada isinya
+    // Buka di bulan pilihan yang ada catatannya; jika tidak ada, di bulan penjualan terbaru agar langsung ada isinya
     const latest = [...markedDays].sort().at(-1)
-    const focusKey = from || to || latest || localDateKey()
+    const focusKey = (from && markedDays.has(from) ? from : '') || (to && markedDays.has(to) ? to : '') || latest || from || to || localDateKey()
     const date = parseKey(focusKey)
     setView({ year: date.getFullYear(), month: date.getMonth() })
     setOpen(true)
@@ -150,6 +150,8 @@ export default function DateRangePicker({ from, to, markedDays, onChange }: Prop
         className={from || to ? 'date-range-trigger has-value' : 'date-range-trigger'}
         aria-haspopup="dialog"
         aria-expanded={open}
+        aria-label="Pilih tanggal"
+        title={from || to ? `Rentang tanggal: ${formatRangeLabel(from, to)}` : 'Pilih tanggal'}
         onClick={() => (open ? close() : openPicker())}
       >
         <CalendarBlank size={16} />

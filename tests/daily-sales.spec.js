@@ -35,6 +35,12 @@ test.describe('Penjualan Harian', () => {
     await seedStore(page)
     await openDaily(page)
 
+    // Filter tanggal bawaan (default) adalah Hari ini
+    await expect(page.getByRole('button', { name: 'Hari ini', exact: true })).toHaveAttribute('aria-pressed', 'true')
+
+    // Buka filter Semua untuk melihat seluruh data historis contoh
+    await page.getByRole('button', { name: 'Semua', exact: true }).click()
+
     const table = page.locator('.daily-days')
     await expect(table).toContainText('25 Maret 2025')
     await expect(table).toContainText('20 Maret 2025')
@@ -194,6 +200,9 @@ test.describe('Penjualan Harian', () => {
   test('membatalkan item pembelian mengembalikan stok dan mengurangi kas/pendapatan', async ({ page }) => {
     await seedStore(page)
     await openDaily(page)
+
+    // Buka filter Semua untuk melihat transaksi historis 20 Maret 2025
+    await page.getByRole('button', { name: 'Semua', exact: true }).click()
 
     // Buka 20 Maret 2025 yang memiliki TRX-0002
     await page.getByRole('button', { name: /20 Maret 2025/ }).click()

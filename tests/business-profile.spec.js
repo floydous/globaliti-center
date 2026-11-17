@@ -116,6 +116,7 @@ test.describe('Data contoh', () => {
     await page.getByRole('button', { name: 'Hapus data contoh', exact: true }).click()
     await page.getByRole('dialog').getByRole('button', { name: 'Hapus data contoh' }).click()
     await page.getByRole('tab', { name: 'Penjualan Harian' }).click()
+    await page.getByRole('button', { name: 'Semua', exact: true }).click()
     // Nota asli bertanggal tetap ada; tiga nota contoh hilang
     await expect(page.locator('.daily-sales')).toContainText('TRX-0004')
     await expect(page.locator('.daily-sales')).not.toContainText('TRX-0001')

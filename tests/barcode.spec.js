@@ -105,7 +105,8 @@ test.describe('Barcode untuk produk tanpa barcode pabrik', () => {
     const print = page.getByRole('dialog', { name: 'Cetak barcode kasir' })
     // Hanya barcode buatan yang terpilih sejak awal
     await expect(print.getByRole('checkbox', { name: /Es Lilin Tanpa Barcode/ })).toBeChecked()
-    await expect(print.getByRole('button', { name: 'Cetak (1)' })).toBeEnabled()
+    await expect(print.getByRole('button', { name: /Unduh \(PDF\)/ })).toBeEnabled()
+    await expect(print.getByRole('button', { name: /^Cetak \(/ })).toHaveCount(0)
     const sheet = page.locator('#barcode-print-root .barcode-label')
     await expect(sheet).toHaveCount(1)
     await expect(sheet).toContainText('Es Lilin Tanpa Barcode')

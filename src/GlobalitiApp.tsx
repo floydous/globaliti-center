@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent 
 import {
   ArrowsDownUp,
   Barcode,
+  CaretDown,
   CaretLeft,
   CaretLineLeft,
   CaretLineRight,
@@ -189,6 +190,8 @@ function GlobalitiApp() {
   })
   const storageBlocked = restored.failed
   const [view, setView] = useState<View>('pos')
+  const [financeTab, setFinanceTab] = useState<'laba_rugi' | 'neraca' | 'penjualan' | 'beban'>('laba_rugi')
+  const [financeExpanded, setFinanceExpanded] = useState(true)
   const [products, setProducts] = useState<Product[]>(() => {
     if (restored.data.products) {
       const seedMap = new Map(initialProducts.map((p) => [p.id, p]))
@@ -1035,11 +1038,82 @@ function GlobalitiApp() {
           </div>
           <div className="sidebar-section">
             <span className="sidebar-label">Pembukuan & Kendali</span>
-            <button className={view === 'finance' ? 'nav-item active' : 'nav-item'} onClick={() => setView('finance')}>
-              <span className="nav-indicator" aria-hidden="true" />
-              <FileText size={18} />
-              <span className="nav-label-text">Laporan Keuangan</span>
-            </button>
+            <div className="sidebar-nav-group">
+              <div className="nav-item-composite">
+                <button
+                  type="button"
+                  className={view === 'finance' ? 'nav-item active has-children' : 'nav-item has-children'}
+                  onClick={() => {
+                    setView('finance')
+                    setFinanceExpanded(true)
+                  }}
+                >
+                  <span className="nav-indicator" aria-hidden="true" />
+                  <FileText size={18} />
+                  <span className="nav-label-text">Laporan Keuangan</span>
+                </button>
+                <button
+                  type="button"
+                  className={`nav-expand-btn ${financeExpanded ? 'expanded' : ''}`}
+                  aria-label={financeExpanded ? 'Tutup sub-halaman Laporan Keuangan' : 'Buka sub-halaman Laporan Keuangan'}
+                  title={financeExpanded ? 'Tutup sub-halaman' : 'Buka sub-halaman'}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setFinanceExpanded((prev) => !prev)
+                  }}
+                >
+                  <CaretDown size={14} />
+                </button>
+              </div>
+              {financeExpanded && (
+                <div className="sidebar-subnav" role="group" aria-label="Sub-halaman Laporan Keuangan">
+                  <button
+                    type="button"
+                    className={view === 'finance' && financeTab === 'laba_rugi' ? 'nav-subitem active' : 'nav-subitem'}
+                    onClick={() => {
+                      setView('finance')
+                      setFinanceTab('laba_rugi')
+                    }}
+                  >
+                    <span className="nav-sub-dot" aria-hidden="true" />
+                    <span className="nav-label-text">Laba Rugi</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={view === 'finance' && financeTab === 'neraca' ? 'nav-subitem active' : 'nav-subitem'}
+                    onClick={() => {
+                      setView('finance')
+                      setFinanceTab('neraca')
+                    }}
+                  >
+                    <span className="nav-sub-dot" aria-hidden="true" />
+                    <span className="nav-label-text">Posisi Keuangan (Neraca)</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={view === 'finance' && financeTab === 'penjualan' ? 'nav-subitem active' : 'nav-subitem'}
+                    onClick={() => {
+                      setView('finance')
+                      setFinanceTab('penjualan')
+                    }}
+                  >
+                    <span className="nav-sub-dot" aria-hidden="true" />
+                    <span className="nav-label-text">Penjualan Harian</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={view === 'finance' && financeTab === 'beban' ? 'nav-subitem active' : 'nav-subitem'}
+                    onClick={() => {
+                      setView('finance')
+                      setFinanceTab('beban')
+                    }}
+                  >
+                    <span className="nav-sub-dot" aria-hidden="true" />
+                    <span className="nav-label-text">Beban Operasional</span>
+                  </button>
+                </div>
+              )}
+            </div>
             <button className={view === 'settings' ? 'nav-item active' : 'nav-item'} onClick={() => setView('settings')}>
               <span className="nav-indicator" aria-hidden="true" />
               <GearSix size={18} />
@@ -1406,6 +1480,8 @@ function GlobalitiApp() {
               onClearSampleData={clearSampleData}
               onAddExpense={handleAddExpense}
               onCancelSaleItem={handleCancelSaleItem}
+              tab={financeTab}
+              onTabChange={setFinanceTab}
             />
           )}
 

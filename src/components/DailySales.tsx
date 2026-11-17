@@ -35,9 +35,9 @@ export default function DailySales({
   profile: BusinessProfile
   onCancelSaleItem?: (saleId: string, productId: string, cancelQty: number) => void
 }) {
-  const [preset, setPreset] = useState<Preset>('all')
-  const [from, setFrom] = useState('')
-  const [to, setTo] = useState('')
+  const [preset, setPreset] = useState<Preset>('today')
+  const [from, setFrom] = useState(() => localDateKey())
+  const [to, setTo] = useState(() => localDateKey())
   const [closedDays, setClosedDays] = useState<Set<string>>(new Set())
   const [openedDays, setOpenedDays] = useState<Set<string>>(new Set())
   const [printing, setPrinting] = useState(false)

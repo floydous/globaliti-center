@@ -103,6 +103,18 @@
     color: #ffffff;
   }
 
+  .nav-expand-btn {
+    display: none;
+  }
+
+  .sidebar-subnav {
+    display: none;
+  }
+
+  .sidebar-nav-group {
+    display: contents;
+  }
+
   .app-column {
     margin-left: 0;
   }

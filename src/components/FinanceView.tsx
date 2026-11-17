@@ -16,6 +16,8 @@ import { estimateCost } from '../lib/hpp'
 import { costRatio, reportPeriod, type BusinessProfile } from '../lib/business'
 import { formatLongDate } from '../lib/dailySales'
 
+export type FinanceTab = 'laba_rugi' | 'neraca' | 'penjualan' | 'beban'
+
 type FinanceViewProps = {
   products: Product[]
   sales: Sale[]
@@ -25,6 +27,8 @@ type FinanceViewProps = {
   onClearSampleData: () => void
   onAddExpense: (expense: Omit<Expense, 'id'>) => void
   onCancelSaleItem?: (saleId: string, productId: string, cancelQty: number) => void
+  tab?: FinanceTab
+  onTabChange?: (tab: FinanceTab) => void
 }
 
 const formatRupiah = (value: number) =>
@@ -43,8 +47,15 @@ export default function FinanceView({
   onClearSampleData,
   onAddExpense,
   onCancelSaleItem,
+  tab: propTab,
+  onTabChange,
 }: FinanceViewProps) {
-  const [tab, setTab] = useState<'laba_rugi' | 'neraca' | 'penjualan' | 'beban'>('laba_rugi')
+  const [internalTab, setInternalTab] = useState<FinanceTab>('laba_rugi')
+  const tab = propTab ?? internalTab
+  const setTab = (nextTab: FinanceTab) => {
+    setInternalTab(nextTab)
+    onTabChange?.(nextTab)
+  }
   const [showExpenseModal, setShowExpenseModal] = useState(false)
   const [showPreviewModal, setShowPreviewModal] = useState(false)
   const [confirmClearSample, setConfirmClearSample] = useState(false)
