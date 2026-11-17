@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { DownloadSimple, Eye, ImageSquare, ListChecks, X } from '@phosphor-icons/react'
+import { Eye, ImageSquare, ListChecks, X } from '@phosphor-icons/react'
 import type { Product } from '../types'
 import { ean13Modules, isValidEan13 } from '../lib/barcode'
 import BarcodeImage from './BarcodeImage'
@@ -31,16 +31,6 @@ export default function BarcodePrintDialog({ products, onClose }: { products: Pr
       else next.add(id)
       return next
     })
-
-  const downloadPdf = () => {
-    document.body.classList.add('printing-barcodes')
-    const done = () => {
-      document.body.classList.remove('printing-barcodes')
-      window.removeEventListener('afterprint', done)
-    }
-    window.addEventListener('afterprint', done)
-    window.print()
-  }
 
   const downloadPng = () => {
     if (chosen.length === 0) return
@@ -134,7 +124,7 @@ export default function BarcodePrintDialog({ products, onClose }: { products: Pr
           <div className="modal-header">
             <div>
               <h2>Cetak barcode kasir</h2>
-              <p className="modal-sub">Pratinjau dan unduh lembar barcode kasir sebagai dokumen PDF atau gambar PNG.</p>
+              <p className="modal-sub">Pratinjau dan unduh lembar barcode kasir sebagai berkas gambar PNG.</p>
             </div>
             <div className="barcode-mode-switch" role="tablist" aria-label="Mode tampilan barcode">
               <button
@@ -230,21 +220,12 @@ export default function BarcodePrintDialog({ products, onClose }: { products: Pr
               </button>
               <button
                 type="button"
-                className="secondary-button"
+                className="primary-action"
                 disabled={chosen.length === 0}
                 onClick={downloadPng}
                 title="Unduh lembar barcode kasir sebagai berkas gambar PNG beresolusi tinggi"
               >
-                <ImageSquare size={16} /> Unduh (PNG)
-              </button>
-              <button
-                type="button"
-                className="primary-action"
-                disabled={chosen.length === 0}
-                onClick={downloadPdf}
-                title="Simpan atau unduh lembar barcode kasir sebagai dokumen PDF melalui dialog cetak sistem"
-              >
-                <DownloadSimple size={16} weight="bold" /> Unduh (PDF) {chosen.length > 0 ? `(${chosen.length})` : ''}
+                <ImageSquare size={16} weight="bold" /> Unduh Gambar (PNG) {chosen.length > 0 ? `(${chosen.length})` : ''}
               </button>
             </div>
           </div>

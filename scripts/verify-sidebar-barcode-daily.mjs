@@ -97,14 +97,16 @@ async function run() {
   const previewSheet = barcodeDialog.locator('.barcode-preview-sheet')
   await expectVisible(previewSheet, 'Barcode preview sheet')
 
-  // Verify download buttons exist
-  const downloadPdfBtn = barcodeDialog.getByRole('button', { name: /Unduh \(PDF\)/ })
-  const downloadPngBtn = barcodeDialog.getByRole('button', { name: /Unduh \(PNG\)/ })
-  await expectVisible(downloadPdfBtn, 'Unduh PDF button')
-  await expectVisible(downloadPngBtn, 'Unduh PNG button')
+  // Verify only image download button exists (NO PDF download, NO direct print)
+  const downloadPngBtn = barcodeDialog.getByRole('button', { name: /Unduh Gambar \(PNG\)/ })
+  await expectVisible(downloadPngBtn, 'Unduh Gambar PNG button')
+
+  const pdfBtnCount = await barcodeDialog.locator('button:has-text("PDF")').count()
+  console.log('PDF download button count:', pdfBtnCount)
+  if (pdfBtnCount > 0) throw new Error('PDF download button should NOT exist')
 
   // Verify NO direct "Cetak" button exists
-  const directPrintBtn = barcodeDialog.locator('button.primary-action:has-text("Cetak"), button:has-text("Cetak (")')
+  const directPrintBtn = barcodeDialog.locator('button:has-text("Cetak (")')
   const printBtnCount = await directPrintBtn.count()
   console.log('Direct print button count:', printBtnCount)
   if (printBtnCount > 0) throw new Error('Direct print button should NOT exist in barcode dialog')
