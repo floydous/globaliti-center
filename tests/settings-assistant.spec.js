@@ -32,7 +32,7 @@ test.describe('Pengaturan dan activations asistentes', () => {
 
     // Rekap penjualan harian di Laporan Keuangan tidak punya kolom atau label Kasir.
     await page.getByRole('button', { name: 'Laporan Keuangan', exact: true }).click()
-    await page.getByRole('tab', { name: 'Penjualan Harian' }).click()
+    await page.locator('.sidebar-subnav').getByRole('button', { name: 'Penjualan Harian' }).click()
     await expect(page.locator('.daily-day-head').first()).toBeVisible()
     await expect(page.locator('.daily-sales')).not.toContainText('Kasir')
   })

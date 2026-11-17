@@ -41,7 +41,7 @@ test.describe('Settings Zona Berbahaya', () => {
     await expect(page.locator('.finance-page')).toContainText('Rp 0')
 
     // Tab Posisi Keuangan (Neraca)
-    await page.getByRole('tab', { name: 'Posisi Keuangan (Neraca)' }).click()
+    await page.locator('.sidebar-subnav').getByRole('button', { name: 'Posisi Keuangan (Neraca)' }).click()
     const retainedRow = page.locator('.statement-row').filter({ hasText: 'Saldo Laba Berjalan' })
     await expect(retainedRow).toContainText('Rp 0')
 
@@ -50,13 +50,13 @@ test.describe('Settings Zona Berbahaya', () => {
     await expect(cashRow).toContainText(/Rp[\s\u00a0]*(0|1\.500\.000)/)
 
     // Riwayat Penjualan Harian should have 0 days
-    await page.getByRole('tab', { name: 'Penjualan Harian' }).click()
+    await page.locator('.sidebar-subnav').getByRole('button', { name: 'Penjualan Harian' }).click()
     await expect(page.locator('.daily-sales')).toContainText('0 hari')
 
     // Verify persistence across reload
     await page.reload()
     await page.getByRole('button', { name: 'Laporan Keuangan', exact: true }).click()
-    await page.getByRole('tab', { name: 'Posisi Keuangan (Neraca)' }).click()
+    await page.locator('.sidebar-subnav').getByRole('button', { name: 'Posisi Keuangan (Neraca)' }).click()
     await expect(page.locator('.statement-row').filter({ hasText: 'Saldo Laba Berjalan' })).toContainText('Rp 0')
   })
 })

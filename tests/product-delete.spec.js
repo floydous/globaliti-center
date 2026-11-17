@@ -45,7 +45,7 @@ test.describe('Hapus produk dari katalog', () => {
     await page.getByRole('button', { name: 'Kasir POS', exact: true }).click()
     await expect(page.locator('.recent-sales')).toContainText('3x Produk dihapus')
     await page.getByRole('button', { name: 'Laporan Keuangan', exact: true }).click()
-    await page.getByRole('tab', { name: 'Penjualan Harian' }).click()
+    await page.locator('.sidebar-subnav').getByRole('button', { name: 'Penjualan Harian' }).click()
     await expect(page.locator('.daily-sales')).toContainText('Produk dihapus')
   })
 

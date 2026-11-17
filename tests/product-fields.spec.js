@@ -35,7 +35,7 @@ test.describe('Konsep kategori, unit, dan harga modal dihapus', () => {
   test('catatan beban tidak memakai kategori, kolomnya dihapus dari tabel', async ({ page }) => {
     await page.goto('http://127.0.0.1:4173')
     await page.getByRole('button', { name: 'Laporan Keuangan', exact: true }).click()
-    await page.getByRole('tab', { name: 'Beban Operasional' }).click()
+    await page.locator('.sidebar-subnav').getByRole('button', { name: 'Beban Operasional' }).click()
 
     await expect(page.locator('.finance-simple-table thead')).not.toContainText('Kategori')
   })

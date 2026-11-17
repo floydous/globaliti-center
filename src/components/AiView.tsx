@@ -640,7 +640,7 @@ export default function AiView({
       }
       if (q.includes('laporan') || q.includes('neraca') || q.includes('beban') || q.includes('keuangan')) {
         return {
-          text: 'Cara Menggunakan Pembukuan & Laporan Keuangan:\n1. Buka tab **Laporan Keuangan**.\n2. Tab **Laba Rugi** otomatis menghitung omzet penjualan dikurangi HPP dan beban toko.\n3. Tab **Posisi Keuangan (Neraca)** memantau kas di tangan dan persediaan barang.\n4. Jika ada belanja operasional toko (seperti beli kertas atau tinta), klik tombol **Catat Beban**.',
+          text: 'Cara Menggunakan Pembukuan & Laporan Keuangan:\n1. Buka menu **Laporan Keuangan** di bilah sisi.\n2. Sub-halaman **Laba Rugi** otomatis menghitung omzet penjualan dikurangi HPP dan beban toko.\n3. Sub-halaman **Posisi Keuangan (Neraca)** memantau kas di tangan dan persediaan barang.\n4. Jika ada belanja operasional toko (seperti beli kertas atau tinta), klik tombol **Catat Beban**.',
         }
       }
       return {

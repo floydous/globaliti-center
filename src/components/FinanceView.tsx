@@ -47,15 +47,8 @@ export default function FinanceView({
   onClearSampleData,
   onAddExpense,
   onCancelSaleItem,
-  tab: propTab,
-  onTabChange,
+  tab = 'laba_rugi',
 }: FinanceViewProps) {
-  const [internalTab, setInternalTab] = useState<FinanceTab>('laba_rugi')
-  const tab = propTab ?? internalTab
-  const setTab = (nextTab: FinanceTab) => {
-    setInternalTab(nextTab)
-    onTabChange?.(nextTab)
-  }
   const [showExpenseModal, setShowExpenseModal] = useState(false)
   const [showPreviewModal, setShowPreviewModal] = useState(false)
   const [confirmClearSample, setConfirmClearSample] = useState(false)
@@ -174,42 +167,6 @@ export default function FinanceView({
           <button type="button" className="secondary-button" onClick={() => setConfirmClearSample(true)}>Hapus data contoh</button>
         </div>
       )}
-
-      {/* Tabs Navigasi Bersih */}
-      <div className="finance-tabs" role="tablist">
-        <button
-          role="tab"
-          aria-selected={tab === 'laba_rugi'}
-          className={tab === 'laba_rugi' ? 'tab-btn active' : 'tab-btn'}
-          onClick={() => setTab('laba_rugi')}
-        >
-          Laba Rugi
-        </button>
-        <button
-          role="tab"
-          aria-selected={tab === 'neraca'}
-          className={tab === 'neraca' ? 'tab-btn active' : 'tab-btn'}
-          onClick={() => setTab('neraca')}
-        >
-          Posisi Keuangan (Neraca)
-        </button>
-        <button
-          role="tab"
-          aria-selected={tab === 'penjualan'}
-          className={tab === 'penjualan' ? 'tab-btn active' : 'tab-btn'}
-          onClick={() => setTab('penjualan')}
-        >
-          Penjualan Harian
-        </button>
-        <button
-          role="tab"
-          aria-selected={tab === 'beban'}
-          className={tab === 'beban' ? 'tab-btn active' : 'tab-btn'}
-          onClick={() => setTab('beban')}
-        >
-          Beban Operasional
-        </button>
-      </div>
 
       {/* TAB 1: Laba Rugi */}
       {tab === 'laba_rugi' && (

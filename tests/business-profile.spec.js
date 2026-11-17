@@ -57,7 +57,7 @@ test.describe('Profil unit usaha dan laporan', () => {
       ],
     })
     await openFinance(page)
-    await page.getByRole('tab', { name: 'Posisi Keuangan (Neraca)' }).click()
+    await page.locator('.sidebar-subnav').getByRole('button', { name: 'Posisi Keuangan (Neraca)' }).click()
     // 39.000 pendapatan - 22.230 HPP - 246.000 beban operasional
     await expect(page.locator('.statement-row').filter({ hasText: 'Saldo Laba Berjalan' })).toContainText('229.230')
   })
@@ -98,7 +98,7 @@ test.describe('Data contoh', () => {
     await page.reload()
     await page.getByRole('button', { name: 'Laporan Keuangan', exact: true }).click()
     await expect(page.getByRole('status')).toHaveCount(0)
-    await page.getByRole('tab', { name: 'Penjualan Harian' }).click()
+    await page.locator('.sidebar-subnav').getByRole('button', { name: 'Penjualan Harian' }).click()
     await expect(page.locator('.daily-sales')).toContainText('TRX-0001')
     await expect(page.locator('.daily-sales')).toContainText('TRX-0002')
   })
@@ -115,7 +115,7 @@ test.describe('Data contoh', () => {
     await openFinance(page)
     await page.getByRole('button', { name: 'Hapus data contoh', exact: true }).click()
     await page.getByRole('dialog').getByRole('button', { name: 'Hapus data contoh' }).click()
-    await page.getByRole('tab', { name: 'Penjualan Harian' }).click()
+    await page.locator('.sidebar-subnav').getByRole('button', { name: 'Penjualan Harian' }).click()
     await page.getByRole('button', { name: 'Semua', exact: true }).click()
     // Nota asli bertanggal tetap ada; tiga nota contoh hilang
     await expect(page.locator('.daily-sales')).toContainText('TRX-0004')

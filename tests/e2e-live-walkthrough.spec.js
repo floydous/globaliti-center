@@ -67,11 +67,11 @@ test('Comprehensive E2E interactive walkthrough across all features', async ({ p
   await expect(page.locator('.statement-table')).toBeVisible()
 
   console.log('   - Navigating to Posisi Keuangan (Neraca) tab...')
-  await page.getByRole('tab', { name: 'Posisi Keuangan (Neraca)' }).click()
+  await page.locator('.sidebar-subnav').getByRole('button', { name: 'Posisi Keuangan (Neraca)' }).click()
   await expect(page.locator('.finance-page')).toContainText('Kas dan Setara Kas')
 
   console.log('   - Navigating to Penjualan Harian tab...')
-  await page.getByRole('tab', { name: 'Penjualan Harian' }).click()
+  await page.locator('.sidebar-subnav').getByRole('button', { name: 'Penjualan Harian' }).click()
   await expect(page.locator('.daily-summary')).toBeVisible()
 
   // 4. Pengaturan, 7-Day Rolling Backups & Zona Berbahaya

@@ -27,7 +27,7 @@ const dragDays = async (page, fromDate, toDate) => {
 const openDaily = async (page) => {
   await page.goto('http://127.0.0.1:4173')
   await page.getByRole('button', { name: 'Laporan Keuangan', exact: true }).click()
-  await page.getByRole('tab', { name: 'Penjualan Harian' }).click()
+  await page.locator('.sidebar-subnav').getByRole('button', { name: 'Penjualan Harian' }).click()
 }
 
 test.describe('Penjualan Harian', () => {
@@ -101,7 +101,7 @@ test.describe('Penjualan Harian', () => {
 
     await page.reload()
     await page.getByRole('button', { name: 'Laporan Keuangan', exact: true }).click()
-    await page.getByRole('tab', { name: 'Penjualan Harian' }).click()
+    await page.locator('.sidebar-subnav').getByRole('button', { name: 'Penjualan Harian' }).click()
     await page.getByRole('button', { name: 'Hari ini', exact: true }).click()
 
     const rows = page.locator('.daily-day')
