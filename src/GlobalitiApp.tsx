@@ -1650,24 +1650,24 @@ function GlobalitiApp() {
             aria-label="Pemberitahuan Sistem"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="notice-modal-header">
-              <div className="notice-modal-header-left">
-                <div className="notice-icon-circle">
-                  <Info size={20} weight="bold" />
-                </div>
-                <h3 className="notice-modal-title">Pemberitahuan</h3>
+            <button
+              type="button"
+              className="notice-modal-close-icon"
+              aria-label="Tutup pemberitahuan"
+              onClick={() => setNotice('')}
+            >
+              <X size={16} weight="bold" />
+            </button>
+            <div className="notice-modal-body">
+              <div className="notice-icon-circle">
+                <Info size={22} weight="bold" />
               </div>
-              <button
-                type="button"
-                className="notice-modal-close-icon"
-                aria-label="Tutup pemberitahuan"
-                onClick={() => setNotice('')}
-              >
-                <X size={16} weight="bold" />
-              </button>
-            </div>
-            <div className="notice-modal-content">
-              {notice}
+              <div className="notice-modal-text-group">
+                <h3 className="notice-modal-title">Pemberitahuan</h3>
+                <div className="notice-modal-content">
+                  {notice}
+                </div>
+              </div>
             </div>
             <div className="notice-modal-footer">
               <button

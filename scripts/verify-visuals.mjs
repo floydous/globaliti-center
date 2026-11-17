@@ -18,49 +18,51 @@ async function run() {
   await page.goto('http://127.0.0.1:4173')
   await page.waitForLoadState('networkidle')
 
-  // Click on "Katalog & Stok" tab
+  // 1. Trigger "Stok Strawberry Cup tidak mencukupi" in Kasir POS
+  console.log('Triggering out-of-stock notice in Kasir POS...')
+  const tile = page.locator('.product-tile').filter({ hasText: 'Strawberry Cup' })
+  await tile.waitFor({ state: 'visible' })
+  for (let i = 0; i < 12; i++) {
+    await tile.click()
+  }
+
+  const noticeModal = page.locator('.notice-modal-dialog')
+  await noticeModal.waitFor({ state: 'visible', timeout: 5000 })
+
+  // Screenshot 1: Notice Modal for Strawberry Cup
+  const modalPath = path.join(outputDir, 'notice-modal-strawberry-cup.png')
+  await page.screenshot({ path: modalPath })
+  console.log('Captured modal screenshot:', modalPath)
+
+  // Close modal via close X icon
+  console.log('Closing notice modal via X...')
+  await page.locator('.notice-modal-close-icon').click()
+  await page.waitForTimeout(300)
+
+  // 2. Go to Katalog & Stok and toggle Aice Choco Meets Oats
   console.log('Opening Katalog & Stok tab...')
   await page.click('button:has-text("Katalog & Stok")')
-  await page.waitForTimeout(600)
+  await page.waitForTimeout(500)
 
-  // Find Aice Choco Meets Oats toggle button
-  const card = page.locator('.catalog-box-card:has-text("Aice Choco Meets Oats")')
+  const card = page.locator('.catalog-box-card').filter({ hasText: 'Aice Choco Meets Oats' }).first()
   await card.waitFor({ state: 'visible' })
 
-  // Toggle active/inactive via the power button inside the card
   console.log('Toggling active status...')
   const toggleBtn = card.locator('button[title*="Nonaktifkan"], button[title*="Aktifkan"]').first()
   await toggleBtn.click()
 
-  // Wait for notice modal to appear
-  console.log('Waiting for notice modal...')
-  const noticeModal = page.locator('.notice-modal-dialog')
   await noticeModal.waitFor({ state: 'visible', timeout: 5000 })
+  const modalTogglePath = path.join(outputDir, 'notice-modal-toggle.png')
+  await page.screenshot({ path: modalTogglePath })
+  console.log('Captured modal toggle screenshot:', modalTogglePath)
 
-  // Screenshot 1: Notice Modal
-  const modalPath = path.join(outputDir, 'notice-modal-verified.png')
-  await page.screenshot({ path: modalPath })
-  console.log('Captured modal screenshot:', modalPath)
-
-  // Close notice modal
-  console.log('Closing notice modal...')
+  // Close modal via "Tutup" button
+  console.log('Closing notice modal via Tutup button...')
   await page.locator('.notice-modal-btn').click()
-  await page.locator('.notice-modal-backdrop').waitFor({ state: 'detached', timeout: 3000 }).catch(() => {})
-  await page.waitForTimeout(500)
-
-  // Screenshot 2: Inactive Card Grid
-  const cardGrid = page.locator('.catalog-boxes-grid')
-  const catalogGridPath = path.join(outputDir, 'catalog-inactive-card-verified.png')
-  await cardGrid.screenshot({ path: catalogGridPath })
-  console.log('Captured catalog grid screenshot:', catalogGridPath)
-
-  // Screenshot 3: Full Page
-  const fullPagePath = path.join(outputDir, 'katalog-full-page-verified.png')
-  await page.screenshot({ path: fullPagePath })
-  console.log('Captured full page screenshot:', fullPagePath)
+  await page.waitForTimeout(300)
 
   await browser.close()
-  console.log('All visual verification screenshots captured successfully.')
+  console.log('Done.')
 }
 
 run().catch((err) => {
