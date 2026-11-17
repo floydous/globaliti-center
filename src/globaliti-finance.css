@@ -8,9 +8,9 @@
 
 .finance-header {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 20px;
 }
 
 .finance-header h2 {
@@ -30,7 +30,9 @@
 
 .finance-actions {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
   gap: 8px;
 }
 
