@@ -741,7 +741,6 @@ function GlobalitiApp() {
 
   const toggleProduct = (product: Product) => {
     setProducts((current) => current.map((item) => item.id === product.id ? { ...item, active: !item.active } : item))
-    notify(product.active ? `${product.name} dinonaktifkan` : `${product.name} diaktifkan`)
   }
 
   const openStockAdjustment = (product: Product) => {

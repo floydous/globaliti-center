@@ -50,15 +50,25 @@ async function run() {
   console.log('Toggling active status...')
   const toggleBtn = card.locator('button[title*="Nonaktifkan"], button[title*="Aktifkan"]').first()
   await toggleBtn.click()
+  await page.waitForTimeout(300)
 
-  await noticeModal.waitFor({ state: 'visible', timeout: 5000 })
-  const modalTogglePath = path.join(outputDir, 'notice-modal-toggle.png')
-  await page.screenshot({ path: modalTogglePath })
-  console.log('Captured modal toggle screenshot:', modalTogglePath)
+  // Verify that notice modal does NOT appear
+  const modalVisible = await page.locator('.notice-modal-dialog').isVisible()
+  console.log('Is notice modal visible after toggle?', modalVisible)
+  if (modalVisible) {
+    throw new Error('Notice modal should NOT appear when toggling product active status')
+  }
 
-  // Close modal via "Tutup" button
-  console.log('Closing notice modal via Tutup button...')
-  await page.locator('.notice-modal-btn').click()
+  // Verify card shows inactive state
+  const isInactive = await card.evaluate((el) => el.classList.contains('inactive'))
+  console.log('Is card marked inactive?', isInactive)
+
+  const catalogToggledPath = path.join(outputDir, 'catalog-product-toggled-nomodal.png')
+  await page.screenshot({ path: catalogToggledPath })
+  console.log('Captured catalog screenshot without modal:', catalogToggledPath)
+
+  // Toggle back to active
+  await toggleBtn.click()
   await page.waitForTimeout(300)
 
   await browser.close()
