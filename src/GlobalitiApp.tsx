@@ -942,6 +942,60 @@ function GlobalitiApp() {
     notify('Beban operasional berhasil dicatat')
   }
 
+  const handleCancelSaleItem = (saleId: string, productId: string, cancelQty: number) => {
+    const sale = sales.find((s) => s.id === saleId)
+    if (!sale) return
+
+    const item = sale.items.find((it) => it.productId === productId)
+    if (!item) return
+
+    const actualQty = Math.min(item.quantity, Math.max(1, cancelQty))
+    const refundAmount = item.price * actualQty
+    const prod = products.find((p) => p.id === productId)
+    const pName = prod?.name ?? 'Produk'
+
+    // 1. Restore product stock
+    setProducts((current) =>
+      current.map((p) => (p.id === productId ? { ...p, stock: p.stock + actualQty } : p))
+    )
+
+    // 2. Adjust or remove sale
+    setSales((current) =>
+      current
+        .map((s) => {
+          if (s.id !== saleId) return s
+
+          const nextItems: SaleItem[] = []
+          for (const it of s.items) {
+            if (it.productId === productId) {
+              const rem = it.quantity - actualQty
+              if (rem > 0) {
+                nextItems.push({ ...it, quantity: rem })
+              }
+            } else {
+              nextItems.push(it)
+            }
+          }
+
+          if (nextItems.length === 0) {
+            return null
+          }
+
+          const newTotal = nextItems.reduce((acc, it) => acc + it.price * it.quantity, 0)
+          return {
+            ...s,
+            items: nextItems,
+            total: newTotal,
+          }
+        })
+        .filter((s): s is Sale => s !== null)
+    )
+
+    notify(
+      `Pembelian ${pName} (${actualQty} unit) berhasil dibatalkan. Stok bertambah ${actualQty} dan kas berkurang ${formatRupiah(refundAmount)}.`
+    )
+  }
+
   if (storageBlocked) return <main className="storage-warning" role="alert"><h1>Data lokal tidak dapat dibaca</h1><p>Data asli tidak ditimpa. Jangan hapus penyimpanan browser. Hubungi pengelola untuk memulihkan cadangan.</p></main>
 
   const handleClearChat = () => {
@@ -1352,6 +1406,7 @@ function GlobalitiApp() {
               hasSampleData={hasSampleData}
               onClearSampleData={clearSampleData}
               onAddExpense={handleAddExpense}
+              onCancelSaleItem={handleCancelSaleItem}
             />
           )}
 

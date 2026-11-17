@@ -24,6 +24,7 @@ type FinanceViewProps = {
   hasSampleData: boolean
   onClearSampleData: () => void
   onAddExpense: (expense: Omit<Expense, 'id'>) => void
+  onCancelSaleItem?: (saleId: string, productId: string, cancelQty: number) => void
 }
 
 const formatRupiah = (value: number) =>
@@ -41,6 +42,7 @@ export default function FinanceView({
   hasSampleData,
   onClearSampleData,
   onAddExpense,
+  onCancelSaleItem,
 }: FinanceViewProps) {
   const [tab, setTab] = useState<'laba_rugi' | 'neraca' | 'penjualan' | 'beban'>('laba_rugi')
   const [showExpenseModal, setShowExpenseModal] = useState(false)
@@ -306,7 +308,15 @@ export default function FinanceView({
       )}
 
       {/* TAB 3: Penjualan Harian */}
-      {tab === 'penjualan' && <DailySales sales={sales} products={products} costRatio={ratio} profile={profile} />}
+      {tab === 'penjualan' && (
+        <DailySales
+          sales={sales}
+          products={products}
+          costRatio={ratio}
+          profile={profile}
+          onCancelSaleItem={onCancelSaleItem}
+        />
+      )}
 
       {/* TAB 4: Beban Operasional */}
       {tab === 'beban' && (

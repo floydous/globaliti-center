@@ -190,4 +190,37 @@ test.describe('Penjualan Harian', () => {
     await expect(page.locator('.daily-sales')).toBeHidden()
     await expect(page.locator('.formal-report-print-target')).toBeVisible()
   })
+
+  test('membatalkan item pembelian mengembalikan stok dan mengurangi kas/pendapatan', async ({ page }) => {
+    await seedStore(page)
+    await openDaily(page)
+
+    // Buka 20 Maret 2025 yang memiliki TRX-0002
+    await page.getByRole('button', { name: /20 Maret 2025/ }).click()
+
+    const trx2 = page.locator('.daily-sale-card', { hasText: 'TRX-0002' })
+    await trx2.locator('.daily-sale-summary').click()
+
+    // Batalkan Matcha Cup
+    const matchaEntry = trx2.locator('.daily-sale-item-entry', { hasText: 'Matcha Cup' })
+    await matchaEntry.locator('.daily-sale-cancel-btn').click()
+
+    // Konfirmasi modal terbuka
+    const modal = page.locator('.cancel-sale-modal')
+    await expect(modal).toBeVisible()
+    await expect(modal).toContainText('Matcha Cup')
+    await expect(modal).toContainText('TRX-0002')
+
+    // Konfirmasi pembatalan
+    await modal.getByRole('button', { name: 'Konfirmasi Batalkan' }).click()
+
+    // Notice toast muncul
+    await expect(page.locator('.notice-toast')).toContainText('Pembelian Matcha Cup (1 unit) berhasil dibatalkan')
+    await page.locator('.notice-modal-btn').click()
+
+    // TRX-0002 masih ada karena masih memiliki sisa item
+    await expect(trx2).toBeVisible()
+    const daySection = page.locator('.daily-day', { hasText: '20 Maret 2025' })
+    await expect(daySection.locator('.daily-revenue')).toContainText('21.000')
+  })
 })
