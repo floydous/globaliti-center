@@ -1075,7 +1075,6 @@ function GlobalitiApp() {
                       setFinanceTab('laba_rugi')
                     }}
                   >
-                    <span className="nav-sub-dot" aria-hidden="true" />
                     <span className="nav-label-text">Laba Rugi</span>
                   </button>
                   <button
@@ -1086,7 +1085,6 @@ function GlobalitiApp() {
                       setFinanceTab('neraca')
                     }}
                   >
-                    <span className="nav-sub-dot" aria-hidden="true" />
                     <span className="nav-label-text">Posisi Keuangan (Neraca)</span>
                   </button>
                   <button
@@ -1097,7 +1095,6 @@ function GlobalitiApp() {
                       setFinanceTab('penjualan')
                     }}
                   >
-                    <span className="nav-sub-dot" aria-hidden="true" />
                     <span className="nav-label-text">Penjualan Harian</span>
                   </button>
                   <button
@@ -1108,7 +1105,6 @@ function GlobalitiApp() {
                       setFinanceTab('beban')
                     }}
                   >
-                    <span className="nav-sub-dot" aria-hidden="true" />
                     <span className="nav-label-text">Beban Operasional</span>
                   </button>
                 </div>
