@@ -28,6 +28,8 @@ const LOCAL_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 
 // Rantai model resmi Groq, dari yang paling pintar ke paling dasar.
 const TEST_MODELS = [
+  'openai/gpt-oss-120b',
+  'openai/gpt-oss-20b',
   'llama-3.3-70b-versatile',
   'llama-3.1-8b-instant',
   'mixtral-8x7b-32768',

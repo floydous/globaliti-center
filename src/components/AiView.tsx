@@ -656,7 +656,9 @@ export default function AiView({
 
   // Urutan rantai model resmi Groq: dari yang paling pintar hingga paling dasar
   const GROQ_FALLBACK_CHAIN = [
-    'llama-3.3-70b-versatile',      // Model 70B terbaik Groq: penalaran tinggi, fasih bahasa Indonesia, native tool calling
+    'openai/gpt-oss-120b',          // Model 120B reasoning terbaik Groq: penalaran tinggi, native tool calling
+    'openai/gpt-oss-20b',           // Model 20B Groq sangat cepat, ringan, native tool calling
+    'llama-3.3-70b-versatile',      // Model 70B Groq: penalaran tinggi, native tool calling
     'llama-3.1-8b-instant',         // Model 8B Groq sangat cepat, ringan, native tool calling
     'mixtral-8x7b-32768',           // Model MoE 32k konteks
     'gemma2-9b-it',                 // Model Google Gemma 2 di infrastruktur Groq
@@ -1119,7 +1121,7 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
                     status: 'pending',
                   })
                 }
-
+              } else if (tc.name === 'update_payment_hotkeys' && parsed.tunai && parsed.qris) {
                 actionBlocks.push({
                   id: tc.id || `act-${Date.now()}-${actionBlocks.length}`,
                   action: 'update_payment_hotkeys',
@@ -1212,7 +1214,7 @@ Jika pengguna hanya bertanya atau mengobrol biasa, jangan sertakan blok \`\`\`ac
                   },
                   status: 'pending',
                 })
-
+              } else if (parsed.type === 'update_payment_hotkeys' && parsed.tunai && parsed.qris) {
                 actionBlocks.push({
                   id: `act-${Date.now()}-${actionBlocks.length}`,
                   action: 'update_payment_hotkeys',
